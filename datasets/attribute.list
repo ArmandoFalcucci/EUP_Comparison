@@ -1,0 +1,37 @@
+ATTRIBUTE LIST
+Site
+Layer
+Square (removed form the selected as not available in Niochet and not needed for the comparative study)
+Piece Original ID = ID
+Entirety = Preservation
+Cortex.y.n (NEW CATEGORY)
+CxSimpl = Cortex
+CxPosition = Cortex.position
+Length
+Width
+Thickness (In Niochet renamed from Thick)
+EL = Elongation
+ButtType = Platform
+BulbMorph = Bulb
+Lipp = Lip
+OvAb = Abrasion (Correctly interpreted?)
+Axiality
+Out = Outline.morphology
+Symmetry
+CrossSectMorph = Cross.section
+Pro = Profile
+DEndMorph = Distal.end.morpho
+StructureCat = Blank.type
+TechCat = Technology
+CAT (don’t know what it is, excluded)
+NegN = Number.negatives
+NegType = Negatives.type
+NegOSimpl = Dorsal.scar.1
+NegO = Dorsal.scar.2
+R = Tool
+..to be completed with the retouch stuff
+
+----
+NEW LIST
+Site, Layer, ID, Preservation, Cortex.y.n, Cortex, Cortex.position, Length, Width, Thickness, Elongation, Platform, Bulb, Lip, Abrasion, Axiality, Outline.morphology, Symmetry, Cross.section, Profile, Distal.end.morpho, Blank.type, Technology, Number.negatives, Negatives.type, Dorsal.scar.1, Dorsal.scar.2, Tool
+..to be completed with retouch stuff

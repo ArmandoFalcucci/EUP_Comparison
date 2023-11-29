@@ -1,0 +1,20 @@
+---
+title: "Notes of A. Falcucci"
+output: html_notebook
+---
+
+### 29.11.2023
+
+1. I have started by renaming a few attributes to make them better for the R language and more comprehensible to the readers.
+2. I have included a new category (**Cortex.y.n**) in case we need to create two macro-categories.
+3. I have excluded **Square**, **Cat**, and all attributes after the retouch. They should be renamed following the steps listed in the script *datasets.reshaped* and included in the main dataset.
+4. The file *attribute.list* contains attributes and uncertainties colored in red.
+5. What is now missing is the renaming of the categories within each attribute to make statistical investigation smoother. This can be done following the example provided below:
+```{r}
+# mutate(Cortex.y.n = recode(Cortex.y.n, Extensive = "Yes", Full = "Yes", Semi = "Yes"))
+# Cortex.y.n = this is the name of the attribute
+# Then it goes the old name and, after the equal symbol (=), the "new name"
+```
+
+
+
