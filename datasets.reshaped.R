@@ -39,10 +39,15 @@ dataset.blank.gennai.reshaped <- dataset.blank.gennai.reshaped %>%
   select(Site, Layer, ID, Preservation, Cortex.y.n, Cortex, Cortex.position, Length, Width, Thickness, Elongation, Platform, Bulb, Lip, Abrasion, Axiality, Outline.morphology, Symmetry, Cross.section, Profile, Distal.end.morpho, Blank.type, Technology, Number.negatives, Negatives.type, Dorsal.scar.1, Dorsal.scar.2, Tool)
 
 # Niochet
-dataset.blank.niochet.reshaped <- dataset.blank.gennai.reshaped %>%
+dataset.blank.niochet.reshaped <- dataset.blank.niochet.reshaped %>%
   select(Site, Layer, ID, Preservation, Cortex.y.n, Cortex, Cortex.position, Length, Width, Thickness, Elongation, Platform, Bulb, Lip, Abrasion, Axiality, Outline.morphology, Symmetry, Cross.section, Profile, Distal.end.morpho, Blank.type, Technology, Number.negatives, Negatives.type, Dorsal.scar.1, Dorsal.scar.2, Tool)
 
 
 # Merging datasets ####
 
 dataset.blank.main <- rbind(dataset.blank.gennai.reshaped, dataset.blank.niochet.reshaped)
+
+
+# Exporting the merged datasets ####
+
+writexl::write_xlsx(dataset.blank.main, "datasets/dataset.merged.xlsx")
