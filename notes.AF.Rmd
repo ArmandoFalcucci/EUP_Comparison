@@ -16,5 +16,10 @@ output: html_notebook
 # Then it goes the old name and, after the equal symbol (=), the "new name"
 ```
 
+### 06.12.2023
 
-
+1. I have included the dataset from FUmane, taking into account the external area of the excavation up to the lines of square 80s. This is the same sampling I used for my paper in JASs.
+2. Important note: the attribute twisting/torsion is separated in my case. This needs to be merged in case. For the time being, in order to keep it, I have created an empty column for the other sites and include the torsion attribute of Fumane. This is divided into 0 (no torsion), 1L or 1R (sligthly twisted to the Left or Right), 2L or 2R (twisted to the Left or Right).
+3. The attribute Negative.types is a bit tricky for me because I only recorded if there were bladelet scars on the dorsal faces of blades (with TRUE and FALSE statements).
+4. In my case, Dorsal.scar.1 and Dorsal.scar.2 is the same (duplicated columns) because I have another attribute in my original dataset that is very complex and difficult to reshape easily. We need just to change my entries in the simplified one with the same attributes used for Rom, Ansab, and CTS.
+5. In my case, the Symmetry attribute refers to the symmetry of the cross section. I think it's the same for the other but it is important to notice it.
