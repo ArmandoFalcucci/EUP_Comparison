@@ -1,0 +1,386 @@
+---
+title: "Gennai, Falcucci, Niochet et al. EUP Comparison"
+author: "Jacopo Gennai"
+date: "2023-12-11"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+
+This is an R Markdown document containing the Rcode and workflow for the "reference_article".
+
+# Datasets
+
+the datasets contain raw data about technological analysis of four Early Upper Palaeolithic assemblages: 
+
+- Ansab AH1 (Jordan)
+- Romanesti-Dumbravita GH3 (Romania)
+- Fumane A1-A2 (Italy)
+- Les Cottés 04inf (France)
+
+the assemblages are stratified and radiometrically dated to the period 41-38 ka cal BP. 
+
+Datasets are available singularly at the Zenodo repository "insert link or reference". Datasets are divided in "Blanks", debitage products, and "Cores", exhausted blocks of raw material from which debitage products have been struck. The division is due to the different attributes recorded for the two categories. 
+
+Blanks
+
+```{r}
+setwd("C:/Users/jacop/OneDrive/Papers/Comparison EUP") #change the directory
+
+library(readxl)
+Gennai_Rom_Ansab_Blanks <- read_excel("C:/Users/jacop/OneDrive/Papers/Comparison EUP/Gennai_Rom&Ansab_Blanks.xlsx") #change the directory from which you are importing
+View(Gennai_Rom_Ansab_Blanks)
+```
+
+
+```{r}
+Falcucci_Fumane_Blanks <- read_excel("C:/Users/jacop/OneDrive/Papers/Comparison EUP/Falcucci_Fumane_Blanks.xlsx") #change the directory from which you are importing
+View(Falcucci_Fumane_Blanks)
+```
+
+
+```{r}
+Niochet_CTS_US04inf_Blanks <- read_excel("C:/Users/jacop/OneDrive/Papers/Comparison EUP/Niochet_CTS-US04inf_Blanks.xlsx") #change the directory from which you are importing
+View(Niochet_CTS_US04inf_Blanks)
+
+#listing the attributes
+str(Gennai_Rom_Ansab_Blanks)
+knitr::kable(t(data.frame(names(Gennai_Rom_Ansab_Blanks))), col.names = NULL, row.names = FALSE)
+str(Falcucci_Fumane_Blanks)
+knitr::kable(t(data.frame(names(Falcucci_Fumane_Blanks))), col.names = NULL, row.names = FALSE)
+str(Niochet_CTS_US04inf_Blanks)
+knitr::kable(t(data.frame(names(Niochet_CTS_US04inf_Blanks))), col.names = NULL, row.names = FALSE)
+```
+
+Cores
+
+```{r}
+Gennai_Rom_Ansab_Cores <- read_excel("C:/Users/jacop/OneDrive/Papers/Comparison EUP/Gennai_Rom&Ansab_Cores.xlsx") #change the directory from which you are importing
+View(Gennai_Rom_Ansab_Cores)
+
+Niochet_CTS_US04inf_Cores <- read_excel("C:/Users/jacop/OneDrive/Papers/Comparison EUP/Niochet_CTS-US04inf_Cores.xlsx") 
+View(Niochet_CTS_US04inf_Cores)
+
+#listing the attributes
+str(Gennai_Rom_Ansab_Cores)
+knitr::kable(t(data.frame(names(Gennai_Rom_Ansab_Cores))), col.names = NULL, row.names = FALSE)
+str(Niochet_CTS_US04inf_Cores)
+knitr::kable(t(data.frame(names(Niochet_CTS_US04inf_Cores))), col.names = NULL, row.names = FALSE)
+
+
+```
+
+# Comparing the attributes
+
+Blanks (bold are comparable attributes across databases)
+
+Gennai : **Site**	**Layer**	Square	**Piece Original ID**	**Entirety**	**CxSimpl**	**CxPosition**	**Length**	**Width**	**Thick**	**El**	**ButtType**	**BulbMorph**	**Lipp**	**OvAb**	**Axiality**	**Out**	**Symmetry**	**CrossSectMorph**	**Pro**	**DEndMorph**	**StructureCat**	**TechCat**	Cat	**NegN**	NegType	**NegOSimpl**	**NegO**	R	**RLoc**	**RPos**	RDis	RDel	RExt	RAng	RMorph	Description
+
+Falcucci : **ID**	**Layer**	**square**	sub.square	raw.material	**class**	**blank**	**technology**	**technology.ext**	**Cortex**	Cortex.y.n	**Cortex.position**	preservation	**Preservation**	**Length**	**Width**	**Thickness**	**Elongation**	robustness	platform.width	platform.thickness	platformW.T.	**platform.type**	platform.shape	**platform.angle**	**dorsal.thinning**	bulb	**bulb.type**	bulbar.scar	**lip**	lip.type	**curvature**	**torsion**	**cross.section**	**cross.section.symmetry**	**scar.count**	**axiality**	**scar.pattern**	distal.end	**distal.end.profile**	**blank.shape**	bladelet.neg.blade	blade.neg.flake	typology	typology.reduced	**retouch.position**	**dorsal.retouch.localization**	**ventral.retouch.localization**	retouch.length	**Site**
+
+Niochet: **Site**	**Layer**	**Piece Original ID**	**Entirety**	**CxSimpl**	**CxPosition**	**Length**	**Width**	**Thick**	**El**	**ButtType**	**BulbMorph**	**Lipp**	**OvAb**	**Axiality**	**Out	Symmetry**	**CrossSectMorph**	**Pro**	**DEndMorph**	**StructureCat**	**TechCat**	**Cat**	**NegN**	NegType	**NegOSimpl**	**NegO**	**R**	**RLoc**	**RPos**	**RDis**	RDel	RExt	RAng	RMorph	Description	,	Entretien antéro-latéral ?	percu organique	bulbe marqué-court	talon plusieurs points de percussion	Bipolaire / sur appui ?	TALON DÉCALÉ (déb oblique?)	PHOTO	Classe	Sous-classe	Type technique	Sous-type technique	MP	Largeur talon	Épaisseur talon	Type de lèvre	Symétrie section	DendMorph full CTS	!!! NEW : Type de cassure	Terminaison	Axe retouche
+
+Cores
+
+Gennai: Site	Layer	Square	Piece Original ID	Entirety	Length	Width	Thickness	CO	CxP	NSP	SPtype	SPR	SP-FS angle	Ab	NFS	FSR	FSS	2FSS	NegType	NegN	BladeNegN	BladeletsNegN	NegO	SNegN	SNegO	SNegType	CoreCat	Length LCN	Width LCN	Elongation LCN	Description LCN	Description
+
+Falcucci: 
+
+Niochet: Site	Layer	Piece Original ID	Entirety	Length	Width	Thickness	CO	CxP	NSP	SPtype	SPR	SP-FS angle	Ab	NFS	FSR	FSS	2FSS	NegType	NegN	BladeNegN	BladeletsNegN	NegO	SNegN	SNegO	SNegType	CoreCat	Length LCN	Width LCN	Elongation LCN	Description LCN	Description
+
+# Selecting attributes to merge the datasets
+
+Blanks
+
+- Site
+- Layer
+- ID (Gennai and Niochet Piece Original ID)
+- Entirety (Falcucci Preservation)
+- CxSimpl (Falcucci Cortex)
+- CxPosition (Falcucci Cortex.position)
+- Length
+- Width
+- Thickness (Gennai and Niochet Thick)
+- El (Falcucci Elongation)
+- ButtType (Falcucci platform.type)
+- BulbMorph (Falcucci Bulb)
+- Lipp (Falcucci Lip)
+- OvAb (Falcucci dorsal.thinning)
+- Axiality (Falcucci axiality)
+- Out (Falcucci blank.shape)
+- Symmetry (Falcucci cross.section.symmetry)
+- CrossSectMorph (Falcucci cross.section)
+- Pro (Falcucci curvature, complement with Curvature Gennai values to accomodate loss of twisted)
+- Torsion (split the Gennai and Niochet Pro, if Twisted yes)
+- DEndMorph (Falcucci distal.end.profile)
+- StructureCat (Falcucci blank)
+- TechCat (Falcucci technology)
+- Cat (Falcucci technology.ext) 
+- NegN (Falcucci scar.count)
+- NegType = Negatives.type?
+- NegOSimpl = Dorsal.scar.1
+- NegO (Falcucci scar.pattern)
+- R (Falcucci Class, replace Tool with "yes" and the rest with "no")
+- RPos (Falcucci retouch.position)
+- RLoc & RDis (split Falcucci dorsal.retouch.localization and Falcucci ventral.retouch.localization)
+
+# Final lists of attributes
+
+Blank 
+
+- Site
+- Layer 
+- ID
+- Preservation
+- Cortex.y.n (NEW)
+- Cortex
+- Cortex.position
+- Length
+- Width
+- Thickness
+- Elongation
+- Platform
+- Bulb
+- Lip
+- Abrasion
+- Axiality
+- Outline.morphology
+- Symmetry
+- Cross.section
+- Profile
+- Torsion
+- Distal.end.morpho
+- Blank.type
+- Technology.Phase
+- Technology.Ext
+- Number.negatives
+- Negatives.type
+- Dorsal.scar.1
+- Dorsal.scar.2 
+- Tool
+- Retouch.Position 
+- Retouch.Location
+- Retouch.Distribution
+
+Cores
+
+- Site	
+- Layer	
+- ID (Gennai and Niochet Piece Original ID)	
+- Preservation (Gennai and Niochet Entirety)	
+- Length	
+- Width	
+- Thickness	
+- Elongation (NEW to calculate)
+- Cortex.y.n (NEW)
+- Cortex.position (Gennai and Niochet CxP)
+- Number.Platforms (Gennai & Niochet NSP)
+- Platform (Gennai & Niochet SPtype)
+- Platform.Relationship (Gennai & Niochet SPR, ex. single platform, opposed etc..)
+- Angle.de.Chasse (Gennai & Niochet SP-FS angle)
+- Abrasion (Gennai & Niochet Ab)
+- Number.Flaking.Surfaces (Gennai & Niochet NFS)
+- Flaking.Surface.Relationship (Gennai & Niochet FSR)
+- Flaking.Surface.Type (Gennai & Niochet FSS, ex. convergent)
+- 2Flaking.Surface.Type (if more than one)
+- Number.negatives
+-	Negatives.type	
+- Blade.Negatives.Number (applicable?)
+- Bladelets.Negatives.Number (applicable?)	
+- Dorsal.scar.1 (Gennai & Niochet NegO)
+- Supporting.negatives.number (i.e. shaping, SNegN)
+- Supporting.Dorsal.scar.(SNegO)
+- Supporting.Negatives.type (SNegType)	
+- Technology (CoreCat)	
+- Length LCN (last complete negative, applicable to you?)
+- Width LCN	
+- Elongation LCN	
+- Description LCN	
+
+# Reshaping datasets according to new attributes
+Blanks
+```{r}
+library(dplyr)
+
+Gennai_Blanks_reshaped <- Gennai_Rom_Ansab_Blanks %>%
+  rename(ID2 = "Piece Original ID", Preservation = "Entirety", Cortex="Cx", Cortex.position = "CxPosition", Thickness = "Thick", Elongation = "El", Platform = "ButtType", Bulb = "BulbMorph", Lip = "Lipp", Abrasion = "OvAb", Outline.morphology = "Out", Cross.section = "CrossSectMorph", Profile = "Pro", Distal.end.morpho = "DEndMorph",Blank.type = "StructureCat", Technology.Phase = "TechCat", Technology.Extended = "Cat", Number.negatives = "NegN", Negatives.type = "NegType", Dorsal.scar.2 = "NegO", Tool = "R", Retouch.Position ="RPos", Retouch.Location ="RLoc", Retouch.Distribution="RDis") %>%
+  mutate(Cortex= case_when(Cortex == "0" ~ "No Cortex",
+    Cortex %in% c("1-24%", "24-49%","25-49%", "50%") ~ "Semi",
+    Cortex %in% c("51-74%", "75-99%") ~ "Extensive",
+    Cortex == "100%" ~ "Full"))%>%
+  mutate(Cortex.y.n = Cortex, .after = Cortex.position) %>% #INSERT CORTEX.Y.N
+  mutate(Cortex.y.n = recode(Cortex.y.n, Extensive = "Yes", Full = "Yes", Semi ="Yes"))%>%
+  mutate(Torsion = Profile, .after = Profile) %>% #INSERT Torsion
+  mutate(Torsion = recode(Torsion, Twisted = "Yes", Straight= "No", Curved= "No", "Very Curved"="No", "Slightly Curved"="No"))%>%
+mutate(Profile = case_when(
+    Profile == "Twisted" & Curv >= 0 & Curv <= 2.9 ~ "Straight", #using Bon 2002 values
+    Profile == "Twisted" & Distal.end.morpho =="Feathered" ~ "Straight", #assuming that if feathered it's straight
+    Profile == "Twisted" & Curv > 2.9 & Curv <= 5.9 ~ "Slightly Curved", #using Bon 2002 values
+    Profile == "Twisted" & Distal.end.morpho =="Plunging" ~ "Slightly Curved", #assuming that if it's plunging then it's at least slightly curved
+    Profile == "Twisted" & Curv > 5.9 & Curv <= 8.9 ~ "Curved", #using Bon 2002 values
+    Profile == "Twisted" & Curv > 8.9 ~ "Very Curved",
+    TRUE ~ Profile  # Keep the original Profile if not Twisted
+  ))%>%
+mutate(Technology.Extended= case_when(Technology.Extended == "1" ~ "Ordinary flake",
+ Technology.Extended == "2" ~ "Cortical flake",  
+ Technology.Extended %in% c("3", "3a") ~ "Core tablet",
+ Technology.Extended == "4" ~ "Maintenance flake",
+ Technology.Extended %in% c("4a", "4b") ~ "Flaking surface maintenance flake",
+ Technology.Extended == "5" ~ "Maintenance laminar",
+ Technology.Extended %in% c("5a", "5a1") ~ "Crested laminar",
+ Technology.Extended %in% c("5b", "5b1") ~ "Lateral asymmetrical laminar",
+ Technology.Extended %in% c("5c", "5c1") ~ "Overshot laminar",
+ Technology.Extended %in% c("5d", "5d1") ~ "Flaking surface maintenance laminar",
+ Technology.Extended %in% c("6", "6a", "6a1", "6b", "6B", "6b1") ~ "Ordinary blade",
+ Technology.Extended %in% c("7", "7a", "7a1", "7b", "7b1") ~ "Ordinary bladelet",
+ Technology.Extended == "7c" ~ "Burin spall"
+ ))%>%
+  mutate(Dorsal.scar.1 = Dorsal.scar.2, .after = Dorsal.scar.2) %>%
+  mutate(Dorsal.scar.1 = case_when(
+    Dorsal.scar.1 %in% c("Unidirectional+Convergent", "Unidirectional+Orthogonal", "Unidirectional+Crossed") ~ "Unidirectional",
+    Dorsal.scar.1 %in% c("Convergent", "Convergent+Orthogonal") ~ "Unidirectional",
+    Dorsal.scar.1 == "Crossed+Orthogonal" ~ "Crossed",
+    Dorsal.scar.1 %in% c("Unidirectional+Convergent+Crossed", "Unidirectional+Convergent+Orthogonal", "Unidirectional+Crossed+Orthogonal") ~ "Unidirectional",
+    Dorsal.scar.1 %in% c("Bidirectional+Crossed", "Bidirectional+Convergent", "Bidirectional+Orthogonal") ~ "Bidirectional",
+    TRUE ~ Dorsal.scar.2
+  ))
+View(Gennai_Blanks_reshaped)
+str(Gennai_Blanks_reshaped)  # CHECK THE NEW DATASET
+unique(Gennai_Blanks_reshaped$Technology.Extended)
+unique(Gennai_Blanks_reshaped$Dorsal.scar.1)
+  
+```
+
+```{r}
+Niochet_Blanks_reshaped <- Niochet_CTS_US04inf_Blanks %>%
+  rename(ID2 = "Piece Original ID", Preservation = "Entirety", Cortex="CxSimpl", Cortex.position = "CxPosition", Thickness = "Thick", Elongation = "El", Platform = "ButtType", Bulb = "BulbMorph", Lip = "Lipp", Abrasion = "OvAb", Outline.morphology = "Out", Cross.section = "CrossSectMorph", Profile = "Pro", Distal.end.morpho = "DEndMorph",Blank.type = "StructureCat", Technology.Phase = "TechCat", Technology.Extended = "Cat", Number.negatives = "NegN", Negatives.type = "NegType", Dorsal.scar.1= "NegOSimpl", Dorsal.scar.2 = "NegO", Tool = "R", Retouch.Position ="RPos", Retouch.Location ="RLoc", Retouch.Distribution="RDis") %>%
+  mutate(Cortex.y.n = Cortex, .after = Cortex.position) %>% #INSERT CORTEX.Y.N
+  mutate(Cortex.y.n = recode(Cortex.y.n, Extensive = "Yes", Full = "Yes", Semi ="Yes"))%>%
+  mutate(Torsion = Profile, .after = Profile) %>% #INSERT Torsion
+  mutate(Torsion = recode(Torsion, Twisted = "Yes", Straight= "No", Curved= "No", "Very Curved"="No", "Slightly Curved"="No"))%>%
+mutate(Profile = case_when(
+    Profile == "Twisted" & Distal.end.morpho =="Feathered" ~ "Straight", #assuming that if feathered it's straight
+    Profile == "Twisted" & Distal.end.morpho =="Plunging" ~ "Slightly Curved", #assuming that if it's plunging then it's at least slightly curved
+    TRUE ~ Profile  # Keep the original Profile if not Twisted
+  ))%>%
+mutate(Technology.Extended= case_when(Technology.Extended == "1" ~ "Ordinary flake",
+ Technology.Extended == "2" ~ "Cortical flake",  
+ Technology.Extended %in% c("3", "3a") ~ "Core tablet",
+ Technology.Extended == "4" ~ "Maintenance flake",
+ Technology.Extended %in% c("4a", "4b") ~ "Flaking surface maintenance flake",
+ Technology.Extended == "5" ~ "Maintenance laminar",
+ Technology.Extended %in% c("5a", "5a1") ~ "Crested laminar",
+ Technology.Extended %in% c("5b", "5b1") ~ "Lateral asymmetrical laminar",
+ Technology.Extended %in% c("5c", "5c1") ~ "Overshot laminar",
+ Technology.Extended %in% c("5d", "5d1") ~ "Flaking surface maintenance laminar",
+ Technology.Extended %in% c("6", "6a", "6a1", "6b", "6B", "6b1") ~ "Ordinary blade",
+ Technology.Extended %in% c("7", "7a", "7a1", "7b", "7b1") ~ "Ordinary bladelet",
+ Technology.Extended == "7c" ~ "Burin spall"
+ ))
+View(Niochet_Blanks_reshaped)
+str(Niochet_Blanks_reshaped)  # CHECK THE NEW DATASET
+```
+
+```{r}
+Falcucci_Blanks_reshaped <- Falcucci_Fumane_Blanks %>%
+  rename(ID2="ID", Bulb = "bulb.type", Platform = "platform.type", Bulb = "bulb.type", Lip = "lip.type", Abrasion = "dorsal.thinning", Outline.morphology = "blank.shape", Cross.section = "cross.section", Symmetry = "cross.section.symmetry", Profile = "curvature", Torsion = "torsion", Distal.end.morpho = "distal.end", Blank.type = "blank", Technology.Phase = "technology",Technology.Extended ="technology.ext", Axiality = "axiality", Number.negatives = "scar.count", Negatives.type = "bladelet.neg.blade", Dorsal.scar.1 = "scar.pattern", Tool = "class", Retouch.Position="retouch.position") %>%
+  mutate(Tool = recode(Tool, Blank = "No", Tool = "Yes")) %>%
+  mutate(Cortex = case_when(
+    Cortex == "0%"~ "No",
+    Cortex == "1-33%"~ "Semi",
+    Cortex == "33-66%"~ "Semi",
+    Cortex == "66-99%"~ "Extensive",
+    Cortex == "100%"~ "Full")) %>%
+  mutate(Dorsal.scar.2 = Dorsal.scar.1)%>%
+  mutate(Technology.Extended = case_when(
+  Technology.Extended == "Blade correction surface" ~ "Flaking surface maintenance laminar",
+  
+  Technology.Extended == "Crested blade" ~ "Crested laminar",
+  Technology.Extended == "Crested secondary blade" ~ "Crested laminar",
+  Technology.Extended == "Dihedral" ~ "Crested laminar",
+  Technology.Extended == "Croisée" ~ "Crested laminar",
+  Technology.Extended == "Manteinance blade" ~ "Maintenance laminar",
+  
+  Technology.Extended == "debordant blade" ~ "Lateral asymmetrical laminar",
+  Technology.Extended == "Lateral" ~ "Lateral asymmetrical laminar",
+  Technology.Extended == "Lateral blade" ~ "Lateral asymmetrical laminar",
+  
+  Technology.Extended == "Bladelet" ~ "Ordinary bladelet",
+  Technology.Extended == "Blade" ~ "Ordinary blade",
+  Technology.Extended == "Flake" ~ "Ordinary flake",
+  
+  Blank.type == "flake" & Technology.Extended == "Optimal" ~ "Ordinary flake",
+  Blank.type == "blade" & Technology.Extended == "Optimal" ~ "Ordinary blade",
+  Blank.type == "bladelet" & Technology.Extended == "Optimal" ~ "Ordinary bladelet",
+  
+  Blank.type == "flake" & Technology.Extended == "Maintenance" ~ "Maintenance flake",
+  Blank.type == "blade" & Technology.Extended == "Maintenance" ~ "Maintenance laminar",
+  Blank.type == "bladelet" & Technology.Extended == "Maintenance" ~ "Maintenance laminar",
+  
+  Blank.type == "blade" & Technology.Extended == "Semi-cortical" ~ "Semi-cortical blade",
+  Blank.type == "bladelet" & Technology.Extended == "Semi-cortical" ~ "Semi-cortical bladelet",
+  Blank.type == "flake" & Technology.Extended == "Semi-cortical" ~ "Semi-cortical flake",
+  
+  Blank.type == "blade" & Technology.Extended == "Cortical" ~ "Cortical blade",
+  Blank.type == "bladelet" & Technology.Extended == "Cortical" ~ "Cortical bladelet",
+  Blank.type == "flake" & Technology.Extended == "Cortical" ~ "Cortical flake",
+  
+  Blank.type == "blade" & Technology.Extended == "Crest" ~ "Crested laminar",
+  Blank.type == "bladelet" & Technology.Extended == "Crest" ~ "Crested laminar",
+  Blank.type == "flake" & Technology.Extended == "Crest" ~ "Crested flake",
+  
+  Blank.type == "flake" & Technology.Extended == "Second-crest" ~ "Neo-crest flake",
+  Blank.type == "blade" & Technology.Extended == "Second-crest" ~ "Crested blade",
+  Blank.type == "bladelet" & Technology.Extended == "Second-crest" ~ "Crested laminar",
+  
+  Blank.type == "flake" & Technology.Extended == "Neo-crest" ~ "Neo-crest flake",
+  Blank.type == "blade" & Technology.Extended == "Neo-crest" ~ "Crested blade",
+  Blank.type == "bladelet" & Technology.Extended == "Neo-crest" ~ "Crested laminar",
+  
+  TRUE ~ as.character(Technology.Extended)
+))
+
+Falcucci_Blanks_reshaped$Symmetry <- as.factor(Falcucci_Blanks_reshaped$Symmetry)
+
+Falcucci_Blanks_reshaped<- Falcucci_Blanks_reshaped %>%
+  mutate(Symmetry = recode(Symmetry, `TRUE` = "symmetric", `FALSE` = "asymmetric"))
+
+View(Falcucci_Blanks_reshaped)
+str(Falcucci_Blanks_reshaped)
+
+```
+
+# Merge the datasets in one
+
+```{r}
+Gennai_Blanks_reshaped <- Gennai_Blanks_reshaped %>%
+  select(Site, Layer, ID2, Preservation, Cortex.y.n, Cortex, Cortex.position, Length, Width, Thickness, Elongation, Platform, Bulb, Lip, Abrasion, Axiality, Outline.morphology, Symmetry, Cross.section, Profile, Torsion, Distal.end.morpho, Blank.type, Technology.Phase, Technology.Extended, Number.negatives, Negatives.type, Dorsal.scar.1, Dorsal.scar.2, Tool, Retouch.Position)
+
+# Niochet
+Niochet_Blanks_reshaped <- Niochet_Blanks_reshaped %>%
+  select(Site, Layer, ID2, Preservation, Cortex.y.n, Cortex, Cortex.position, Length, Width, Thickness, Elongation, Platform, Bulb, Lip, Abrasion, Axiality, Outline.morphology, Symmetry, Cross.section, Profile, Torsion, Distal.end.morpho, Blank.type, Technology.Phase, Technology.Extended, Number.negatives, Negatives.type, Dorsal.scar.1, Dorsal.scar.2, Tool, Retouch.Position)
+
+# Falcucci
+Falcucci_Blanks_reshaped <- Falcucci_Blanks_reshaped %>%
+  select(Site, Layer, ID2, Preservation, Cortex.y.n, Cortex, Cortex.position, Length, Width, Thickness, Elongation, Platform, Bulb, Lip, Abrasion, Axiality, Outline.morphology, Symmetry, Cross.section, Profile, Torsion, Distal.end.morpho, Blank.type, Technology.Phase, Technology.Extended, Number.negatives, Negatives.type, Dorsal.scar.1, Dorsal.scar.2, Tool, Retouch.Position)
+
+# Merging datasets ####
+
+Blank_Main <- rbind(Gennai_Blanks_reshaped, Niochet_Blanks_reshaped, Falcucci_Blanks_reshaped)
+
+Blank_Main <- Blank_Main %>%
+  rename(ID="ID2")
+str(Blank_Main)
+
+# Exporting the merged datasets ####
+
+library(writexl)
+writexl::write_xlsx(Blank_Main, "Ans_Rom_Fum_CTS_Blanksmerged.xlsx")
+
+```
+
+
