@@ -28,3 +28,7 @@ output: html_notebook
 ### 11.12.2023 Jacopo Gennai
 
 I changed the title to a more generic "Notes". From this day on write your name after the day of the change.
+
+### 13.12.2023
+
+I uploaded the datasets again because I noticed numeric variables (like Lenght) weren't showing as that because therewere characters (NA) in the cells. I also worked Armando's code in a single Rmarkdown file that shows every step. I would need to talk with Armando on the 18th to understand how to change is observations because at the moment they are very detailed and I don't want to make changes before understanding how we can shorten it without loosing much info. 
