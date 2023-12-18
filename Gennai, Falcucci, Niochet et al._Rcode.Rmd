@@ -236,12 +236,19 @@ mutate(Technology.Extended= case_when(Technology.Extended == "1" ~ "Ordinary fla
  ))%>%
   mutate(Dorsal.scar.1 = Dorsal.scar.2, .after = Dorsal.scar.2) %>%
   mutate(Dorsal.scar.1 = case_when(
-    Dorsal.scar.1 %in% c("Unidirectional+Convergent", "Unidirectional+Orthogonal", "Unidirectional+Crossed") ~ "Unidirectional",
-    Dorsal.scar.1 %in% c("Convergent", "Convergent+Orthogonal") ~ "Unidirectional",
+    Dorsal.scar.1 %in% c("Unidirectional+Convergent", 
+                         "Unidirectional+Orthogonal", 
+                         "Unidirectional+Crossed",
+                         "Convergent",
+                         "Convergent+Orthogonal",
+                         "Unidirectional+Convergent+Crossed", 
+                         "Unidirectional+Convergent+Orthogonal", "
+                         Unidirectional+Crossed+Orthogonal") ~ "Unidirectional",
     Dorsal.scar.1 == "Crossed+Orthogonal" ~ "Crossed",
-    Dorsal.scar.1 %in% c("Unidirectional+Convergent+Crossed", "Unidirectional+Convergent+Orthogonal", "Unidirectional+Crossed+Orthogonal") ~ "Unidirectional",
-    Dorsal.scar.1 %in% c("Bidirectional+Crossed", "Bidirectional+Convergent", "Bidirectional+Orthogonal") ~ "Bidirectional",
-    TRUE ~ Dorsal.scar.2
+    Dorsal.scar.1 %in% c("Bidirectional+Crossed", 
+                         "Bidirectional+Convergent", 
+                         "Bidirectional+Orthogonal") ~ "Bidirectional",
+    TRUE ~ Dorsal.scar.1
   ))
 View(Gennai_Blanks_reshaped)
 str(Gennai_Blanks_reshaped)  # CHECK THE NEW DATASET
@@ -275,7 +282,22 @@ mutate(Technology.Extended= case_when(Technology.Extended == "1" ~ "Ordinary fla
  Technology.Extended %in% c("6", "6a", "6a1", "6b", "6B", "6b1") ~ "Ordinary blade",
  Technology.Extended %in% c("7", "7a", "7a1", "7b", "7b1") ~ "Ordinary bladelet",
  Technology.Extended == "7c" ~ "Burin spall"
- ))
+ )) %>%
+mutate(Dorsal.scar.1 = case_when(
+    Dorsal.scar.1 %in% c("Unidirectional+Convergent", 
+                         "Unidirectional+Orthogonal", 
+                         "Unidirectional+Crossed",
+                         "Convergent",
+                         "Convergent+Orthogonal",
+                         "Unidirectional+Convergent+Crossed", 
+                         "Unidirectional+Convergent+Orthogonal", "
+                         Unidirectional+Crossed+Orthogonal") ~ "Unidirectional",
+    Dorsal.scar.1 == "Crossed+Orthogonal" ~ "Crossed",
+    Dorsal.scar.1 %in% c("Bidirectional+Crossed", 
+                         "Bidirectional+Convergent", 
+                         "Bidirectional+Orthogonal") ~ "Bidirectional",
+    TRUE ~ Dorsal.scar.1
+  ))
 View(Niochet_Blanks_reshaped)
 str(Niochet_Blanks_reshaped)  # CHECK THE NEW DATASET
 ```
@@ -380,7 +402,12 @@ writexl::write_xlsx(Blank_Main, "Ans_Rom_Fum_CTS_Blanksmerged.xlsx")
 ```
 
 ```{r}
-#keep only complete and semi and determined blanks
+library(readxl)
+library(dplyr)
+Blank_Main <- read_excel(file.choose()) # get the Ans_Rom_Fum_CTS_Blanksmerged.xlsx
+
+
+
 Blank_Main_reshaped <- Blank_Main %>%
   mutate(Preservation = case_when(
     Preservation == "Almost-complete" ~ "Complete",
@@ -389,10 +416,12 @@ Blank_Main_reshaped <- Blank_Main %>%
     TRUE ~ Preservation  # CTS is OK
   )) %>%
   filter(Preservation %in% c("Complete", "Prox+Mes", "Mes+Dist")) %>%
-  filter(Blank.type %in% c("Blade", "Bladelet", "Flake"))
+  filter(Blank.type %in% c("Blade", "Bladelet", "Flake")) #keep only complete and semi and determined blanks
 
 str(Blank_Main_reshaped)
 View(Blank_Main_reshaped)
+
+#check unique values to reshape them
 
 unique(Blank_Main_reshaped$Site)
 unique(Blank_Main_reshaped$Preservation)
@@ -592,15 +621,15 @@ mutate(Lip.simpl = case_when(
   Torsion == "NA" ~ "",
   Torsion %in% c("Slightly curved", 
                  "Curved slightly", 
-                 "Curved sligthly") ~ "No",
-  Torsion %in% c("Very curved", 
-                 "Slightly curved", 
-                 "0", 
-                 "1L", 
+                 "Curved sligthly",
+                 "0",
+                 "Very curved", 
+                 "Slightly curved") ~ "No",
+  Torsion %in% c("1L", 
                  "2R", 
                  "1R", 
-                 "2L", 
-                 "Undetermined",
+                 "2L") ~ "Yes",
+  Torsion %in% c("Undetermined",
                  "undetermined", 
                  "Curved inverse") ~ "ND",
   TRUE ~ Torsion  # keep the others
@@ -619,16 +648,26 @@ mutate(Lip.simpl = case_when(
   TRUE ~ Distal.end.morpho  # keep the others
 )) %>%
 mutate(Technology.Phase = case_when(
-  Technology.Phase %in% c("Simple", 
-                          "Optimal") ~ "Ordinary",
-  Technology.Phase %in% c("Mgmt", 
-                          "Mngt", 
-                          "Maintenance") ~ "MGMT",
-  Technology.Phase %in% c("Semi-cortical", 
-                          "Initialization") ~ "Init",
-  TRUE ~ Technology.Phase  # keep the others
+    Technology.Phase %in% c("Simple", 
+                            "Optimal") ~ "Ordinary",
+    Technology.Phase %in% c("Mgmt", 
+                            "Mngt", 
+                            "Maintenance",
+                            "Semi-cortical") ~ "MGMT", #semicortical from FUMANE are assumed to be MGTM
+    Technology.Phase == "Initialization" ~ "Init",
+    TRUE ~ Technology.Phase  # keep the others
+)) %>%
+mutate(Dorsal.scar.1 = case_when(
+    Dorsal.scar.1 %in% c("Orthogonal", 
+                         "Unidirectional transverse",
+                         "Unidirectional+Crossed+Orthogonal") ~ "Crossed",
+    Dorsal.scar.1 %in% c("Unidirectional convergent", 
+                         "Unidirectional parallel" ) ~ "Unidirectional",
+    Dorsal.scar.1 %in% c("Multidirectional", 
+                         "Centripedal") ~ "Centripetal",
+    Dorsal.scar.1 %in% c("Undetermined") ~ "ND",
+    TRUE ~ Dorsal.scar.1  # keep the others
 ))
-
 library(writexl)
 writexl::write_xlsx(Blank_Main_reshaped1, "Ans_Rom_Fum_CTS_Blanksmerged_reshaped.xlsx")
 
@@ -653,7 +692,7 @@ unique(Blank_Main_reshaped1$Blank.type)
 unique(Blank_Main_reshaped1$Technology.Phase)
 unique(Blank_Main_reshaped1$Technology.Extended)
 unique(Blank_Main_reshaped1$Negatives.type)
-unique(Blank_Main_reshaped1$Dorsal.scar.2)
+unique(Blank_Main_reshaped1$Dorsal.scar.1)
 unique(Blank_Main_reshaped1$Retouch.Position)
   
 ```
