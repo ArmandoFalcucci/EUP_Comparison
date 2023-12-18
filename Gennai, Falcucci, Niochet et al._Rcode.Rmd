@@ -29,22 +29,16 @@ Datasets are available singularly at the Zenodo repository "insert link or refer
 Blanks
 
 ```{r}
-setwd("C:/Users/jacop/OneDrive/Papers/Comparison EUP") #change the directory
+setwd("C:/Users/Jacopo/OneDrive/Papers/Comparison EUP") #change the directory
 
 library(readxl)
-Gennai_Rom_Ansab_Blanks <- read_excel("C:/Users/jacop/OneDrive/Papers/Comparison EUP/Gennai_Rom&Ansab_Blanks.xlsx") #change the directory from which you are importing
+Gennai_Rom_Ansab_Blanks <- read_excel(file.choose()) #Get the Gennai_Rom&Ansab_Blanks.xlsx
 View(Gennai_Rom_Ansab_Blanks)
-```
 
-
-```{r}
-Falcucci_Fumane_Blanks <- read_excel("C:/Users/jacop/OneDrive/Papers/Comparison EUP/Falcucci_Fumane_Blanks.xlsx") #change the directory from which you are importing
+Falcucci_Fumane_Blanks <- read_excel(file.choose()) #Get the Falcucci_Fumane_Blanks.xlsx
 View(Falcucci_Fumane_Blanks)
-```
 
-
-```{r}
-Niochet_CTS_US04inf_Blanks <- read_excel("C:/Users/jacop/OneDrive/Papers/Comparison EUP/Niochet_CTS-US04inf_Blanks.xlsx") #change the directory from which you are importing
+Niochet_CTS_US04inf_Blanks <- read_excel(file.choose()) #Get the Niochet_CTS-US04inf_Blanks.xlsx
 View(Niochet_CTS_US04inf_Blanks)
 
 #listing the attributes
@@ -56,13 +50,14 @@ str(Niochet_CTS_US04inf_Blanks)
 knitr::kable(t(data.frame(names(Niochet_CTS_US04inf_Blanks))), col.names = NULL, row.names = FALSE)
 ```
 
+
 Cores
 
 ```{r}
-Gennai_Rom_Ansab_Cores <- read_excel("C:/Users/jacop/OneDrive/Papers/Comparison EUP/Gennai_Rom&Ansab_Cores.xlsx") #change the directory from which you are importing
+Gennai_Rom_Ansab_Cores <- read_excel(file.choose()) #get the Gennai_Rom&Ansab_Cores.xlsx
 View(Gennai_Rom_Ansab_Cores)
 
-Niochet_CTS_US04inf_Cores <- read_excel("C:/Users/jacop/OneDrive/Papers/Comparison EUP/Niochet_CTS-US04inf_Cores.xlsx") 
+Niochet_CTS_US04inf_Cores <- read_excel(file.choose()) #get the Niochet_CTSUS04inf_Cores.xlsx
 View(Niochet_CTS_US04inf_Cores)
 
 #listing the attributes
@@ -313,33 +308,33 @@ Falcucci_Blanks_reshaped <- Falcucci_Fumane_Blanks %>%
   Technology.Extended == "Blade" ~ "Ordinary blade",
   Technology.Extended == "Flake" ~ "Ordinary flake",
   
-  Blank.type == "flake" & Technology.Extended == "Optimal" ~ "Ordinary flake",
-  Blank.type == "blade" & Technology.Extended == "Optimal" ~ "Ordinary blade",
-  Blank.type == "bladelet" & Technology.Extended == "Optimal" ~ "Ordinary bladelet",
+  Blank.type == "Flake" & Technology.Extended == "Optimal" ~ "Ordinary flake",
+  Blank.type == "Blade" & Technology.Extended == "Optimal" ~ "Ordinary blade",
+  Blank.type == "Bladelet" & Technology.Extended == "Optimal" ~ "Ordinary bladelet",
   
-  Blank.type == "flake" & Technology.Extended == "Maintenance" ~ "Maintenance flake",
-  Blank.type == "blade" & Technology.Extended == "Maintenance" ~ "Maintenance laminar",
-  Blank.type == "bladelet" & Technology.Extended == "Maintenance" ~ "Maintenance laminar",
+  Blank.type == "Flake" & Technology.Extended == "Maintenance" ~ "Maintenance flake",
+  Blank.type == "Blade" & Technology.Extended == "Maintenance" ~ "Maintenance laminar",
+  Blank.type == "Bladelet" & Technology.Extended == "Maintenance" ~ "Maintenance laminar",
   
-  Blank.type == "blade" & Technology.Extended == "Semi-cortical" ~ "Semi-cortical blade",
-  Blank.type == "bladelet" & Technology.Extended == "Semi-cortical" ~ "Semi-cortical bladelet",
-  Blank.type == "flake" & Technology.Extended == "Semi-cortical" ~ "Semi-cortical flake",
+  Blank.type == "Blade" & Technology.Extended == "Semi-cortical" ~ "Semi-cortical blade",
+  Blank.type == "Bladelet" & Technology.Extended == "Semi-cortical" ~ "Semi-cortical bladelet",
+  Blank.type == "Flake" & Technology.Extended == "Semi-cortical" ~ "Semi-cortical flake",
   
-  Blank.type == "blade" & Technology.Extended == "Cortical" ~ "Cortical blade",
-  Blank.type == "bladelet" & Technology.Extended == "Cortical" ~ "Cortical bladelet",
-  Blank.type == "flake" & Technology.Extended == "Cortical" ~ "Cortical flake",
+  Blank.type == "Blade" & Technology.Extended == "Cortical" ~ "Cortical blade",
+  Blank.type == "Bladelet" & Technology.Extended == "Cortical" ~ "Cortical bladelet",
+  Blank.type == "Flake" & Technology.Extended == "Cortical" ~ "Cortical flake",
   
-  Blank.type == "blade" & Technology.Extended == "Crest" ~ "Crested laminar",
-  Blank.type == "bladelet" & Technology.Extended == "Crest" ~ "Crested laminar",
-  Blank.type == "flake" & Technology.Extended == "Crest" ~ "Crested flake",
+  Blank.type == "Blade" & Technology.Extended == "Crest" ~ "Crested laminar",
+  Blank.type == "Bladelet" & Technology.Extended == "Crest" ~ "Crested laminar",
+  Blank.type == "Flake" & Technology.Extended == "Crest" ~ "Crested flake",
   
-  Blank.type == "flake" & Technology.Extended == "Second-crest" ~ "Neo-crest flake",
-  Blank.type == "blade" & Technology.Extended == "Second-crest" ~ "Crested blade",
-  Blank.type == "bladelet" & Technology.Extended == "Second-crest" ~ "Crested laminar",
+  Blank.type == "Flake" & Technology.Extended == "Second-crest" ~ "Neo-crest flake",
+  Blank.type == "Blade" & Technology.Extended == "Second-crest" ~ "Crested blade",
+  Blank.type == "Bladelet" & Technology.Extended == "Second-crest" ~ "Crested laminar",
   
-  Blank.type == "flake" & Technology.Extended == "Neo-crest" ~ "Neo-crest flake",
-  Blank.type == "blade" & Technology.Extended == "Neo-crest" ~ "Crested blade",
-  Blank.type == "bladelet" & Technology.Extended == "Neo-crest" ~ "Crested laminar",
+  Blank.type == "Flake" & Technology.Extended == "Neo-crest" ~ "Neo-crest flake",
+  Blank.type == "Blade" & Technology.Extended == "Neo-crest" ~ "Crested blade",
+  Blank.type == "Bladelet" & Technology.Extended == "Neo-crest" ~ "Crested laminar",
   
   TRUE ~ as.character(Technology.Extended)
 ))
@@ -351,8 +346,9 @@ Falcucci_Blanks_reshaped<- Falcucci_Blanks_reshaped %>%
 
 View(Falcucci_Blanks_reshaped)
 str(Falcucci_Blanks_reshaped)
-
 ```
+
+
 
 # Merge the datasets in one
 
@@ -383,4 +379,293 @@ writexl::write_xlsx(Blank_Main, "Ans_Rom_Fum_CTS_Blanksmerged.xlsx")
 
 ```
 
+```{r}
+#keep only complete and semi and determined blanks
+Blank_Main_reshaped <- Blank_Main %>%
+  mutate(Preservation = case_when(
+    Preservation == "Almost-complete" ~ "Complete",
+    Preservation %in% c("Mes+Prox" , Preservation == "Mesio-proximal")~ "Prox+Mes",
+    Preservation == "Mesio-distal" ~ "Mes+Dist",
+    TRUE ~ Preservation  # CTS is OK
+  )) %>%
+  filter(Preservation %in% c("Complete", "Prox+Mes", "Mes+Dist")) %>%
+  filter(Blank.type %in% c("Blade", "Bladelet", "Flake"))
 
+str(Blank_Main_reshaped)
+View(Blank_Main_reshaped)
+
+unique(Blank_Main_reshaped$Site)
+unique(Blank_Main_reshaped$Preservation)
+unique(Blank_Main_reshaped$Cortex.y.n)
+unique(Blank_Main_reshaped$Cortex)
+unique(Blank_Main_reshaped$Cortex.position)
+unique(Blank_Main_reshaped$Bulb)
+unique(Blank_Main_reshaped$Lip)
+unique(Blank_Main_reshaped$Abrasion)
+unique(Blank_Main_reshaped$Axiality)
+unique(Blank_Main_reshaped$Outline.morphology)
+unique(Blank_Main_reshaped$Symmetry)
+unique(Blank_Main_reshaped$Cross.section)
+unique(Blank_Main_reshaped$Profile)
+unique(Blank_Main_reshaped$Torsion)
+unique(Blank_Main_reshaped$Distal.end.morpho)
+unique(Blank_Main_reshaped$Blank.type)
+unique(Blank_Main_reshaped$Technology.Phase)
+unique(Blank_Main_reshaped$Technology.Extended)
+unique(Blank_Main_reshaped$Negatives.type)
+unique(Blank_Main_reshaped$Dorsal.scar.2)
+unique(Blank_Main_reshaped$Retouch.Position)
+
+
+Blank_Main_reshaped1 <- Blank_Main_reshaped %>%
+  mutate(Site = case_when(
+    Site == "Ansab"~ "AN",
+    Site == "Romanesti-Dumbravita I"~ "ROM",
+    Site == "Fumane"~ "FUM",
+    TRUE ~ Site  # CTS is OK
+    )) %>%
+mutate(Cortex.y.n = case_when(
+    Cortex.y.n %in% c("No Cortex", 
+                      "no")~ "No",
+    Cortex.y.n == "yes"~ "Yes",
+    TRUE ~ Cortex.y.n  # keep the others
+    )) %>%
+mutate(Cortex = case_when(
+    Cortex == "No Cortex"~ "No",
+    TRUE ~ Cortex  # keep the others
+    )) %>%
+mutate(Cortex.position.simpl = Cortex.position, .after = Cortex.position) %>% #INSERT CORTEX.postition.simpl
+mutate(Cortex.position.simpl = case_when(
+  Cortex.position.simpl %in% c("No Cortex", "ND", "No cortex") ~ "No",
+  Cortex.position.simpl %in% c(
+    "Lateral left", 
+    "Lateral right", 
+    "Right", 
+    "Left lateral complete",
+    "Right lateral partial",
+    "Left lateral partial",
+    "Right lateral complete"
+  ) ~ "Lateral",
+  Cortex.position.simpl %in% c(
+    "Left lateral complete;Right lateral partial", 
+    "Left lateral complete;Right lateral complete",
+    "Left lateral partial;Right lateral partial"
+  ) ~ "Bilateral",
+  Cortex.position.simpl %in% c(
+    "Lateral left+Proximal", 
+    "Lateral right + Proximal", 
+    "Lateral left + Proximal",
+    "Left lateral partial;Proximal",
+    "Proximal;Right lateral partial",
+    "Proximal;Right lateral complete",
+    "Left lateral complete;Proximal"
+  ) ~ "Lateral+Proximal",
+  Cortex.position.simpl %in% c(
+    "Dorsal+Lateral left", 
+    "Lateral right + Dorsal", 
+    "Lateral left + Dorsal", 
+    "Lateral right + Dorsal"
+  ) ~ "Lateral+Dorsal",
+  Cortex.position.simpl %in% c(
+    "Distal+Lateral left", 
+    "Lateral right + Distal", 
+    "Lateral left + Distal",
+    "Distal;Left lateral complete", 
+    "Distal;Right lateral partial",
+    "Distal;Left lateral partial"
+  ) ~ "Lateral+Distal",
+  Cortex.position.simpl %in% c("Distal right", "Distal left") ~ "Distal",
+  Cortex.position.simpl %in% c(
+    "Bilateral + Distal", 
+    "Dorsal distal", 
+    "Dorsal + Distal" ,
+    "Distal;Right lateral complete",
+    "Distal;Middle/centre;Proximal", 
+    "Middle/centre",
+    "Middle/centre;Proximal",
+    "Distal;Middle/centre",
+    "Middle/centre;Right lateral complete",
+    "100%", 
+    "Middle/centre;Proximal", 
+    "Dorsal + Distal",
+    "Proximal + Dorsal",
+    "Distal;Middle/centre",
+    "Distal;Left lateral complete;Proximal",
+    "Left lateral partial;Middle/centre", 
+    "Left lateral complete;Middle/centre",
+    "Distal;Middle/centre;Right lateral complete",
+    "Distal;Left lateral partial;Middle/centre;Right lateral partial",
+    "Distal;Left lateral complete;Middle/centre;Right lateral complete",
+    "Distal;Left lateral partial;Proximal",
+    "Distal;Proximal;Right lateral complete"
+  ) ~ "Dorsal",
+  Cortex.position.simpl == "Distal;Proximal" ~ "Distal+Proximal",
+  TRUE ~ Cortex.position.simpl
+)) %>%
+mutate(Bulb.simpl = Bulb, .after = Bulb) %>% #INSERT Bulb.simpl
+mutate(Bulb.simpl = case_when(
+  Bulb.simpl %in% c("No Prox Part",
+                    "No bulb",
+                    "Crushed") ~ "No",
+  Bulb.simpl %in% c("Moderate",
+                    "Diffused") ~ "Diffuse",
+  Bulb.simpl %in% c("Bulbar scar",
+                    "Pronounced")~ "Marked",
+  TRUE ~ Bulb.simpl  # keep the others
+    )) %>%
+mutate(Lip.simpl = Lip, .after = Lip) %>% #INSERT Lip.simpl
+mutate(Lip.simpl = case_when(
+  Lip.simpl %in% c("No Prox Part" , 
+                   "No Prox part" , 
+                   "No prox part") ~ "NA",
+  Lip.simpl %in%c("Moderate" , 
+                  "Pronunced") ~ "Yes",
+  is.na(Lip.simpl) | Bulb.simpl %in% c("Marked", "Diffuse")~ "NO",
+  TRUE ~ Lip.simpl  # keep the others
+    )) %>%
+  mutate(Abrasion.simpl = Abrasion, .after = Abrasion) %>% #INSERT Abrasion.simpl
+  mutate(Abrasion.simpl = case_when(
+  Abrasion.simpl %in% c("No Prox Part" , 
+                        "No Prox part", 
+                        "No prox part") ~ "NA",
+  Abrasion.simpl %in% c("Abrasion" , 
+                        "Hinged scars" , 
+                        "Abrasion;Hinged scars" , 
+                        "Abrasion;Pointed scars" , 
+                        "Pointed scars", 
+                        "Abrasion;Laminar scars", 
+                        "Hinged scars;Pointed scars", 
+                        "Laminar scars" , 
+                        "Abrasion;Hinged scars;Laminar scars" , 
+                        "Hinged scars;Laminar scars") ~ "Yes",
+  TRUE ~ Abrasion.simpl  # keep the others
+    )) %>%
+  mutate(Axiality.simpl = Axiality, .after = Axiality) %>% #INSERT Axiality.simpl
+  mutate(Axiality.simpl = case_when(
+  Axiality.simpl %in% c("On-axis", 
+                        "Axial", 
+                        "on-axis") ~ "On axis",
+  Axiality.simpl %in% c("Off-axis", 
+                        "off-axis", 
+                        "Off-axis to the right", 
+                        "Off-axis to the left",
+                        "Off-axis right",
+                        "Off-axis left") ~ "Off axis",
+  Axiality.simpl == "und" ~ "ND",
+  TRUE ~ Axiality.simpl  # keep the others
+))  %>%
+  mutate(Outline.morphology = case_when(
+  Outline.morphology %in% c("(sub)Parellel Edges",
+                            "(sub)Parellel edges" , 
+                            "Sub-parallel" , 
+                            "(sub)Parallel Edges" ) ~ "Subparallel edges",
+  Outline.morphology == "Off-axis" ~ "Déjète",
+  Outline.morphology == "Undetermined" ~ "ND",
+  Outline.morphology == "Irregular" ~ "Other",
+  Outline.morphology == "Convex" ~ "Convergent",
+  TRUE ~ Outline.morphology  # keep the others
+    )) %>%
+  mutate(Symmetry = case_when(
+  Symmetry == "NA" ~ "",
+  TRUE ~ Symmetry  # keep the others
+    )) %>%
+  mutate(Cross.section = case_when(
+  Cross.section == "NA" ~ "",
+  Cross.section %in% c("Polyhedral" , 
+                       "Polyhedral ",
+                      "Polyhedral " ) ~ "Polyhedric",
+  Cross.section == "Lateral steep" ~ "Triangular",
+  Cross.section == "Undetermined" ~ "ND",
+  TRUE ~ Cross.section  # keep the others
+    )) %>%
+  mutate(Profile = case_when(
+  Profile == "NA" ~ "",
+  Profile %in% c("Slightly curved", 
+                 "Curved slightly", 
+                 "Curved sligthly") ~ "Slightly Curved",
+  Profile == "Very curved" ~ "Very Curved",
+  Profile %in% c("undetermined", 
+                 "Curved inverse") ~ "ND",
+  TRUE ~ Profile  # keep the others
+)) %>%
+  mutate(Torsion = case_when(
+  Torsion == "NA" ~ "",
+  Torsion %in% c("Slightly curved", 
+                 "Curved slightly", 
+                 "Curved sligthly") ~ "No",
+  Torsion %in% c("Very curved", 
+                 "Slightly curved", 
+                 "0", 
+                 "1L", 
+                 "2R", 
+                 "1R", 
+                 "2L", 
+                 "Undetermined",
+                 "undetermined", 
+                 "Curved inverse") ~ "ND",
+  TRUE ~ Torsion  # keep the others
+)) %>%
+  mutate(Distal.end.morpho = case_when(
+  Distal.end.morpho %in% c("No Dist Part", 
+                           "NA") ~ "",
+  Distal.end.morpho %in% c("feathered", 
+                           "Convex", 
+                           "Straight") ~ "Feathered",
+  Distal.end.morpho %in% c("Retouched", 
+                           "Pointed", 
+                           "Irregular", 
+                           "Undetermined") ~ "ND",
+  Distal.end.morpho == "Cortical" ~ "Stepped",
+  TRUE ~ Distal.end.morpho  # keep the others
+)) %>%
+mutate(Technology.Phase = case_when(
+  Technology.Phase %in% c("Simple", 
+                          "Optimal") ~ "Ordinary",
+  Technology.Phase %in% c("Mgmt", 
+                          "Mngt", 
+                          "Maintenance") ~ "MGMT",
+  Technology.Phase %in% c("Semi-cortical", 
+                          "Initialization") ~ "Init",
+  TRUE ~ Technology.Phase  # keep the others
+))
+
+library(writexl)
+writexl::write_xlsx(Blank_Main_reshaped1, "Ans_Rom_Fum_CTS_Blanksmerged_reshaped.xlsx")
+
+#cheking
+View(Blank_Main_reshaped1)
+unique(Blank_Main_reshaped1$Site)
+unique(Blank_Main_reshaped1$Preservation)
+unique(Blank_Main_reshaped1$Cortex.y.n)
+unique(Blank_Main_reshaped1$Cortex)
+unique(Blank_Main_reshaped1$Cortex.position.simpl)
+unique(Blank_Main_reshaped1$Bulb.simpl)
+unique(Blank_Main_reshaped1$Lip.simpl)
+unique(Blank_Main_reshaped1$Abrasion.simpl)
+unique(Blank_Main_reshaped1$Axiality.simpl)
+unique(Blank_Main_reshaped1$Outline.morphology)
+unique(Blank_Main_reshaped1$Symmetry)
+unique(Blank_Main_reshaped1$Cross.section)
+unique(Blank_Main_reshaped1$Profile)
+unique(Blank_Main_reshaped1$Torsion)
+unique(Blank_Main_reshaped1$Distal.end.morpho)
+unique(Blank_Main_reshaped1$Blank.type)
+unique(Blank_Main_reshaped1$Technology.Phase)
+unique(Blank_Main_reshaped1$Technology.Extended)
+unique(Blank_Main_reshaped1$Negatives.type)
+unique(Blank_Main_reshaped1$Dorsal.scar.2)
+unique(Blank_Main_reshaped1$Retouch.Position)
+  
+```
+
+
+
+
+# Analysis
+
+
+```{r}
+Blank_Main_reshaped1 <- read_excel(file.choose()) #get the Ans_Rom_Fum_CTS_Blanksmerged_reshaped.xlsx
+View(Blank_Main_reshaped1)
+str(Blank_Main_reshaped1)
+```

@@ -381,16 +381,19 @@ and “Cores”, exhausted blocks of raw material from which debitage
 products have been struck. The division is due to the different
 attributes recorded for the two categories.</p>
 <p>Blanks</p>
-<pre class="r"><code>setwd(&quot;C:/Users/jacop/OneDrive/Papers/Comparison EUP&quot;) #change the directory
+<pre class="r"><code>setwd(&quot;C:/Users/Jacopo/OneDrive/Papers/Comparison EUP&quot;) #change the directory
 
-library(readxl)
-Gennai_Rom_Ansab_Blanks &lt;- read_excel(&quot;C:/Users/jacop/OneDrive/Papers/Comparison EUP/Gennai_Rom&amp;Ansab_Blanks.xlsx&quot;) #change the directory from which you are importing</code></pre>
+library(readxl)</code></pre>
+<pre><code>## Warning: package &#39;readxl&#39; was built under R version 4.3.2</code></pre>
+<pre class="r"><code>Gennai_Rom_Ansab_Blanks &lt;- read_excel(file.choose()) #Get the Gennai_Rom&amp;Ansab_Blanks.xlsx</code></pre>
 <pre><code>## Warning: Expecting numeric in AL1336 / R1336C38: got &#39;ND&#39;</code></pre>
 <pre><code>## Warning: Expecting numeric in AL1814 / R1814C38: got &#39;ND&#39;</code></pre>
-<pre class="r"><code>View(Gennai_Rom_Ansab_Blanks)</code></pre>
-<pre class="r"><code>Falcucci_Fumane_Blanks &lt;- read_excel(&quot;C:/Users/jacop/OneDrive/Papers/Comparison EUP/Falcucci_Fumane_Blanks.xlsx&quot;) #change the directory from which you are importing
-View(Falcucci_Fumane_Blanks)</code></pre>
-<pre class="r"><code>Niochet_CTS_US04inf_Blanks &lt;- read_excel(&quot;C:/Users/jacop/OneDrive/Papers/Comparison EUP/Niochet_CTS-US04inf_Blanks.xlsx&quot;) #change the directory from which you are importing</code></pre>
+<pre class="r"><code>View(Gennai_Rom_Ansab_Blanks)
+
+Falcucci_Fumane_Blanks &lt;- read_excel(file.choose()) #Get the Falcucci_Fumane_Blanks.xlsx
+View(Falcucci_Fumane_Blanks)
+
+Niochet_CTS_US04inf_Blanks &lt;- read_excel(file.choose()) #Get the Niochet_CTS-US04inf_Blanks.xlsx</code></pre>
 <pre><code>## New names:
 ## • `` -&gt; `...37`
 ## • `` -&gt; `...38`
@@ -906,10 +909,10 @@ str(Gennai_Rom_Ansab_Blanks)</code></pre>
 </tbody>
 </table>
 <p>Cores</p>
-<pre class="r"><code>Gennai_Rom_Ansab_Cores &lt;- read_excel(&quot;C:/Users/jacop/OneDrive/Papers/Comparison EUP/Gennai_Rom&amp;Ansab_Cores.xlsx&quot;) #change the directory from which you are importing
+<pre class="r"><code>Gennai_Rom_Ansab_Cores &lt;- read_excel(file.choose()) #get the Gennai_Rom&amp;Ansab_Cores.xlsx
 View(Gennai_Rom_Ansab_Cores)
 
-Niochet_CTS_US04inf_Cores &lt;- read_excel(&quot;C:/Users/jacop/OneDrive/Papers/Comparison EUP/Niochet_CTS-US04inf_Cores.xlsx&quot;) 
+Niochet_CTS_US04inf_Cores &lt;- read_excel(file.choose()) #get the Niochet_CTSUS04inf_Cores.xlsx
 View(Niochet_CTS_US04inf_Cores)
 
 #listing the attributes
@@ -1323,6 +1326,7 @@ platform, opposed etc..)</li>
 <h1>Reshaping datasets according to new attributes</h1>
 <p>Blanks</p>
 <pre class="r"><code>library(dplyr)</code></pre>
+<pre><code>## Warning: package &#39;dplyr&#39; was built under R version 4.3.2</code></pre>
 <pre><code>## 
 ## Attaching package: &#39;dplyr&#39;</code></pre>
 <pre><code>## The following objects are masked from &#39;package:stats&#39;:
@@ -1555,33 +1559,33 @@ str(Niochet_Blanks_reshaped)  # CHECK THE NEW DATASET</code></pre>
   Technology.Extended == &quot;Blade&quot; ~ &quot;Ordinary blade&quot;,
   Technology.Extended == &quot;Flake&quot; ~ &quot;Ordinary flake&quot;,
   
-  Blank.type == &quot;flake&quot; &amp; Technology.Extended == &quot;Optimal&quot; ~ &quot;Ordinary flake&quot;,
-  Blank.type == &quot;blade&quot; &amp; Technology.Extended == &quot;Optimal&quot; ~ &quot;Ordinary blade&quot;,
-  Blank.type == &quot;bladelet&quot; &amp; Technology.Extended == &quot;Optimal&quot; ~ &quot;Ordinary bladelet&quot;,
+  Blank.type == &quot;Flake&quot; &amp; Technology.Extended == &quot;Optimal&quot; ~ &quot;Ordinary flake&quot;,
+  Blank.type == &quot;Blade&quot; &amp; Technology.Extended == &quot;Optimal&quot; ~ &quot;Ordinary blade&quot;,
+  Blank.type == &quot;Bladelet&quot; &amp; Technology.Extended == &quot;Optimal&quot; ~ &quot;Ordinary bladelet&quot;,
   
-  Blank.type == &quot;flake&quot; &amp; Technology.Extended == &quot;Maintenance&quot; ~ &quot;Maintenance flake&quot;,
-  Blank.type == &quot;blade&quot; &amp; Technology.Extended == &quot;Maintenance&quot; ~ &quot;Maintenance laminar&quot;,
-  Blank.type == &quot;bladelet&quot; &amp; Technology.Extended == &quot;Maintenance&quot; ~ &quot;Maintenance laminar&quot;,
+  Blank.type == &quot;Flake&quot; &amp; Technology.Extended == &quot;Maintenance&quot; ~ &quot;Maintenance flake&quot;,
+  Blank.type == &quot;Blade&quot; &amp; Technology.Extended == &quot;Maintenance&quot; ~ &quot;Maintenance laminar&quot;,
+  Blank.type == &quot;Bladelet&quot; &amp; Technology.Extended == &quot;Maintenance&quot; ~ &quot;Maintenance laminar&quot;,
   
-  Blank.type == &quot;blade&quot; &amp; Technology.Extended == &quot;Semi-cortical&quot; ~ &quot;Semi-cortical blade&quot;,
-  Blank.type == &quot;bladelet&quot; &amp; Technology.Extended == &quot;Semi-cortical&quot; ~ &quot;Semi-cortical bladelet&quot;,
-  Blank.type == &quot;flake&quot; &amp; Technology.Extended == &quot;Semi-cortical&quot; ~ &quot;Semi-cortical flake&quot;,
+  Blank.type == &quot;Blade&quot; &amp; Technology.Extended == &quot;Semi-cortical&quot; ~ &quot;Semi-cortical blade&quot;,
+  Blank.type == &quot;Bladelet&quot; &amp; Technology.Extended == &quot;Semi-cortical&quot; ~ &quot;Semi-cortical bladelet&quot;,
+  Blank.type == &quot;Flake&quot; &amp; Technology.Extended == &quot;Semi-cortical&quot; ~ &quot;Semi-cortical flake&quot;,
   
-  Blank.type == &quot;blade&quot; &amp; Technology.Extended == &quot;Cortical&quot; ~ &quot;Cortical blade&quot;,
-  Blank.type == &quot;bladelet&quot; &amp; Technology.Extended == &quot;Cortical&quot; ~ &quot;Cortical bladelet&quot;,
-  Blank.type == &quot;flake&quot; &amp; Technology.Extended == &quot;Cortical&quot; ~ &quot;Cortical flake&quot;,
+  Blank.type == &quot;Blade&quot; &amp; Technology.Extended == &quot;Cortical&quot; ~ &quot;Cortical blade&quot;,
+  Blank.type == &quot;Bladelet&quot; &amp; Technology.Extended == &quot;Cortical&quot; ~ &quot;Cortical bladelet&quot;,
+  Blank.type == &quot;Flake&quot; &amp; Technology.Extended == &quot;Cortical&quot; ~ &quot;Cortical flake&quot;,
   
-  Blank.type == &quot;blade&quot; &amp; Technology.Extended == &quot;Crest&quot; ~ &quot;Crested laminar&quot;,
-  Blank.type == &quot;bladelet&quot; &amp; Technology.Extended == &quot;Crest&quot; ~ &quot;Crested laminar&quot;,
-  Blank.type == &quot;flake&quot; &amp; Technology.Extended == &quot;Crest&quot; ~ &quot;Crested flake&quot;,
+  Blank.type == &quot;Blade&quot; &amp; Technology.Extended == &quot;Crest&quot; ~ &quot;Crested laminar&quot;,
+  Blank.type == &quot;Bladelet&quot; &amp; Technology.Extended == &quot;Crest&quot; ~ &quot;Crested laminar&quot;,
+  Blank.type == &quot;Flake&quot; &amp; Technology.Extended == &quot;Crest&quot; ~ &quot;Crested flake&quot;,
   
-  Blank.type == &quot;flake&quot; &amp; Technology.Extended == &quot;Second-crest&quot; ~ &quot;Neo-crest flake&quot;,
-  Blank.type == &quot;blade&quot; &amp; Technology.Extended == &quot;Second-crest&quot; ~ &quot;Crested blade&quot;,
-  Blank.type == &quot;bladelet&quot; &amp; Technology.Extended == &quot;Second-crest&quot; ~ &quot;Crested laminar&quot;,
+  Blank.type == &quot;Flake&quot; &amp; Technology.Extended == &quot;Second-crest&quot; ~ &quot;Neo-crest flake&quot;,
+  Blank.type == &quot;Blade&quot; &amp; Technology.Extended == &quot;Second-crest&quot; ~ &quot;Crested blade&quot;,
+  Blank.type == &quot;Bladelet&quot; &amp; Technology.Extended == &quot;Second-crest&quot; ~ &quot;Crested laminar&quot;,
   
-  Blank.type == &quot;flake&quot; &amp; Technology.Extended == &quot;Neo-crest&quot; ~ &quot;Neo-crest flake&quot;,
-  Blank.type == &quot;blade&quot; &amp; Technology.Extended == &quot;Neo-crest&quot; ~ &quot;Crested blade&quot;,
-  Blank.type == &quot;bladelet&quot; &amp; Technology.Extended == &quot;Neo-crest&quot; ~ &quot;Crested laminar&quot;,
+  Blank.type == &quot;Flake&quot; &amp; Technology.Extended == &quot;Neo-crest&quot; ~ &quot;Neo-crest flake&quot;,
+  Blank.type == &quot;Blade&quot; &amp; Technology.Extended == &quot;Neo-crest&quot; ~ &quot;Crested blade&quot;,
+  Blank.type == &quot;Bladelet&quot; &amp; Technology.Extended == &quot;Neo-crest&quot; ~ &quot;Crested laminar&quot;,
   
   TRUE ~ as.character(Technology.Extended)
 ))
@@ -1602,7 +1606,7 @@ str(Falcucci_Blanks_reshaped)</code></pre>
 ##  $ Tool                        : chr [1:4650] &quot;Yes&quot; &quot;Yes&quot; &quot;Yes&quot; &quot;No&quot; ...
 ##  $ Blank.type                  : chr [1:4650] &quot;Blade&quot; &quot;Blade&quot; &quot;Blade&quot; &quot;Blade&quot; ...
 ##  $ Technology.Phase            : chr [1:4650] &quot;Semi-cortical&quot; &quot;Optimal&quot; &quot;Optimal&quot; &quot;Maintenance&quot; ...
-##  $ Technology.Extended         : chr [1:4650] &quot;Semi-cortical&quot; &quot;Optimal&quot; &quot;Optimal&quot; &quot;Maintenance&quot; ...
+##  $ Technology.Extended         : chr [1:4650] &quot;Semi-cortical blade&quot; &quot;Ordinary blade&quot; &quot;Ordinary blade&quot; &quot;Maintenance laminar&quot; ...
 ##  $ Cortex                      : chr [1:4650] &quot;Semi&quot; &quot;No&quot; &quot;No&quot; &quot;No&quot; ...
 ##  $ Cortex.y.n                  : chr [1:4650] &quot;yes&quot; &quot;no&quot; &quot;no&quot; &quot;no&quot; ...
 ##  $ Cortex.position             : chr [1:4650] &quot;Left lateral complete&quot; NA NA NA ...
@@ -1700,8 +1704,596 @@ str(Blank_Main)</code></pre>
 ##  $ Retouch.Position   : chr [1:9097] NA &quot;-&quot; NA NA ...</code></pre>
 <pre class="r"><code># Exporting the merged datasets ####
 
+library(writexl)</code></pre>
+<pre><code>## Warning: package &#39;writexl&#39; was built under R version 4.3.2</code></pre>
+<pre class="r"><code>writexl::write_xlsx(Blank_Main, &quot;Ans_Rom_Fum_CTS_Blanksmerged.xlsx&quot;)</code></pre>
+<pre class="r"><code>#keep only complete and semi and determined blanks
+Blank_Main_reshaped &lt;- Blank_Main %&gt;%
+  mutate(Preservation = case_when(
+    Preservation == &quot;Almost-complete&quot; ~ &quot;Complete&quot;,
+    Preservation %in% c(&quot;Mes+Prox&quot; , Preservation == &quot;Mesio-proximal&quot;)~ &quot;Prox+Mes&quot;,
+    Preservation == &quot;Mesio-distal&quot; ~ &quot;Mes+Dist&quot;,
+    TRUE ~ Preservation  # CTS is OK
+  )) %&gt;%
+  filter(Preservation %in% c(&quot;Complete&quot;, &quot;Prox+Mes&quot;, &quot;Mes+Dist&quot;)) %&gt;%
+  filter(Blank.type %in% c(&quot;Blade&quot;, &quot;Bladelet&quot;, &quot;Flake&quot;))
+
+str(Blank_Main_reshaped)</code></pre>
+<pre><code>## tibble [5,970 × 31] (S3: tbl_df/tbl/data.frame)
+##  $ Site               : chr [1:5970] &quot;Ansab&quot; &quot;Ansab&quot; &quot;Ansab&quot; &quot;Ansab&quot; ...
+##  $ Layer              : chr [1:5970] &quot;1&quot; &quot;2&quot; &quot;1&quot; &quot;1&quot; ...
+##  $ ID                 : chr [1:5970] &quot;An09.166.3.18&quot; &quot;AN1_9071&quot; &quot;An1.11.174.7a/b.276&quot; &quot;An09.174.3.52&quot; ...
+##  $ Preservation       : chr [1:5970] &quot;Complete&quot; &quot;Prox+Mes&quot; &quot;Complete&quot; &quot;Mes+Dist&quot; ...
+##  $ Cortex.y.n         : chr [1:5970] &quot;No Cortex&quot; &quot;Yes&quot; &quot;No Cortex&quot; &quot;No Cortex&quot; ...
+##  $ Cortex             : chr [1:5970] &quot;No Cortex&quot; &quot;Semi&quot; &quot;No Cortex&quot; &quot;No Cortex&quot; ...
+##  $ Cortex.position    : chr [1:5970] &quot;No Cortex&quot; &quot;Lateral left&quot; &quot;No Cortex&quot; &quot;No Cortex&quot; ...
+##  $ Length             : num [1:5970] 28 NA 22 NA NA NA NA NA NA NA ...
+##  $ Width              : num [1:5970] 10 13.3 9 5 8 ...
+##  $ Thickness          : num [1:5970] 2 2.26 1 1 1 1 1.05 1.48 3.01 0.94 ...
+##  $ Elongation         : num [1:5970] 2.8 NA 2.44 NA NA ...
+##  $ Platform           : chr [1:5970] &quot;Linear&quot; &quot;Linear&quot; &quot;Plain&quot; &quot;No Prox part&quot; ...
+##  $ Bulb               : chr [1:5970] &quot;Pronounced&quot; &quot;Diffused&quot; &quot;Pronounced&quot; &quot;No Prox part&quot; ...
+##  $ Lip                : chr [1:5970] &quot;No&quot; &quot;No&quot; &quot;No&quot; &quot;No Prox part&quot; ...
+##  $ Abrasion           : chr [1:5970] &quot;Yes&quot; &quot;Yes&quot; &quot;No&quot; &quot;No Prox part&quot; ...
+##  $ Axiality           : chr [1:5970] &quot;on-axis&quot; NA &quot;on-axis&quot; &quot;on-axis&quot; ...
+##  $ Outline.morphology : chr [1:5970] &quot;(sub)Parellel Edges&quot; &quot;No Dist Part&quot; &quot;Convergent&quot; &quot;Convergent&quot; ...
+##  $ Symmetry           : chr [1:5970] NA NA NA NA ...
+##  $ Cross.section      : chr [1:5970] &quot;Flat&quot; &quot;Flat&quot; &quot;Flat&quot; &quot;Flat&quot; ...
+##  $ Profile            : chr [1:5970] &quot;Straight&quot; &quot;Twisted&quot; &quot;Straight&quot; &quot;Straight&quot; ...
+##  $ Torsion            : chr [1:5970] &quot;No&quot; &quot;Yes&quot; &quot;No&quot; &quot;Yes&quot; ...
+##  $ Distal.end.morpho  : chr [1:5970] &quot;Feathered&quot; &quot;No Dist Part&quot; &quot;Feathered&quot; &quot;Feathered&quot; ...
+##  $ Blank.type         : chr [1:5970] &quot;Bladelet&quot; &quot;Blade&quot; &quot;Bladelet&quot; &quot;Bladelet&quot; ...
+##  $ Technology.Phase   : chr [1:5970] &quot;Simple&quot; &quot;Simple&quot; &quot;Simple&quot; &quot;Simple&quot; ...
+##  $ Technology.Extended: chr [1:5970] &quot;Ordinary bladelet&quot; &quot;Ordinary blade&quot; &quot;Ordinary bladelet&quot; &quot;Ordinary bladelet&quot; ...
+##  $ Number.negatives   : chr [1:5970] &quot;4&quot; &quot;2&quot; &quot;1&quot; &quot;3&quot; ...
+##  $ Negatives.type     : chr [1:5970] &quot;Bladelets&quot; &quot;Bladelets&quot; &quot;ND&quot; &quot;Bladelets&quot; ...
+##  $ Dorsal.scar.1      : chr [1:5970] &quot;Unidirectional&quot; &quot;Unidirectional&quot; &quot;Unidirectional&quot; &quot;Unidirectional&quot; ...
+##  $ Dorsal.scar.2      : chr [1:5970] &quot;Unidirectional&quot; &quot;Unidirectional&quot; &quot;Unidirectional&quot; &quot;Unidirectional+Convergent&quot; ...
+##  $ Tool               : chr [1:5970] &quot;No&quot; &quot;No&quot; &quot;No&quot; &quot;No&quot; ...
+##  $ Retouch.Position   : chr [1:5970] NA &quot;-&quot; NA NA ...</code></pre>
+<pre class="r"><code>View(Blank_Main_reshaped)
+
+unique(Blank_Main_reshaped$Site)</code></pre>
+<pre><code>## [1] &quot;Ansab&quot;                  &quot;Romanesti-Dumbravita I&quot; &quot;CTS&quot;                   
+## [4] &quot;Fumane&quot;</code></pre>
+<pre class="r"><code>unique(Blank_Main_reshaped$Preservation)</code></pre>
+<pre><code>## [1] &quot;Complete&quot; &quot;Prox+Mes&quot; &quot;Mes+Dist&quot;</code></pre>
+<pre class="r"><code>unique(Blank_Main_reshaped$Cortex.y.n)</code></pre>
+<pre><code>## [1] &quot;No Cortex&quot; &quot;Yes&quot;       &quot;No&quot;        &quot;yes&quot;       &quot;no&quot;</code></pre>
+<pre class="r"><code>unique(Blank_Main_reshaped$Cortex)</code></pre>
+<pre><code>## [1] &quot;No Cortex&quot; &quot;Semi&quot;      &quot;Extensive&quot; &quot;Full&quot;      &quot;No&quot;        NA</code></pre>
+<pre class="r"><code>unique(Blank_Main_reshaped$Cortex.position)</code></pre>
+<pre><code>##  [1] &quot;No Cortex&quot;                                                        
+##  [2] &quot;Lateral left&quot;                                                     
+##  [3] &quot;Distal&quot;                                                           
+##  [4] &quot;Dorsal&quot;                                                           
+##  [5] &quot;Proximal+Distal&quot;                                                  
+##  [6] &quot;Lateral right&quot;                                                    
+##  [7] &quot;Proximal&quot;                                                         
+##  [8] &quot;Lateral left+Proximal&quot;                                            
+##  [9] &quot;Bilateral&quot;                                                        
+## [10] &quot;No cortex&quot;                                                        
+## [11] NA                                                                 
+## [12] &quot;Right&quot;                                                            
+## [13] &quot;Dorsal+Lateral left&quot;                                              
+## [14] &quot;Distal+Lateral left&quot;                                              
+## [15] &quot;ND&quot;                                                               
+## [16] &quot;Dorsal + Distal&quot;                                                  
+## [17] &quot;Distal right&quot;                                                     
+## [18] &quot;Lateral right + Proximal&quot;                                         
+## [19] &quot;Lateral right + Distal&quot;                                           
+## [20] &quot;Bilateral + Distal&quot;                                               
+## [21] &quot;Lateral left + Distal&quot;                                            
+## [22] &quot;Lateral left + Dorsal&quot;                                            
+## [23] &quot;Lateral right + Dorsal&quot;                                           
+## [24] &quot;Proximal + Dorsal&quot;                                                
+## [25] &quot;Dorsal distal&quot;                                                    
+## [26] &quot;Lateral left + Proximal&quot;                                          
+## [27] &quot;Distal left&quot;                                                      
+## [28] &quot;Left lateral complete&quot;                                            
+## [29] &quot;Distal;Right lateral complete&quot;                                    
+## [30] &quot;Distal;Middle/centre&quot;                                             
+## [31] &quot;Right lateral partial&quot;                                            
+## [32] &quot;Left lateral partial&quot;                                             
+## [33] &quot;Proximal;Right lateral partial&quot;                                   
+## [34] &quot;Right lateral complete&quot;                                           
+## [35] &quot;Distal;Left lateral partial&quot;                                      
+## [36] &quot;Distal;Middle/centre;Proximal&quot;                                    
+## [37] &quot;Middle/centre&quot;                                                    
+## [38] &quot;100%&quot;                                                             
+## [39] &quot;Distal;Proximal&quot;                                                  
+## [40] &quot;Distal;Left lateral complete&quot;                                     
+## [41] &quot;Distal;Left lateral complete;Proximal&quot;                            
+## [42] &quot;Distal;Left lateral partial;Proximal&quot;                             
+## [43] &quot;Left lateral complete;Middle/centre&quot;                              
+## [44] &quot;Distal;Middle/centre;Right lateral complete&quot;                      
+## [45] &quot;Proximal;Right lateral complete&quot;                                  
+## [46] &quot;Left lateral partial;Middle/centre&quot;                               
+## [47] &quot;Distal;Proximal;Right lateral complete&quot;                           
+## [48] &quot;Left lateral partial;Right lateral partial&quot;                       
+## [49] &quot;Distal;Right lateral partial&quot;                                     
+## [50] &quot;Distal;Left lateral partial;Middle/centre;Right lateral partial&quot;  
+## [51] &quot;Middle/centre;Proximal&quot;                                           
+## [52] &quot;Left lateral complete;Proximal&quot;                                   
+## [53] &quot;Distal;Left lateral complete;Middle/centre;Right lateral complete&quot;
+## [54] &quot;Left lateral partial;Proximal&quot;</code></pre>
+<pre class="r"><code>unique(Blank_Main_reshaped$Bulb)</code></pre>
+<pre><code>##  [1] &quot;Pronounced&quot;    &quot;Diffused&quot;      &quot;No Prox part&quot;  &quot;Not perceived&quot;
+##  [5] &quot;ND&quot;            &quot;Bulbar scar&quot;   &quot;Crushed&quot;       &quot;No bulb&quot;      
+##  [9] NA              &quot;Moderate&quot;</code></pre>
+<pre class="r"><code>unique(Blank_Main_reshaped$Lip)</code></pre>
+<pre><code>## [1] &quot;No&quot;           &quot;No Prox part&quot; &quot;Yes&quot;          &quot;No Prox Part&quot; &quot;No prox part&quot;
+## [6] &quot;ND&quot;           &quot;Pronunced&quot;    &quot;Moderate&quot;     NA</code></pre>
+<pre class="r"><code>unique(Blank_Main_reshaped$Abrasion)</code></pre>
+<pre><code>##  [1] &quot;Yes&quot;                        &quot;No&quot;                        
+##  [3] &quot;No Prox part&quot;               &quot;NA&quot;                        
+##  [5] &quot;No prox part&quot;               &quot;ND&quot;                        
+##  [7] &quot;Abrasion&quot;                   &quot;Hinged scars&quot;              
+##  [9] NA                           &quot;Abrasion;Pointed scars&quot;    
+## [11] &quot;Abrasion;Hinged scars&quot;      &quot;Pointed scars&quot;             
+## [13] &quot;Abrasion;Laminar scars&quot;     &quot;Laminar scars&quot;             
+## [15] &quot;Hinged scars;Laminar scars&quot;</code></pre>
+<pre class="r"><code>unique(Blank_Main_reshaped$Axiality)</code></pre>
+<pre><code>##  [1] &quot;on-axis&quot;               NA                      &quot;off-axis&quot;             
+##  [4] &quot;On-axis&quot;               &quot;Off-axis to the right&quot; &quot;NA&quot;                   
+##  [7] &quot;Off-axis to the left&quot;  &quot;ND&quot;                    &quot;Axial&quot;                
+## [10] &quot;Off-axis right&quot;        &quot;Off-axis left&quot;         &quot;und&quot;</code></pre>
+<pre class="r"><code>unique(Blank_Main_reshaped$Outline.morphology)</code></pre>
+<pre><code>##  [1] &quot;(sub)Parellel Edges&quot; &quot;No Dist Part&quot;        &quot;Convergent&quot;         
+##  [4] &quot;Off-axis&quot;            &quot;(sub)Parellel edges&quot; &quot;ND&quot;                 
+##  [7] &quot;NA&quot;                  &quot;(sub)Parallel Edges&quot; &quot;Other&quot;              
+## [10] &quot;Sub-parallel&quot;        NA                    &quot;Irregular&quot;          
+## [13] &quot;Convex&quot;              &quot;Undetermined&quot;</code></pre>
+<pre class="r"><code>unique(Blank_Main_reshaped$Symmetry)</code></pre>
+<pre><code>## [1] NA           &quot;asymmetric&quot; &quot;symmetric&quot;  &quot;NA&quot;         &quot;ND&quot;</code></pre>
+<pre class="r"><code>unique(Blank_Main_reshaped$Cross.section)</code></pre>
+<pre><code>##  [1] &quot;Flat&quot;          &quot;ND&quot;            &quot;Polyhedric&quot;    &quot;Triangular&quot;   
+##  [5] &quot;NA&quot;            &quot;Lateral steep&quot; &quot;Trapezoidal&quot;   &quot;Polyhedral&quot;   
+##  [9] &quot;Undetermined&quot;  NA              &quot;Polyhedral &quot;</code></pre>
+<pre class="r"><code>unique(Blank_Main_reshaped$Profile)</code></pre>
+<pre><code>##  [1] &quot;Straight&quot;        &quot;Twisted&quot;         &quot;Curved&quot;          &quot;Slightly Curved&quot;
+##  [5] &quot;Very Curved&quot;     &quot;Very curved&quot;     &quot;ND&quot;              &quot;NA&quot;             
+##  [9] &quot;Slightly curved&quot; &quot;Curved slightly&quot; NA                &quot;Curved sligthly&quot;
+## [13] &quot;Curved inverse&quot;</code></pre>
+<pre class="r"><code>unique(Blank_Main_reshaped$Torsion)</code></pre>
+<pre><code>##  [1] &quot;No&quot;              &quot;Yes&quot;             &quot;Very curved&quot;     &quot;ND&quot;             
+##  [5] &quot;NA&quot;              &quot;Slightly curved&quot; &quot;0&quot;               &quot;1L&quot;             
+##  [9] &quot;1R&quot;              &quot;2R&quot;              &quot;2L&quot;              NA</code></pre>
+<pre class="r"><code>unique(Blank_Main_reshaped$Distal.end.morpho)</code></pre>
+<pre><code>##  [1] &quot;Feathered&quot;    &quot;No Dist Part&quot; &quot;Stepped&quot;      &quot;Hinged&quot;       &quot;Plunging&quot;    
+##  [6] &quot;ND&quot;           &quot;feathered&quot;    &quot;NA&quot;           &quot;Cortical&quot;     &quot;Retouched&quot;   
+## [11] &quot;Convex&quot;       &quot;Irregular&quot;    &quot;Straight&quot;     &quot;Undetermined&quot; &quot;Pointed&quot;     
+## [16] NA</code></pre>
+<pre class="r"><code>unique(Blank_Main_reshaped$Blank.type)</code></pre>
+<pre><code>## [1] &quot;Bladelet&quot; &quot;Blade&quot;    &quot;Flake&quot;</code></pre>
+<pre class="r"><code>unique(Blank_Main_reshaped$Technology.Phase)</code></pre>
+<pre><code>##  [1] &quot;Simple&quot;         &quot;Mgmt&quot;           &quot;Tablet&quot;         &quot;Spall&quot;         
+##  [5] &quot;Init&quot;           &quot;Mngt&quot;           &quot;Semi-cortical&quot;  &quot;Optimal&quot;       
+##  [9] &quot;Maintenance&quot;    &quot;Initialization&quot;</code></pre>
+<pre class="r"><code>unique(Blank_Main_reshaped$Technology.Extended)</code></pre>
+<pre><code>##  [1] &quot;Ordinary bladelet&quot;                   &quot;Ordinary blade&quot;                     
+##  [3] &quot;Lateral asymmetrical laminar&quot;        &quot;Overshot laminar&quot;                   
+##  [5] &quot;Flaking surface maintenance laminar&quot; &quot;Crested laminar&quot;                    
+##  [7] &quot;Maintenance laminar&quot;                 &quot;Core tablet&quot;                        
+##  [9] &quot;Burin spall&quot;                         &quot;Cortical flake&quot;                     
+## [11] &quot;Ordinary flake&quot;                      &quot;Flaking surface maintenance flake&quot;  
+## [13] &quot;Maintenance flake&quot;                   &quot;Semi-cortical blade&quot;                
+## [15] &quot;Crested blade&quot;                       &quot;Cortical blade&quot;                     
+## [17] &quot;Neo-crest flake&quot;                     &quot;Semi-cortical flake&quot;                
+## [19] &quot;Semi-cortical bladelet&quot;              &quot;Tablet&quot;                             
+## [21] &quot;Levallois&quot;                           &quot;Cortical bladelet&quot;                  
+## [23] &quot;Crested flake&quot;                       NA</code></pre>
+<pre class="r"><code>unique(Blank_Main_reshaped$Negatives.type)</code></pre>
+<pre><code>##  [1] &quot;Bladelets&quot;                   &quot;ND&quot;                         
+##  [3] &quot;No negatives&quot;                &quot;Flakes&quot;                     
+##  [5] &quot;Blades&quot;                      &quot;Blades &amp; Bladelets&quot;         
+##  [7] &quot;Blades &amp; Flakes&quot;             &quot;Bladelets &amp; Flakes&quot;         
+##  [9] &quot;Blades &amp; Bladelets &amp; Flakes&quot; &quot;No Negatives&quot;               
+## [11] &quot;Combination&quot;                 &quot;NA&quot;                         
+## [13] &quot;TRUE&quot;                        &quot;FALSE&quot;                      
+## [15] NA</code></pre>
+<pre class="r"><code>unique(Blank_Main_reshaped$Dorsal.scar.2)</code></pre>
+<pre><code>##  [1] &quot;Unidirectional&quot;                             
+##  [2] &quot;Unidirectional+Convergent&quot;                  
+##  [3] &quot;No negatives&quot;                               
+##  [4] &quot;Crossed&quot;                                    
+##  [5] &quot;Unidirectional+Orthogonal&quot;                  
+##  [6] &quot;Bidirectional&quot;                              
+##  [7] &quot;Convergent&quot;                                 
+##  [8] &quot;Orthogonal&quot;                                 
+##  [9] &quot;Unidirectional+Crossed&quot;                     
+## [10] &quot;Convergent+Orthogonal&quot;                      
+## [11] &quot;Crossed+Orthogonal&quot;                         
+## [12] &quot;Unidirectional+Convergent+Orthogonal&quot;       
+## [13] &quot;Bidirectional+Crossed&quot;                      
+## [14] &quot;Bidirectional+Convergent&quot;                   
+## [15] &quot;Unidirectional+Crossed+Orthogonal&quot;          
+## [16] &quot;ND&quot;                                         
+## [17] &quot;Bidirectional+Orthogonal&quot;                   
+## [18] &quot;Unidirectional+Convergent+Crossed&quot;          
+## [19] &quot;Multidirectional&quot;                           
+## [20] &quot;Crested&quot;                                    
+## [21] &quot;Unidirectional + Orthogonal&quot;                
+## [22] &quot;Unidirectional + Bidirectional + Orthogonal&quot;
+## [23] &quot;Bidirectional + Orthogonal&quot;                 
+## [24] &quot;Cortical&quot;                                   
+## [25] &quot;Convergent + Bidirectionnal&quot;                
+## [26] &quot;Convergent + Bipolar&quot;                       
+## [27] &quot;Convergent + Bidirectional&quot;                 
+## [28] &quot;Convergent + Orthogonal&quot;                    
+## [29] &quot;Convergent + Crested&quot;                       
+## [30] &quot;Unidirectional parallel&quot;                    
+## [31] &quot;Unidirectional convergent&quot;                  
+## [32] &quot;Unidirectional transverse&quot;                  
+## [33] &quot;Centripedal&quot;                                
+## [34] &quot;Other&quot;                                      
+## [35] &quot;Undetermined&quot;                               
+## [36] NA</code></pre>
+<pre class="r"><code>unique(Blank_Main_reshaped$Retouch.Position)</code></pre>
+<pre><code>## [1] NA          &quot;-&quot;         &quot;Alternate&quot; &quot;Direct&quot;    &quot;Inverse&quot;   &quot;Crossed&quot;</code></pre>
+<pre class="r"><code>Blank_Main_reshaped1 &lt;- Blank_Main_reshaped %&gt;%
+  mutate(Site = case_when(
+    Site == &quot;Ansab&quot;~ &quot;AN&quot;,
+    Site == &quot;Romanesti-Dumbravita I&quot;~ &quot;ROM&quot;,
+    Site == &quot;Fumane&quot;~ &quot;FUM&quot;,
+    TRUE ~ Site  # CTS is OK
+    )) %&gt;%
+mutate(Cortex.y.n = case_when(
+    Cortex.y.n %in% c(&quot;No Cortex&quot;, 
+                      &quot;no&quot;)~ &quot;No&quot;,
+    Cortex.y.n == &quot;yes&quot;~ &quot;Yes&quot;,
+    TRUE ~ Cortex.y.n  # keep the others
+    )) %&gt;%
+mutate(Cortex = case_when(
+    Cortex == &quot;No Cortex&quot;~ &quot;No&quot;,
+    TRUE ~ Cortex  # keep the others
+    )) %&gt;%
+mutate(Cortex.position.simpl = Cortex.position, .after = Cortex.position) %&gt;% #INSERT CORTEX.postition.simpl
+mutate(Cortex.position.simpl = case_when(
+  Cortex.position.simpl %in% c(&quot;No Cortex&quot;, &quot;ND&quot;, &quot;No cortex&quot;) ~ &quot;No&quot;,
+  Cortex.position.simpl %in% c(
+    &quot;Lateral left&quot;, 
+    &quot;Lateral right&quot;, 
+    &quot;Right&quot;, 
+    &quot;Left lateral complete&quot;,
+    &quot;Right lateral partial&quot;,
+    &quot;Left lateral partial&quot;,
+    &quot;Right lateral complete&quot;
+  ) ~ &quot;Lateral&quot;,
+  Cortex.position.simpl %in% c(
+    &quot;Left lateral complete;Right lateral partial&quot;, 
+    &quot;Left lateral complete;Right lateral complete&quot;,
+    &quot;Left lateral partial;Right lateral partial&quot;
+  ) ~ &quot;Bilateral&quot;,
+  Cortex.position.simpl %in% c(
+    &quot;Lateral left+Proximal&quot;, 
+    &quot;Lateral right + Proximal&quot;, 
+    &quot;Lateral left + Proximal&quot;,
+    &quot;Left lateral partial;Proximal&quot;,
+    &quot;Proximal;Right lateral partial&quot;,
+    &quot;Proximal;Right lateral complete&quot;,
+    &quot;Left lateral complete;Proximal&quot;
+  ) ~ &quot;Lateral+Proximal&quot;,
+  Cortex.position.simpl %in% c(
+    &quot;Dorsal+Lateral left&quot;, 
+    &quot;Lateral right + Dorsal&quot;, 
+    &quot;Lateral left + Dorsal&quot;, 
+    &quot;Lateral right + Dorsal&quot;
+  ) ~ &quot;Lateral+Dorsal&quot;,
+  Cortex.position.simpl %in% c(
+    &quot;Distal+Lateral left&quot;, 
+    &quot;Lateral right + Distal&quot;, 
+    &quot;Lateral left + Distal&quot;,
+    &quot;Distal;Left lateral complete&quot;, 
+    &quot;Distal;Right lateral partial&quot;,
+    &quot;Distal;Left lateral partial&quot;
+  ) ~ &quot;Lateral+Distal&quot;,
+  Cortex.position.simpl %in% c(&quot;Distal right&quot;, &quot;Distal left&quot;) ~ &quot;Distal&quot;,
+  Cortex.position.simpl %in% c(
+    &quot;Bilateral + Distal&quot;, 
+    &quot;Dorsal distal&quot;, 
+    &quot;Dorsal + Distal&quot; ,
+    &quot;Distal;Right lateral complete&quot;,
+    &quot;Distal;Middle/centre;Proximal&quot;, 
+    &quot;Middle/centre&quot;,
+    &quot;Middle/centre;Proximal&quot;,
+    &quot;Distal;Middle/centre&quot;,
+    &quot;Middle/centre;Right lateral complete&quot;,
+    &quot;100%&quot;, 
+    &quot;Middle/centre;Proximal&quot;, 
+    &quot;Dorsal + Distal&quot;,
+    &quot;Proximal + Dorsal&quot;,
+    &quot;Distal;Middle/centre&quot;,
+    &quot;Distal;Left lateral complete;Proximal&quot;,
+    &quot;Left lateral partial;Middle/centre&quot;, 
+    &quot;Left lateral complete;Middle/centre&quot;,
+    &quot;Distal;Middle/centre;Right lateral complete&quot;,
+    &quot;Distal;Left lateral partial;Middle/centre;Right lateral partial&quot;,
+    &quot;Distal;Left lateral complete;Middle/centre;Right lateral complete&quot;,
+    &quot;Distal;Left lateral partial;Proximal&quot;,
+    &quot;Distal;Proximal;Right lateral complete&quot;
+  ) ~ &quot;Dorsal&quot;,
+  Cortex.position.simpl == &quot;Distal;Proximal&quot; ~ &quot;Distal+Proximal&quot;,
+  TRUE ~ Cortex.position.simpl
+)) %&gt;%
+mutate(Bulb.simpl = Bulb, .after = Bulb) %&gt;% #INSERT Bulb.simpl
+mutate(Bulb.simpl = case_when(
+  Bulb.simpl %in% c(&quot;No Prox Part&quot;,
+                    &quot;No bulb&quot;,
+                    &quot;Crushed&quot;) ~ &quot;No&quot;,
+  Bulb.simpl %in% c(&quot;Moderate&quot;,
+                    &quot;Diffused&quot;) ~ &quot;Diffuse&quot;,
+  Bulb.simpl %in% c(&quot;Bulbar scar&quot;,
+                    &quot;Pronounced&quot;)~ &quot;Marked&quot;,
+  TRUE ~ Bulb.simpl  # keep the others
+    )) %&gt;%
+mutate(Lip.simpl = Lip, .after = Lip) %&gt;% #INSERT Lip.simpl
+mutate(Lip.simpl = case_when(
+  Lip.simpl %in% c(&quot;No Prox Part&quot; , 
+                   &quot;No Prox part&quot; , 
+                   &quot;No prox part&quot;) ~ &quot;NA&quot;,
+  Lip.simpl %in%c(&quot;Moderate&quot; , 
+                  &quot;Pronunced&quot;) ~ &quot;Yes&quot;,
+  is.na(Lip.simpl) | Bulb.simpl %in% c(&quot;Marked&quot;, &quot;Diffuse&quot;)~ &quot;NO&quot;,
+  TRUE ~ Lip.simpl  # keep the others
+    )) %&gt;%
+  mutate(Abrasion.simpl = Abrasion, .after = Abrasion) %&gt;% #INSERT Abrasion.simpl
+  mutate(Abrasion.simpl = case_when(
+  Abrasion.simpl %in% c(&quot;No Prox Part&quot; , 
+                        &quot;No Prox part&quot;, 
+                        &quot;No prox part&quot;) ~ &quot;NA&quot;,
+  Abrasion.simpl %in% c(&quot;Abrasion&quot; , 
+                        &quot;Hinged scars&quot; , 
+                        &quot;Abrasion;Hinged scars&quot; , 
+                        &quot;Abrasion;Pointed scars&quot; , 
+                        &quot;Pointed scars&quot;, 
+                        &quot;Abrasion;Laminar scars&quot;, 
+                        &quot;Hinged scars;Pointed scars&quot;, 
+                        &quot;Laminar scars&quot; , 
+                        &quot;Abrasion;Hinged scars;Laminar scars&quot; , 
+                        &quot;Hinged scars;Laminar scars&quot;) ~ &quot;Yes&quot;,
+  TRUE ~ Abrasion.simpl  # keep the others
+    )) %&gt;%
+  mutate(Axiality.simpl = Axiality, .after = Axiality) %&gt;% #INSERT Axiality.simpl
+  mutate(Axiality.simpl = case_when(
+  Axiality.simpl %in% c(&quot;On-axis&quot;, 
+                        &quot;Axial&quot;, 
+                        &quot;on-axis&quot;) ~ &quot;On axis&quot;,
+  Axiality.simpl %in% c(&quot;Off-axis&quot;, 
+                        &quot;off-axis&quot;, 
+                        &quot;Off-axis to the right&quot;, 
+                        &quot;Off-axis to the left&quot;,
+                        &quot;Off-axis right&quot;,
+                        &quot;Off-axis left&quot;) ~ &quot;Off axis&quot;,
+  Axiality.simpl == &quot;und&quot; ~ &quot;ND&quot;,
+  TRUE ~ Axiality.simpl  # keep the others
+))  %&gt;%
+  mutate(Outline.morphology = case_when(
+  Outline.morphology %in% c(&quot;(sub)Parellel Edges&quot;,
+                            &quot;(sub)Parellel edges&quot; , 
+                            &quot;Sub-parallel&quot; , 
+                            &quot;(sub)Parallel Edges&quot; ) ~ &quot;Subparallel edges&quot;,
+  Outline.morphology == &quot;Off-axis&quot; ~ &quot;Déjète&quot;,
+  Outline.morphology == &quot;Undetermined&quot; ~ &quot;ND&quot;,
+  Outline.morphology == &quot;Irregular&quot; ~ &quot;Other&quot;,
+  Outline.morphology == &quot;Convex&quot; ~ &quot;Convergent&quot;,
+  TRUE ~ Outline.morphology  # keep the others
+    )) %&gt;%
+  mutate(Symmetry = case_when(
+  Symmetry == &quot;NA&quot; ~ &quot;&quot;,
+  TRUE ~ Symmetry  # keep the others
+    )) %&gt;%
+  mutate(Cross.section = case_when(
+  Cross.section == &quot;NA&quot; ~ &quot;&quot;,
+  Cross.section %in% c(&quot;Polyhedral&quot; , 
+                       &quot;Polyhedral &quot;,
+                      &quot;Polyhedral &quot; ) ~ &quot;Polyhedric&quot;,
+  Cross.section == &quot;Lateral steep&quot; ~ &quot;Triangular&quot;,
+  Cross.section == &quot;Undetermined&quot; ~ &quot;ND&quot;,
+  TRUE ~ Cross.section  # keep the others
+    )) %&gt;%
+  mutate(Profile = case_when(
+  Profile == &quot;NA&quot; ~ &quot;&quot;,
+  Profile %in% c(&quot;Slightly curved&quot;, 
+                 &quot;Curved slightly&quot;, 
+                 &quot;Curved sligthly&quot;) ~ &quot;Slightly Curved&quot;,
+  Profile == &quot;Very curved&quot; ~ &quot;Very Curved&quot;,
+  Profile %in% c(&quot;undetermined&quot;, 
+                 &quot;Curved inverse&quot;) ~ &quot;ND&quot;,
+  TRUE ~ Profile  # keep the others
+)) %&gt;%
+  mutate(Torsion = case_when(
+  Torsion == &quot;NA&quot; ~ &quot;&quot;,
+  Torsion %in% c(&quot;Slightly curved&quot;, 
+                 &quot;Curved slightly&quot;, 
+                 &quot;Curved sligthly&quot;) ~ &quot;No&quot;,
+  Torsion %in% c(&quot;Very curved&quot;, 
+                 &quot;Slightly curved&quot;, 
+                 &quot;0&quot;, 
+                 &quot;1L&quot;, 
+                 &quot;2R&quot;, 
+                 &quot;1R&quot;, 
+                 &quot;2L&quot;, 
+                 &quot;Undetermined&quot;,
+                 &quot;undetermined&quot;, 
+                 &quot;Curved inverse&quot;) ~ &quot;ND&quot;,
+  TRUE ~ Torsion  # keep the others
+)) %&gt;%
+  mutate(Distal.end.morpho = case_when(
+  Distal.end.morpho %in% c(&quot;No Dist Part&quot;, 
+                           &quot;NA&quot;) ~ &quot;&quot;,
+  Distal.end.morpho %in% c(&quot;feathered&quot;, 
+                           &quot;Convex&quot;, 
+                           &quot;Straight&quot;) ~ &quot;Feathered&quot;,
+  Distal.end.morpho %in% c(&quot;Retouched&quot;, 
+                           &quot;Pointed&quot;, 
+                           &quot;Irregular&quot;, 
+                           &quot;Undetermined&quot;) ~ &quot;ND&quot;,
+  Distal.end.morpho == &quot;Cortical&quot; ~ &quot;Stepped&quot;,
+  TRUE ~ Distal.end.morpho  # keep the others
+)) %&gt;%
+mutate(Technology.Phase = case_when(
+  Technology.Phase %in% c(&quot;Simple&quot;, 
+                          &quot;Optimal&quot;) ~ &quot;Ordinary&quot;,
+  Technology.Phase %in% c(&quot;Mgmt&quot;, 
+                          &quot;Mngt&quot;, 
+                          &quot;Maintenance&quot;) ~ &quot;MGMT&quot;,
+  Technology.Phase %in% c(&quot;Semi-cortical&quot;, 
+                          &quot;Initialization&quot;) ~ &quot;Init&quot;,
+  TRUE ~ Technology.Phase  # keep the others
+))
+
 library(writexl)
-writexl::write_xlsx(Blank_Main, &quot;Ans_Rom_Fum_CTS_Blanksmerged.xlsx&quot;)</code></pre>
+writexl::write_xlsx(Blank_Main_reshaped1, &quot;Ans_Rom_Fum_CTS_Blanksmerged_reshaped.xlsx&quot;)
+
+#cheking
+View(Blank_Main_reshaped1)
+unique(Blank_Main_reshaped1$Site)</code></pre>
+<pre><code>## [1] &quot;AN&quot;  &quot;ROM&quot; &quot;CTS&quot; &quot;FUM&quot;</code></pre>
+<pre class="r"><code>unique(Blank_Main_reshaped1$Preservation)</code></pre>
+<pre><code>## [1] &quot;Complete&quot; &quot;Prox+Mes&quot; &quot;Mes+Dist&quot;</code></pre>
+<pre class="r"><code>unique(Blank_Main_reshaped1$Cortex.y.n)</code></pre>
+<pre><code>## [1] &quot;No&quot;  &quot;Yes&quot;</code></pre>
+<pre class="r"><code>unique(Blank_Main_reshaped1$Cortex)</code></pre>
+<pre><code>## [1] &quot;No&quot;        &quot;Semi&quot;      &quot;Extensive&quot; &quot;Full&quot;      NA</code></pre>
+<pre class="r"><code>unique(Blank_Main_reshaped1$Cortex.position.simpl)</code></pre>
+<pre><code>##  [1] &quot;No&quot;               &quot;Lateral&quot;          &quot;Distal&quot;           &quot;Dorsal&quot;          
+##  [5] &quot;Proximal+Distal&quot;  &quot;Proximal&quot;         &quot;Lateral+Proximal&quot; &quot;Bilateral&quot;       
+##  [9] NA                 &quot;Lateral+Dorsal&quot;   &quot;Lateral+Distal&quot;   &quot;Distal+Proximal&quot;</code></pre>
+<pre class="r"><code>unique(Blank_Main_reshaped1$Bulb.simpl)</code></pre>
+<pre><code>## [1] &quot;Marked&quot;        &quot;Diffuse&quot;       &quot;No Prox part&quot;  &quot;Not perceived&quot;
+## [5] &quot;ND&quot;            &quot;No&quot;            NA</code></pre>
+<pre class="r"><code>unique(Blank_Main_reshaped1$Lip.simpl)</code></pre>
+<pre><code>## [1] &quot;NO&quot;  &quot;NA&quot;  &quot;No&quot;  &quot;Yes&quot; &quot;ND&quot;</code></pre>
+<pre class="r"><code>unique(Blank_Main_reshaped1$Abrasion.simpl)</code></pre>
+<pre><code>## [1] &quot;Yes&quot; &quot;No&quot;  &quot;NA&quot;  &quot;ND&quot;  NA</code></pre>
+<pre class="r"><code>unique(Blank_Main_reshaped1$Axiality.simpl)</code></pre>
+<pre><code>## [1] &quot;On axis&quot;  NA         &quot;Off axis&quot; &quot;NA&quot;       &quot;ND&quot;</code></pre>
+<pre class="r"><code>unique(Blank_Main_reshaped1$Outline.morphology)</code></pre>
+<pre><code>## [1] &quot;Subparallel edges&quot; &quot;No Dist Part&quot;      &quot;Convergent&quot;       
+## [4] &quot;Déjète&quot;            &quot;ND&quot;                &quot;NA&quot;               
+## [7] &quot;Other&quot;             NA</code></pre>
+<pre class="r"><code>unique(Blank_Main_reshaped1$Symmetry)</code></pre>
+<pre><code>## [1] NA           &quot;asymmetric&quot; &quot;symmetric&quot;  &quot;&quot;           &quot;ND&quot;</code></pre>
+<pre class="r"><code>unique(Blank_Main_reshaped1$Cross.section)</code></pre>
+<pre><code>## [1] &quot;Flat&quot;        &quot;ND&quot;          &quot;Polyhedric&quot;  &quot;Triangular&quot;  &quot;&quot;           
+## [6] &quot;Trapezoidal&quot; NA            &quot;Polyhedral &quot;</code></pre>
+<pre class="r"><code>unique(Blank_Main_reshaped1$Profile)</code></pre>
+<pre><code>## [1] &quot;Straight&quot;        &quot;Twisted&quot;         &quot;Curved&quot;          &quot;Slightly Curved&quot;
+## [5] &quot;Very Curved&quot;     &quot;ND&quot;              &quot;&quot;                NA</code></pre>
+<pre class="r"><code>unique(Blank_Main_reshaped1$Torsion)</code></pre>
+<pre><code>## [1] &quot;No&quot;  &quot;Yes&quot; &quot;ND&quot;  &quot;&quot;    NA</code></pre>
+<pre class="r"><code>unique(Blank_Main_reshaped1$Distal.end.morpho)</code></pre>
+<pre><code>## [1] &quot;Feathered&quot; &quot;&quot;          &quot;Stepped&quot;   &quot;Hinged&quot;    &quot;Plunging&quot;  &quot;ND&quot;       
+## [7] NA</code></pre>
+<pre class="r"><code>unique(Blank_Main_reshaped1$Blank.type)</code></pre>
+<pre><code>## [1] &quot;Bladelet&quot; &quot;Blade&quot;    &quot;Flake&quot;</code></pre>
+<pre class="r"><code>unique(Blank_Main_reshaped1$Technology.Phase)</code></pre>
+<pre><code>## [1] &quot;Ordinary&quot; &quot;MGMT&quot;     &quot;Tablet&quot;   &quot;Spall&quot;    &quot;Init&quot;</code></pre>
+<pre class="r"><code>unique(Blank_Main_reshaped1$Technology.Extended)</code></pre>
+<pre><code>##  [1] &quot;Ordinary bladelet&quot;                   &quot;Ordinary blade&quot;                     
+##  [3] &quot;Lateral asymmetrical laminar&quot;        &quot;Overshot laminar&quot;                   
+##  [5] &quot;Flaking surface maintenance laminar&quot; &quot;Crested laminar&quot;                    
+##  [7] &quot;Maintenance laminar&quot;                 &quot;Core tablet&quot;                        
+##  [9] &quot;Burin spall&quot;                         &quot;Cortical flake&quot;                     
+## [11] &quot;Ordinary flake&quot;                      &quot;Flaking surface maintenance flake&quot;  
+## [13] &quot;Maintenance flake&quot;                   &quot;Semi-cortical blade&quot;                
+## [15] &quot;Crested blade&quot;                       &quot;Cortical blade&quot;                     
+## [17] &quot;Neo-crest flake&quot;                     &quot;Semi-cortical flake&quot;                
+## [19] &quot;Semi-cortical bladelet&quot;              &quot;Tablet&quot;                             
+## [21] &quot;Levallois&quot;                           &quot;Cortical bladelet&quot;                  
+## [23] &quot;Crested flake&quot;                       NA</code></pre>
+<pre class="r"><code>unique(Blank_Main_reshaped1$Negatives.type)</code></pre>
+<pre><code>##  [1] &quot;Bladelets&quot;                   &quot;ND&quot;                         
+##  [3] &quot;No negatives&quot;                &quot;Flakes&quot;                     
+##  [5] &quot;Blades&quot;                      &quot;Blades &amp; Bladelets&quot;         
+##  [7] &quot;Blades &amp; Flakes&quot;             &quot;Bladelets &amp; Flakes&quot;         
+##  [9] &quot;Blades &amp; Bladelets &amp; Flakes&quot; &quot;No Negatives&quot;               
+## [11] &quot;Combination&quot;                 &quot;NA&quot;                         
+## [13] &quot;TRUE&quot;                        &quot;FALSE&quot;                      
+## [15] NA</code></pre>
+<pre class="r"><code>unique(Blank_Main_reshaped1$Dorsal.scar.2)</code></pre>
+<pre><code>##  [1] &quot;Unidirectional&quot;                             
+##  [2] &quot;Unidirectional+Convergent&quot;                  
+##  [3] &quot;No negatives&quot;                               
+##  [4] &quot;Crossed&quot;                                    
+##  [5] &quot;Unidirectional+Orthogonal&quot;                  
+##  [6] &quot;Bidirectional&quot;                              
+##  [7] &quot;Convergent&quot;                                 
+##  [8] &quot;Orthogonal&quot;                                 
+##  [9] &quot;Unidirectional+Crossed&quot;                     
+## [10] &quot;Convergent+Orthogonal&quot;                      
+## [11] &quot;Crossed+Orthogonal&quot;                         
+## [12] &quot;Unidirectional+Convergent+Orthogonal&quot;       
+## [13] &quot;Bidirectional+Crossed&quot;                      
+## [14] &quot;Bidirectional+Convergent&quot;                   
+## [15] &quot;Unidirectional+Crossed+Orthogonal&quot;          
+## [16] &quot;ND&quot;                                         
+## [17] &quot;Bidirectional+Orthogonal&quot;                   
+## [18] &quot;Unidirectional+Convergent+Crossed&quot;          
+## [19] &quot;Multidirectional&quot;                           
+## [20] &quot;Crested&quot;                                    
+## [21] &quot;Unidirectional + Orthogonal&quot;                
+## [22] &quot;Unidirectional + Bidirectional + Orthogonal&quot;
+## [23] &quot;Bidirectional + Orthogonal&quot;                 
+## [24] &quot;Cortical&quot;                                   
+## [25] &quot;Convergent + Bidirectionnal&quot;                
+## [26] &quot;Convergent + Bipolar&quot;                       
+## [27] &quot;Convergent + Bidirectional&quot;                 
+## [28] &quot;Convergent + Orthogonal&quot;                    
+## [29] &quot;Convergent + Crested&quot;                       
+## [30] &quot;Unidirectional parallel&quot;                    
+## [31] &quot;Unidirectional convergent&quot;                  
+## [32] &quot;Unidirectional transverse&quot;                  
+## [33] &quot;Centripedal&quot;                                
+## [34] &quot;Other&quot;                                      
+## [35] &quot;Undetermined&quot;                               
+## [36] NA</code></pre>
+<pre class="r"><code>unique(Blank_Main_reshaped1$Retouch.Position)</code></pre>
+<pre><code>## [1] NA          &quot;-&quot;         &quot;Alternate&quot; &quot;Direct&quot;    &quot;Inverse&quot;   &quot;Crossed&quot;</code></pre>
+</div>
+<div id="analysis" class="section level1">
+<h1>Analysis</h1>
+<pre class="r"><code>Blank_Main_reshaped1 &lt;- read_excel(file.choose()) #get the Ans_Rom_Fum_CTS_Blanksmerged_reshaped.xlsx
+View(Blank_Main_reshaped1)
+str(Blank_Main_reshaped1)</code></pre>
+<pre><code>## tibble [5,970 × 36] (S3: tbl_df/tbl/data.frame)
+##  $ Site                 : chr [1:5970] &quot;AN&quot; &quot;AN&quot; &quot;AN&quot; &quot;AN&quot; ...
+##  $ Layer                : chr [1:5970] &quot;1&quot; &quot;2&quot; &quot;1&quot; &quot;1&quot; ...
+##  $ ID                   : chr [1:5970] &quot;An09.166.3.18&quot; &quot;AN1_9071&quot; &quot;An1.11.174.7a/b.276&quot; &quot;An09.174.3.52&quot; ...
+##  $ Preservation         : chr [1:5970] &quot;Complete&quot; &quot;Prox+Mes&quot; &quot;Complete&quot; &quot;Mes+Dist&quot; ...
+##  $ Cortex.y.n           : chr [1:5970] &quot;No&quot; &quot;Yes&quot; &quot;No&quot; &quot;No&quot; ...
+##  $ Cortex               : chr [1:5970] &quot;No&quot; &quot;Semi&quot; &quot;No&quot; &quot;No&quot; ...
+##  $ Cortex.position      : chr [1:5970] &quot;No Cortex&quot; &quot;Lateral left&quot; &quot;No Cortex&quot; &quot;No Cortex&quot; ...
+##  $ Cortex.position.simpl: chr [1:5970] &quot;No&quot; &quot;Lateral&quot; &quot;No&quot; &quot;No&quot; ...
+##  $ Length               : num [1:5970] 28 NA 22 NA NA NA NA NA NA NA ...
+##  $ Width                : num [1:5970] 10 13.3 9 5 8 ...
+##  $ Thickness            : num [1:5970] 2 2.26 1 1 1 1 1.05 1.48 3.01 0.94 ...
+##  $ Elongation           : num [1:5970] 2.8 NA 2.44 NA NA ...
+##  $ Platform             : chr [1:5970] &quot;Linear&quot; &quot;Linear&quot; &quot;Plain&quot; &quot;No Prox part&quot; ...
+##  $ Bulb                 : chr [1:5970] &quot;Pronounced&quot; &quot;Diffused&quot; &quot;Pronounced&quot; &quot;No Prox part&quot; ...
+##  $ Bulb.simpl           : chr [1:5970] &quot;Marked&quot; &quot;Diffuse&quot; &quot;Marked&quot; &quot;No Prox part&quot; ...
+##  $ Lip                  : chr [1:5970] &quot;No&quot; &quot;No&quot; &quot;No&quot; &quot;No Prox part&quot; ...
+##  $ Lip.simpl            : chr [1:5970] &quot;NO&quot; &quot;NO&quot; &quot;NO&quot; &quot;NA&quot; ...
+##  $ Abrasion             : chr [1:5970] &quot;Yes&quot; &quot;Yes&quot; &quot;No&quot; &quot;No Prox part&quot; ...
+##  $ Abrasion.simpl       : chr [1:5970] &quot;Yes&quot; &quot;Yes&quot; &quot;No&quot; &quot;NA&quot; ...
+##  $ Axiality             : chr [1:5970] &quot;on-axis&quot; NA &quot;on-axis&quot; &quot;on-axis&quot; ...
+##  $ Axiality.simpl       : chr [1:5970] &quot;On axis&quot; NA &quot;On axis&quot; &quot;On axis&quot; ...
+##  $ Outline.morphology   : chr [1:5970] &quot;Subparallel edges&quot; &quot;No Dist Part&quot; &quot;Convergent&quot; &quot;Convergent&quot; ...
+##  $ Symmetry             : chr [1:5970] NA NA NA NA ...
+##  $ Cross.section        : chr [1:5970] &quot;Flat&quot; &quot;Flat&quot; &quot;Flat&quot; &quot;Flat&quot; ...
+##  $ Profile              : chr [1:5970] &quot;Straight&quot; &quot;Twisted&quot; &quot;Straight&quot; &quot;Straight&quot; ...
+##  $ Torsion              : chr [1:5970] &quot;No&quot; &quot;Yes&quot; &quot;No&quot; &quot;Yes&quot; ...
+##  $ Distal.end.morpho    : chr [1:5970] &quot;Feathered&quot; NA &quot;Feathered&quot; &quot;Feathered&quot; ...
+##  $ Blank.type           : chr [1:5970] &quot;Bladelet&quot; &quot;Blade&quot; &quot;Bladelet&quot; &quot;Bladelet&quot; ...
+##  $ Technology.Phase     : chr [1:5970] &quot;Ordinary&quot; &quot;Ordinary&quot; &quot;Ordinary&quot; &quot;Ordinary&quot; ...
+##  $ Technology.Extended  : chr [1:5970] &quot;Ordinary bladelet&quot; &quot;Ordinary blade&quot; &quot;Ordinary bladelet&quot; &quot;Ordinary bladelet&quot; ...
+##  $ Number.negatives     : chr [1:5970] &quot;4&quot; &quot;2&quot; &quot;1&quot; &quot;3&quot; ...
+##  $ Negatives.type       : chr [1:5970] &quot;Bladelets&quot; &quot;Bladelets&quot; &quot;ND&quot; &quot;Bladelets&quot; ...
+##  $ Dorsal.scar.1        : chr [1:5970] &quot;Unidirectional&quot; &quot;Unidirectional&quot; &quot;Unidirectional&quot; &quot;Unidirectional&quot; ...
+##  $ Dorsal.scar.2        : chr [1:5970] &quot;Unidirectional&quot; &quot;Unidirectional&quot; &quot;Unidirectional&quot; &quot;Unidirectional+Convergent&quot; ...
+##  $ Tool                 : chr [1:5970] &quot;No&quot; &quot;No&quot; &quot;No&quot; &quot;No&quot; ...
+##  $ Retouch.Position     : chr [1:5970] NA &quot;-&quot; NA NA ...</code></pre>
 </div>
 
 
