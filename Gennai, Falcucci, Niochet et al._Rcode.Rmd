@@ -1,12 +1,12 @@
 ---
 title: "Gennai, Falcucci, Niochet et al. EUP Comparison"
 author: "Jacopo Gennai"
-date: "2023-12-11"
+date: "05-01-2024"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(eval = FALSE)
 ```
 
 # Introduction
@@ -15,21 +15,20 @@ This is an R Markdown document containing the Rcode and workflow for the "refere
 
 # Datasets
 
-the datasets contain raw data about technological analysis of four Early Upper Palaeolithic assemblages: 
+the datasets contain raw data about technological analysis of four Early Upper Palaeolithic assemblages:
 
-- Ansab AH1 (Jordan)
-- Romanesti-Dumbravita GH3 (Romania)
-- Fumane A1-A2 (Italy)
-- Les Cottés 04inf (France)
+-   Ansab AH1 (Jordan)
+-   Romanesti-Dumbravita GH3 (Romania)
+-   Fumane A1-A2 (Italy)
+-   Les Cottés 04inf (France)
 
-the assemblages are stratified and radiometrically dated to the period 41-38 ka cal BP. 
+the assemblages are stratified and radiometrically dated to the period 41-38 ka cal BP.
 
-Datasets are available singularly at the Zenodo repository "insert link or reference". Datasets are divided in "Blanks", debitage products, and "Cores", exhausted blocks of raw material from which debitage products have been struck. The division is due to the different attributes recorded for the two categories. 
+Datasets are available singularly at the Zenodo repository "insert link or reference". Datasets are divided in "Blanks", debitage products, and "Cores", exhausted blocks of raw material from which debitage products have been struck. The division is due to the different attributes recorded for the two categories.
 
 Blanks
 
 ```{r}
-setwd("C:/Users/Jacopo/OneDrive/Papers/Comparison EUP") #change the directory
 
 library(readxl)
 Gennai_Rom_Ansab_Blanks <- read_excel(file.choose()) #Get the Gennai_Rom&Ansab_Blanks.xlsx
@@ -49,7 +48,6 @@ knitr::kable(t(data.frame(names(Falcucci_Fumane_Blanks))), col.names = NULL, row
 str(Niochet_CTS_US04inf_Blanks)
 knitr::kable(t(data.frame(names(Niochet_CTS_US04inf_Blanks))), col.names = NULL, row.names = FALSE)
 ```
-
 
 Cores
 
@@ -73,131 +71,133 @@ knitr::kable(t(data.frame(names(Niochet_CTS_US04inf_Cores))), col.names = NULL, 
 
 Blanks (bold are comparable attributes across databases)
 
-Gennai : **Site**	**Layer**	Square	**Piece Original ID**	**Entirety**	**CxSimpl**	**CxPosition**	**Length**	**Width**	**Thick**	**El**	**ButtType**	**BulbMorph**	**Lipp**	**OvAb**	**Axiality**	**Out**	**Symmetry**	**CrossSectMorph**	**Pro**	**DEndMorph**	**StructureCat**	**TechCat**	Cat	**NegN**	NegType	**NegOSimpl**	**NegO**	R	**RLoc**	**RPos**	RDis	RDel	RExt	RAng	RMorph	Description
+Gennai : **Site** **Layer** Square **Piece Original ID** **Entirety** **CxSimpl** **CxPosition** **Length** **Width** **Thick** **El** **ButtType** **BulbMorph** **Lipp** **OvAb** **Axiality** **Out** **Symmetry** **CrossSectMorph** **Pro** **DEndMorph** **StructureCat** **TechCat** Cat **NegN** NegType **NegOSimpl** **NegO** R **RLoc** **RPos** RDis RDel RExt RAng RMorph Description
 
-Falcucci : **ID**	**Layer**	**square**	sub.square	raw.material	**class**	**blank**	**technology**	**technology.ext**	**Cortex**	Cortex.y.n	**Cortex.position**	preservation	**Preservation**	**Length**	**Width**	**Thickness**	**Elongation**	robustness	platform.width	platform.thickness	platformW.T.	**platform.type**	platform.shape	**platform.angle**	**dorsal.thinning**	bulb	**bulb.type**	bulbar.scar	**lip**	lip.type	**curvature**	**torsion**	**cross.section**	**cross.section.symmetry**	**scar.count**	**axiality**	**scar.pattern**	distal.end	**distal.end.profile**	**blank.shape**	bladelet.neg.blade	blade.neg.flake	typology	typology.reduced	**retouch.position**	**dorsal.retouch.localization**	**ventral.retouch.localization**	retouch.length	**Site**
+Falcucci : **ID** **Layer** **square** sub.square raw.material **class** **blank** **technology** **technology.ext** **Cortex** Cortex.y.n **Cortex.position** preservation **Preservation** **Length** **Width** **Thickness** **Elongation** robustness platform.width platform.thickness platformW.T. **platform.type** platform.shape **platform.angle** **dorsal.thinning** bulb **bulb.type** bulbar.scar **lip** lip.type **curvature** **torsion** **cross.section** **cross.section.symmetry** **scar.count** **axiality** **scar.pattern** distal.end **distal.end.profile** **blank.shape** bladelet.neg.blade blade.neg.flake typology typology.reduced **retouch.position** **dorsal.retouch.localization** **ventral.retouch.localization** retouch.length **Site**
 
-Niochet: **Site**	**Layer**	**Piece Original ID**	**Entirety**	**CxSimpl**	**CxPosition**	**Length**	**Width**	**Thick**	**El**	**ButtType**	**BulbMorph**	**Lipp**	**OvAb**	**Axiality**	**Out	Symmetry**	**CrossSectMorph**	**Pro**	**DEndMorph**	**StructureCat**	**TechCat**	**Cat**	**NegN**	NegType	**NegOSimpl**	**NegO**	**R**	**RLoc**	**RPos**	**RDis**	RDel	RExt	RAng	RMorph	Description	,	Entretien antéro-latéral ?	percu organique	bulbe marqué-court	talon plusieurs points de percussion	Bipolaire / sur appui ?	TALON DÉCALÉ (déb oblique?)	PHOTO	Classe	Sous-classe	Type technique	Sous-type technique	MP	Largeur talon	Épaisseur talon	Type de lèvre	Symétrie section	DendMorph full CTS	!!! NEW : Type de cassure	Terminaison	Axe retouche
+Niochet: **Site** **Layer** **Piece Original ID** **Entirety** **CxSimpl** **CxPosition** **Length** **Width** **Thick** **El** **ButtType** **BulbMorph** **Lipp** **OvAb** **Axiality** **Out Symmetry** **CrossSectMorph** **Pro** **DEndMorph** **StructureCat** **TechCat** **Cat** **NegN** NegType **NegOSimpl** **NegO** **R** **RLoc** **RPos** **RDis** RDel RExt RAng RMorph Description , Entretien antéro-latéral ? percu organique bulbe marqué-court talon plusieurs points de percussion Bipolaire / sur appui ? TALON DÉCALÉ (déb oblique?) PHOTO Classe Sous-classe Type technique Sous-type technique MP Largeur talon Épaisseur talon Type de lèvre Symétrie section DendMorph full CTS !!! NEW : Type de cassure Terminaison Axe retouche
 
 Cores
 
-Gennai: Site	Layer	Square	Piece Original ID	Entirety	Length	Width	Thickness	CO	CxP	NSP	SPtype	SPR	SP-FS angle	Ab	NFS	FSR	FSS	2FSS	NegType	NegN	BladeNegN	BladeletsNegN	NegO	SNegN	SNegO	SNegType	CoreCat	Length LCN	Width LCN	Elongation LCN	Description LCN	Description
+Gennai: Site Layer Square Piece Original ID Entirety Length Width Thickness CO CxP NSP SPtype SPR SP-FS angle Ab NFS FSR FSS 2FSS NegType NegN BladeNegN BladeletsNegN NegO SNegN SNegO SNegType CoreCat Length LCN Width LCN Elongation LCN Description LCN Description
 
-Falcucci: 
+Falcucci:
 
-Niochet: Site	Layer	Piece Original ID	Entirety	Length	Width	Thickness	CO	CxP	NSP	SPtype	SPR	SP-FS angle	Ab	NFS	FSR	FSS	2FSS	NegType	NegN	BladeNegN	BladeletsNegN	NegO	SNegN	SNegO	SNegType	CoreCat	Length LCN	Width LCN	Elongation LCN	Description LCN	Description
+Niochet: Site Layer Piece Original ID Entirety Length Width Thickness CO CxP NSP SPtype SPR SP-FS angle Ab NFS FSR FSS 2FSS NegType NegN BladeNegN BladeletsNegN NegO SNegN SNegO SNegType CoreCat Length LCN Width LCN Elongation LCN Description LCN Description
 
 # Selecting attributes to merge the datasets
 
 Blanks
 
-- Site
-- Layer
-- ID (Gennai and Niochet Piece Original ID)
-- Entirety (Falcucci Preservation)
-- CxSimpl (Falcucci Cortex)
-- CxPosition (Falcucci Cortex.position)
-- Length
-- Width
-- Thickness (Gennai and Niochet Thick)
-- El (Falcucci Elongation)
-- ButtType (Falcucci platform.type)
-- BulbMorph (Falcucci Bulb)
-- Lipp (Falcucci Lip)
-- OvAb (Falcucci dorsal.thinning)
-- Axiality (Falcucci axiality)
-- Out (Falcucci blank.shape)
-- Symmetry (Falcucci cross.section.symmetry)
-- CrossSectMorph (Falcucci cross.section)
-- Pro (Falcucci curvature, complement with Curvature Gennai values to accomodate loss of twisted)
-- Torsion (split the Gennai and Niochet Pro, if Twisted yes)
-- DEndMorph (Falcucci distal.end.profile)
-- StructureCat (Falcucci blank)
-- TechCat (Falcucci technology)
-- Cat (Falcucci technology.ext) 
-- NegN (Falcucci scar.count)
-- NegType = Negatives.type?
-- NegOSimpl = Dorsal.scar.1
-- NegO (Falcucci scar.pattern)
-- R (Falcucci Class, replace Tool with "yes" and the rest with "no")
-- RPos (Falcucci retouch.position)
-- RLoc & RDis (split Falcucci dorsal.retouch.localization and Falcucci ventral.retouch.localization)
+-   Site
+-   Layer
+-   ID (Gennai and Niochet Piece Original ID)
+-   Entirety (Falcucci Preservation)
+-   CxSimpl (Falcucci Cortex)
+-   CxPosition (Falcucci Cortex.position)
+-   Length
+-   Width
+-   Thickness (Gennai and Niochet Thick)
+-   El (Falcucci Elongation)
+-   ButtType (Falcucci platform.type)
+-   BulbMorph (Falcucci Bulb)
+-   Lipp (Falcucci Lip)
+-   OvAb (Falcucci dorsal.thinning)
+-   Axiality (Falcucci axiality)
+-   Out (Falcucci blank.shape)
+-   Symmetry (Falcucci cross.section.symmetry)
+-   CrossSectMorph (Falcucci cross.section)
+-   Pro (Falcucci curvature, complement with Curvature Gennai values to accomodate loss of twisted)
+-   Torsion (split the Gennai and Niochet Pro, if Twisted yes)
+-   DEndMorph (Falcucci distal.end.profile)
+-   StructureCat (Falcucci blank)
+-   TechCat (Falcucci technology)
+-   Cat (Falcucci technology.ext)
+-   NegN (Falcucci scar.count)
+-   NegType = Negatives.type?
+-   NegOSimpl = Dorsal.scar.1
+-   NegO (Falcucci scar.pattern)
+-   R (Falcucci Class, replace Tool with "yes" and the rest with "no")
+-   RPos (Falcucci retouch.position)
+-   RLoc & RDis (split Falcucci dorsal.retouch.localization and Falcucci ventral.retouch.localization)
 
 # Final lists of attributes
 
-Blank 
+Blank
 
-- Site
-- Layer 
-- ID
-- Preservation
-- Cortex.y.n (NEW)
-- Cortex
-- Cortex.position
-- Length
-- Width
-- Thickness
-- Elongation
-- Platform
-- Bulb
-- Lip
-- Abrasion
-- Axiality
-- Outline.morphology
-- Symmetry
-- Cross.section
-- Profile
-- Torsion
-- Distal.end.morpho
-- Blank.type
-- Technology.Phase
-- Technology.Ext
-- Number.negatives
-- Negatives.type
-- Dorsal.scar.1
-- Dorsal.scar.2 
-- Tool
-- Retouch.Position 
-- Retouch.Location
-- Retouch.Distribution
+-   Site
+-   Layer
+-   ID
+-   Preservation
+-   Cortex.y.n (NEW)
+-   Cortex
+-   Cortex.position
+-   Length
+-   Width
+-   Thickness
+-   Elongation
+-   Platform
+-   Bulb
+-   Lip
+-   Abrasion
+-   Axiality
+-   Outline.morphology
+-   Symmetry
+-   Cross.section
+-   Profile
+-   Torsion
+-   Distal.end.morpho
+-   Blank.type
+-   Technology.Phase
+-   Technology.Ext
+-   Number.negatives
+-   Negatives.type
+-   Dorsal.scar.1
+-   Dorsal.scar.2
+-   Tool
+-   Retouch.Position
+-   Retouch.Location
+-   Retouch.Distribution
 
 Cores
 
-- Site	
-- Layer	
-- ID (Gennai and Niochet Piece Original ID)	
-- Preservation (Gennai and Niochet Entirety)	
-- Length	
-- Width	
-- Thickness	
-- Elongation (NEW to calculate)
-- Cortex.y.n (NEW)
-- Cortex.position (Gennai and Niochet CxP)
-- Number.Platforms (Gennai & Niochet NSP)
-- Platform (Gennai & Niochet SPtype)
-- Platform.Relationship (Gennai & Niochet SPR, ex. single platform, opposed etc..)
-- Angle.de.Chasse (Gennai & Niochet SP-FS angle)
-- Abrasion (Gennai & Niochet Ab)
-- Number.Flaking.Surfaces (Gennai & Niochet NFS)
-- Flaking.Surface.Relationship (Gennai & Niochet FSR)
-- Flaking.Surface.Type (Gennai & Niochet FSS, ex. convergent)
-- 2Flaking.Surface.Type (if more than one)
-- Number.negatives
--	Negatives.type	
-- Blade.Negatives.Number (applicable?)
-- Bladelets.Negatives.Number (applicable?)	
-- Dorsal.scar.1 (Gennai & Niochet NegO)
-- Supporting.negatives.number (i.e. shaping, SNegN)
-- Supporting.Dorsal.scar.(SNegO)
-- Supporting.Negatives.type (SNegType)	
-- Technology (CoreCat)	
-- Length LCN (last complete negative, applicable to you?)
-- Width LCN	
-- Elongation LCN	
-- Description LCN	
+-   Site\
+-   Layer
+-   ID (Gennai and Niochet Piece Original ID)
+-   Preservation (Gennai and Niochet Entirety)\
+-   Length\
+-   Width
+-   Thickness
+-   Elongation (NEW to calculate)
+-   Cortex.y.n (NEW)
+-   Cortex.position (Gennai and Niochet CxP)
+-   Number.Platforms (Gennai & Niochet NSP)
+-   Platform (Gennai & Niochet SPtype)
+-   Platform.Relationship (Gennai & Niochet SPR, ex. single platform, opposed etc..)
+-   Angle.de.Chasse (Gennai & Niochet SP-FS angle)
+-   Abrasion (Gennai & Niochet Ab)
+-   Number.Flaking.Surfaces (Gennai & Niochet NFS)
+-   Flaking.Surface.Relationship (Gennai & Niochet FSR)
+-   Flaking.Surface.Type (Gennai & Niochet FSS, ex. convergent)
+-   2Flaking.Surface.Type (if more than one)
+-   Number.negatives
+-   Negatives.type\
+-   Blade.Negatives.Number (applicable?)
+-   Bladelets.Negatives.Number (applicable?)\
+-   Dorsal.scar.1 (Gennai & Niochet NegO)
+-   Supporting.negatives.number (i.e. shaping, SNegN)
+-   Supporting.Dorsal.scar.(SNegO)
+-   Supporting.Negatives.type (SNegType)\
+-   Technology (CoreCat)\
+-   Length LCN (last complete negative, applicable to you?)
+-   Width LCN
+-   Elongation LCN\
+-   Description LCN
 
 # Reshaping datasets according to new attributes
+
 Blanks
+
 ```{r}
 library(dplyr)
 
@@ -312,6 +312,9 @@ Falcucci_Blanks_reshaped <- Falcucci_Fumane_Blanks %>%
     Cortex == "33-66%"~ "Semi",
     Cortex == "66-99%"~ "Extensive",
     Cortex == "100%"~ "Full")) %>%
+  mutate(Negatives.type = case_when(
+    Negatives.type == TRUE ~ "Blades & Bladelets",
+    Negatives.type == FALSE ~ "ND")) %>%
   mutate(Dorsal.scar.2 = Dorsal.scar.1)%>%
   mutate(Technology.Extended = case_when(
   Technology.Extended == "Blade correction surface" ~ "Flaking surface maintenance laminar",
@@ -370,8 +373,6 @@ View(Falcucci_Blanks_reshaped)
 str(Falcucci_Blanks_reshaped)
 ```
 
-
-
 # Merge the datasets in one
 
 ```{r}
@@ -397,14 +398,14 @@ str(Blank_Main)
 # Exporting the merged datasets ####
 
 library(writexl)
-writexl::write_xlsx(Blank_Main, "Ans_Rom_Fum_CTS_Blanksmerged.xlsx")
+writexl::write_xlsx(Blank_Main, "Ans_Rom_Fum_CTS_Blanks_merged.xlsx")
 
 ```
 
 ```{r}
 library(readxl)
 library(dplyr)
-Blank_Main <- read_excel(file.choose()) # get the Ans_Rom_Fum_CTS_Blanksmerged.xlsx
+Blank_Main <- read_excel(file.choose()) # get the Ans_Rom_Fum_CTS_Blanks_merged.xlsx
 
 
 
@@ -420,6 +421,7 @@ Blank_Main_reshaped <- Blank_Main %>%
 
 str(Blank_Main_reshaped)
 View(Blank_Main_reshaped)
+
 
 #check unique values to reshape them
 
@@ -463,9 +465,9 @@ mutate(Cortex = case_when(
     Cortex == "No Cortex"~ "No",
     TRUE ~ Cortex  # keep the others
     )) %>%
-mutate(Cortex.position.simpl = Cortex.position, .after = Cortex.position) %>% #INSERT CORTEX.postition.simpl
+mutate(Cortex.position.simpl = Cortex.position, .after = Cortex.position) %>% #INSERT CORTEX.position.simpl
 mutate(Cortex.position.simpl = case_when(
-  Cortex.position.simpl %in% c("No Cortex", "ND", "No cortex") ~ "No",
+  Cortex == "No" ~ "No Cortex",
   Cortex.position.simpl %in% c(
     "Lateral left", 
     "Lateral right", 
@@ -528,14 +530,40 @@ mutate(Cortex.position.simpl = case_when(
     "Distal;Left lateral partial;Proximal",
     "Distal;Proximal;Right lateral complete"
   ) ~ "Dorsal",
-  Cortex.position.simpl == "Distal;Proximal" ~ "Distal+Proximal",
+  Cortex.position.simpl %in% c("Distal;Proximal", "Proximal+Distal") ~ "Distal+Proximal",
   TRUE ~ Cortex.position.simpl
 )) %>%
+  mutate(Platform = case_when(
+  Platform %in% c( "Facetted"
+                    ) ~ "Faceted",
+  Platform %in% c( "Cortical"
+                    ) ~ "Natural",
+  Platform %in% c("Dihedral flat"
+                    )~ "Dihedral",
+  Platform %in% c("Undetermined",
+                  "Retouched",
+                  "Abraded",
+                  "Double"
+                    )~ "ND",
+  Platform %in% c("crushed"
+                    )~ "Crushed",
+  TRUE ~ Platform  # keep the others
+    )) %>%
+  mutate(Platform.simpl = Platform, .after = Platform) %>% #INSERT Platform.simpl
+  mutate(Platform.simpl = case_when(
+  Platform.simpl %in% c( "Linear", 
+                         "Concave",
+                         "Punctiform"
+                    ) ~ "Plain",
+  Platform.simpl %in% c( "Dihedral" 
+                    ) ~ "Faceted",
+  TRUE ~ Platform.simpl  # keep the others
+    )) %>%
 mutate(Bulb.simpl = Bulb, .after = Bulb) %>% #INSERT Bulb.simpl
 mutate(Bulb.simpl = case_when(
   Bulb.simpl %in% c("No Prox Part",
                     "No bulb",
-                    "Crushed") ~ "No",
+                    "Crushed") ~ NA,
   Bulb.simpl %in% c("Moderate",
                     "Diffused") ~ "Diffuse",
   Bulb.simpl %in% c("Bulbar scar",
@@ -546,17 +574,18 @@ mutate(Lip.simpl = Lip, .after = Lip) %>% #INSERT Lip.simpl
 mutate(Lip.simpl = case_when(
   Lip.simpl %in% c("No Prox Part" , 
                    "No Prox part" , 
-                   "No prox part") ~ "NA",
+                   "No prox part") ~ "No Prox Part",
+  Lip.simpl == "NA" ~ NA,
   Lip.simpl %in%c("Moderate" , 
                   "Pronunced") ~ "Yes",
-  is.na(Lip.simpl) | Bulb.simpl %in% c("Marked", "Diffuse")~ "NO",
+  is.na(Lip.simpl) | Bulb.simpl %in% c("Marked", "Diffuse")~ "No",
   TRUE ~ Lip.simpl  # keep the others
     )) %>%
   mutate(Abrasion.simpl = Abrasion, .after = Abrasion) %>% #INSERT Abrasion.simpl
   mutate(Abrasion.simpl = case_when(
   Abrasion.simpl %in% c("No Prox Part" , 
                         "No Prox part", 
-                        "No prox part") ~ "NA",
+                        "No prox part") ~ "No Prox Part",
   Abrasion.simpl %in% c("Abrasion" , 
                         "Hinged scars" , 
                         "Abrasion;Hinged scars" , 
@@ -581,6 +610,7 @@ mutate(Lip.simpl = case_when(
                         "Off-axis right",
                         "Off-axis left") ~ "Off axis",
   Axiality.simpl == "und" ~ "ND",
+  Axiality.simpl == "NA" ~ NA,
   TRUE ~ Axiality.simpl  # keep the others
 ))  %>%
   mutate(Outline.morphology = case_when(
@@ -588,38 +618,39 @@ mutate(Lip.simpl = case_when(
                             "(sub)Parellel edges" , 
                             "Sub-parallel" , 
                             "(sub)Parallel Edges" ) ~ "Subparallel edges",
-  Outline.morphology == "Off-axis" ~ "Déjète",
+  Outline.morphology == "Off-axis" | Axiality.simpl == "Off axis" ~ "Déjète",
   Outline.morphology == "Undetermined" ~ "ND",
   Outline.morphology == "Irregular" ~ "Other",
   Outline.morphology == "Convex" ~ "Convergent",
+  Outline.morphology == "NA" ~ NA,
   TRUE ~ Outline.morphology  # keep the others
     )) %>%
   mutate(Symmetry = case_when(
-  Symmetry == "NA" ~ "",
+  Symmetry == "NA" ~ NA,
   TRUE ~ Symmetry  # keep the others
     )) %>%
   mutate(Cross.section = case_when(
-  Cross.section == "NA" ~ "",
-  Cross.section %in% c("Polyhedral" , 
-                       "Polyhedral ",
-                      "Polyhedral " ) ~ "Polyhedric",
+  Cross.section %in% c("NA", "Undetermined") ~ "ND",
+  Cross.section== "NA" & Blank.type == "Flake" ~ NA,
+  Cross.section %in% c("Polyhedral","Trapezoidal") ~ "Polyhedric",
   Cross.section == "Lateral steep" ~ "Triangular",
-  Cross.section == "Undetermined" ~ "ND",
+  
   TRUE ~ Cross.section  # keep the others
     )) %>%
   mutate(Profile = case_when(
-  Profile == "NA" ~ "",
+  Profile == "NA" & Blank.type == "Flake" ~ NA,
   Profile %in% c("Slightly curved", 
                  "Curved slightly", 
                  "Curved sligthly") ~ "Slightly Curved",
   Profile == "Very curved" ~ "Very Curved",
-  Profile %in% c("undetermined", 
+  Profile %in% c("NA", 
+                 "undetermined", 
                  "Curved inverse") ~ "ND",
   TRUE ~ Profile  # keep the others
 )) %>%
   mutate(Torsion = case_when(
-  Torsion == "NA" ~ "",
-  Torsion %in% c("Slightly curved", 
+  Torsion %in% c("NA",
+                 "Slightly curved", 
                  "Curved slightly", 
                  "Curved sligthly",
                  "0",
@@ -636,7 +667,7 @@ mutate(Lip.simpl = case_when(
 )) %>%
   mutate(Distal.end.morpho = case_when(
   Distal.end.morpho %in% c("No Dist Part", 
-                           "NA") ~ "",
+                           "NA") ~ "No Dist Part",
   Distal.end.morpho %in% c("feathered", 
                            "Convex", 
                            "Straight") ~ "Feathered",
@@ -666,12 +697,18 @@ mutate(Dorsal.scar.1 = case_when(
     Dorsal.scar.1 %in% c("Multidirectional", 
                          "Centripedal") ~ "Centripetal",
     Dorsal.scar.1 %in% c("Undetermined") ~ "ND",
+    Dorsal.scar.1 %in% c("NA") | Number.negatives %in% c("No negatives", "0") ~ "No negatives",
     TRUE ~ Dorsal.scar.1  # keep the others
+)) %>%
+mutate(Retouch.Position = case_when(
+    Retouch.Position %in% c("-"
+                         ) ~ NA,
+    TRUE ~ Retouch.Position  # keep the others
 ))
 library(writexl)
 writexl::write_xlsx(Blank_Main_reshaped1, "Ans_Rom_Fum_CTS_Blanksmerged_reshaped.xlsx")
 
-#cheking
+#checking
 View(Blank_Main_reshaped1)
 unique(Blank_Main_reshaped1$Site)
 unique(Blank_Main_reshaped1$Preservation)
@@ -697,14 +734,2486 @@ unique(Blank_Main_reshaped1$Retouch.Position)
   
 ```
 
-
-
-
 # Analysis
 
-
 ```{r}
+library(readxl)
+library(dplyr)
 Blank_Main_reshaped1 <- read_excel(file.choose()) #get the Ans_Rom_Fum_CTS_Blanksmerged_reshaped.xlsx
 View(Blank_Main_reshaped1)
 str(Blank_Main_reshaped1)
+Blank_Main_reshaped1 <- Blank_Main_reshaped1 %>% 
+  filter(!Technology.Extended %in% c("Levallois")) %>% #removing the Levallois flakes
+  mutate(Number.negatives = as.factor(Number.negatives))
 ```
+
+##Reducing variability changing categories that are accounting less than 5% in groups as Other
+
+```{r}
+
+
+library(dplyr)
+
+ANCxPosBld <- Blank_Main_reshaped1 %>%
+  filter(Site == "AN", Blank.type == "Blade") %>%
+  mutate(Cortex.position.simpl_lump = Cortex.position.simpl, .after = Cortex.position.simpl)
+
+# Check the proportions table
+proportions_table <- table(ANCxPosBld$Cortex.position.simpl_lump, useNA = "no") / sum(!is.na(ANCxPosBld$Cortex.position.simpl_lump)) * 100
+print(proportions_table)
+
+# Modify levels based on proportions and create "Other" category
+ANCxPosBld <- ANCxPosBld %>%
+  mutate(Cortex.position.simpl_lump = case_when(
+    Cortex.position.simpl_lump %in% c("Proximal") ~ "Other", #less than 5% categories
+    TRUE ~ as.character(Cortex.position.simpl_lump)
+  ))
+
+ANCxPosBldl <- Blank_Main_reshaped1 %>% 
+  filter(Site == "AN", Blank.type == "Bladelet") %>%
+mutate(Cortex.position.simpl_lump = Cortex.position.simpl, .after = Cortex.position.simpl)
+
+proportions_table <- table(ANCxPosBldl$Cortex.position.simpl_lump, useNA = "no") / sum(!is.na(ANCxPosBldl$Cortex.position.simpl_lump)) * 100
+print(proportions_table)
+# Modify levels based on proportions and create "Other" category
+ANCxPosBldl <- ANCxPosBldl %>%
+  mutate(Cortex.position.simpl_lump = case_when(
+    Cortex.position.simpl_lump %in% c("Distal+Proximal", "Proximal") ~ "Other", #less than 5% categories
+    TRUE ~ as.character(Cortex.position.simpl_lump)
+  ))
+
+ANCxPosFl <- Blank_Main_reshaped1 %>% 
+  filter(Site == "AN", Blank.type == "Flake")%>%
+mutate(Cortex.position.simpl_lump = Cortex.position.simpl, .after = Cortex.position.simpl)
+
+proportions_table <- table(ANCxPosFl$Cortex.position.simpl_lump, useNA = "no") / sum(!is.na(ANCxPosFl$Cortex.position.simpl_lump)) * 100
+print(proportions_table)
+
+ANCxPosFl <- ANCxPosFl %>%
+  mutate(Cortex.position.simpl_lump = case_when(
+    Cortex.position.simpl_lump %in% c("Bilateral") ~ "Other", #less than 5% categories
+    TRUE ~ as.character(Cortex.position.simpl_lump)
+  ))
+
+
+CTSCxPosBldl <- Blank_Main_reshaped1 %>% 
+  filter(Site == "CTS", Blank.type == "Bladelet")%>%
+mutate(Cortex.position.simpl_lump = Cortex.position.simpl, .after = Cortex.position.simpl)
+
+proportions_table <- table(CTSCxPosBldl$Cortex.position.simpl_lump, useNA = "no") / sum(!is.na(CTSCxPosBldl$Cortex.position.simpl_lump)) * 100
+print(proportions_table)
+
+CTSCxPosBldl <- CTSCxPosBldl %>%
+  mutate(Cortex.position.simpl_lump = case_when(
+    Cortex.position.simpl_lump %in% c("Bilateral", "Lateral+Distal", "Lateral+Dorsal", "Lateral+Proximal", "Proximal") ~ "Other", #less than 5% categories
+    TRUE ~ as.character(Cortex.position.simpl_lump)  
+  ))
+
+CTSCxPosBld <- Blank_Main_reshaped1 %>% 
+  filter(Site == "CTS", Blank.type == "Blade") %>%
+mutate(Cortex.position.simpl_lump = Cortex.position.simpl, .after = Cortex.position.simpl) 
+
+proportions_table <- table(CTSCxPosBld$Cortex.position.simpl_lump, useNA = "no") / sum(!is.na(CTSCxPosBld$Cortex.position.simpl_lump)) * 100
+print(proportions_table)
+
+CTSCxPosBld <- CTSCxPosBld %>%
+  mutate(Cortex.position.simpl_lump = case_when(
+    Cortex.position.simpl_lump %in% c("Bilateral", "Lateral+Dorsal", "Lateral+Proximal") ~ "Other", #less than 5% categories
+    TRUE ~ as.character(Cortex.position.simpl_lump)  
+  ))
+
+CTSCxPosFl <- Blank_Main_reshaped1 %>% 
+  filter(Site == "CTS", Blank.type == "Flake")%>%
+mutate(Cortex.position.simpl_lump = Cortex.position.simpl, .after = Cortex.position.simpl) 
+
+proportions_table <- table(CTSCxPosFl$Cortex.position.simpl_lump, useNA = "no") / sum(!is.na(CTSCxPosFl$Cortex.position.simpl_lump)) * 100
+print(proportions_table)
+
+CTSCxPosFl <- CTSCxPosFl %>%
+  mutate(Cortex.position.simpl_lump = case_when(
+    Cortex.position.simpl_lump %in% c("Bilateral", "Lateral+Dorsal", "Lateral+Proximal") ~ "Other", #less than 5% categories
+    TRUE ~ as.character(Cortex.position.simpl_lump)  
+  ))
+
+FUMCxPosBldl <- Blank_Main_reshaped1 %>% 
+  filter(Site == "FUM", Blank.type == "Bladelet") %>%
+mutate(Cortex.position.simpl_lump = Cortex.position.simpl, .after = Cortex.position.simpl) 
+
+proportions_table <- table(FUMCxPosBldl$Cortex.position.simpl_lump, useNA = "no") / sum(!is.na(FUMCxPosBldl$Cortex.position.simpl_lump)) * 100
+print(proportions_table)
+
+FUMCxPosBldl <- FUMCxPosBldl %>%
+  mutate(Cortex.position.simpl_lump = case_when(
+    Cortex.position.simpl_lump %in% c("Distal+Proximal", "Proximal") ~ "Other", #less than 5% categories
+    TRUE ~ as.character(Cortex.position.simpl_lump)  
+  ))
+
+FUMCxPosBld <- Blank_Main_reshaped1 %>% 
+  filter(Site == "FUM", Blank.type == "Blade") %>%
+mutate(Cortex.position.simpl_lump = Cortex.position.simpl, .after = Cortex.position.simpl) 
+
+proportions_table <- table(FUMCxPosBld$Cortex.position.simpl_lump, useNA = "no") / sum(!is.na(FUMCxPosBld$Cortex.position.simpl_lump)) * 100
+print(proportions_table)
+
+FUMCxPosBld <- FUMCxPosBld %>%
+  mutate(Cortex.position.simpl_lump = case_when(
+    Cortex.position.simpl_lump %in% c("Distal+Proximal", "Lateral+Proximal", "Proximal") ~ "Other", #less than 5% categories
+    TRUE ~ as.character(Cortex.position.simpl_lump)  
+  ))
+
+FUMCxPosFl <- Blank_Main_reshaped1 %>% 
+  filter(Site == "FUM", Blank.type == "Flake") %>%
+mutate(Cortex.position.simpl_lump = Cortex.position.simpl, .after = Cortex.position.simpl)  
+
+proportions_table <- table(FUMCxPosFl$Cortex.position.simpl_lump, useNA = "no") / sum(!is.na(FUMCxPosFl$Cortex.position.simpl_lump)) * 100
+print(proportions_table)
+
+FUMCxPosFl <- FUMCxPosFl %>%
+  mutate(Cortex.position.simpl_lump = case_when(
+    Cortex.position.simpl_lump %in% c("Bilateral", "Distal+Proximal", "Lateral+Distal", "Lateral+Proximal", "Proximal") ~ "Other", #less than 5% categories
+    TRUE ~ as.character(Cortex.position.simpl_lump)  
+  ))
+
+ROMCxPosBldl <- Blank_Main_reshaped1 %>% 
+  filter(Site == "ROM", Blank.type == "Bladelet") %>%
+mutate(Cortex.position.simpl_lump = Cortex.position.simpl, .after = Cortex.position.simpl)
+
+proportions_table <- table(ROMCxPosBldl$Cortex.position.simpl_lump, useNA = "no") / sum(!is.na(ROMCxPosBldl$Cortex.position.simpl_lump)) * 100
+print(proportions_table)
+
+#no categories less than 5%
+
+ROMCxPosBld <- Blank_Main_reshaped1 %>% 
+  filter(Site == "ROM", Blank.type == "Blade")%>%
+mutate(Cortex.position.simpl_lump = Cortex.position.simpl, .after = Cortex.position.simpl) 
+
+proportions_table <- table(ROMCxPosBld$Cortex.position.simpl_lump, useNA = "no") / sum(!is.na(ROMCxPosBld$Cortex.position.simpl_lump)) * 100
+print(proportions_table)
+
+ROMCxPosBld <- ROMCxPosBld %>%
+  mutate(Cortex.position.simpl_lump = case_when(
+    Cortex.position.simpl_lump %in% c("Distal+Proximal", "Lateral+Proximal") ~ "Other", #less than 5% categories
+    TRUE ~ as.character(Cortex.position.simpl_lump)  
+  ))
+
+ROMCxPosFl <- Blank_Main_reshaped1 %>% 
+  filter(Site == "ROM", Blank.type == "Flake")%>%
+mutate(Cortex.position.simpl_lump = Cortex.position.simpl, .after = Cortex.position.simpl) 
+
+proportions_table <- table(ROMCxPosFl$Cortex.position.simpl_lump, useNA = "no") / sum(!is.na(ROMCxPosFl$Cortex.position.simpl_lump)) * 100
+print(proportions_table)
+
+ROMCxPosFl <- ROMCxPosFl %>%
+  mutate(Cortex.position.simpl_lump = case_when(
+    Cortex.position.simpl_lump %in% c("Lateral+Distal", "Lateral+Dorsal") ~ "Other", #less than 5% categories
+    TRUE ~ as.character(Cortex.position.simpl_lump)  
+  ))
+
+
+# Combine the results into a single data frame
+Blanks_Main_lumped <- rbind(ANCxPosBld,
+  ANCxPosBldl,
+  ANCxPosFl,
+  CTSCxPosBldl,
+  CTSCxPosBld,
+  CTSCxPosFl,
+  FUMCxPosBldl,
+  FUMCxPosBld,
+  FUMCxPosFl,
+  ROMCxPosBldl,
+  ROMCxPosBld,
+  ROMCxPosFl
+)
+
+
+```
+
+
+##Exploratory plots
+
+
+
+```{r}
+#reordering for more intuitive display
+Blanks_Main_lumped$Site_F <- factor(Blanks_Main_lumped$Site, levels= c("AN", "ROM", "FUM", "CTS")) #geographical South East to NorthWest
+```
+
+```{r}
+
+
+Blanks_Main_lumped$Blank.type_F <- factor(Blanks_Main_lumped$Blank.type, levels= c("Flake", "Blade", "Bladelet")) #reorder bigger to smaller
+
+library(RColorBrewer)
+Blank_values <- unique(Blanks_Main_lumped$Blank.type_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Blank_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Blank_pal <- setNames(color_palette, Blank_values)
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+
+Blank <- ggbarstats(
+  data = Blanks_Main_lumped,
+  x = Blank.type_F,  
+  y = Site_F,  
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Blank_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+      axis.title.x =element_blank()
+      ))
+    )
+  Blank
+  
+  ggsave("Blank.tiff", plot = Blank, width = 13.20271, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd() 
+```
+
+Observed blank types frequencies vary markedly between sites. Romanesti shows the highest percentage of flakes, dwarfing the other three assemblages. Ansab and Les Cottés shows a similar pattern, blades are more represented than bladelets in general. Blades and bladelets are equal in Romanesti, consisting in the other half of the assemblage. In Fumane bladelets are accounting for over half of the assemblage. 
+###technological phases
+```{r}
+Blanks_Main_lumped$Technology.Phase_F <- factor(Blanks_Main_lumped$Technology.Phase, levels= c("Init", "MGMT", "Tablet", "Ordinary", "Spall")) #reorder earlier to later
+library(RColorBrewer)
+# Get unique values in the Technology.Phase_F column
+Tech_values <- unique(Blanks_Main_lumped$Technology.Phase_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Tech_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Tech_pal <- setNames(color_palette, Tech_values)
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+# Create grouped bar plot
+Tech.Phase <- ggbarstats(
+  data = Blanks_Main_lumped,
+  x = Technology.Phase_F,  
+  y = Site_F,  
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Tech_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+      axis.title.x =element_blank()
+    )))
+ Tech.Phase
+ 
+ggsave("TechPhase.tiff", plot = Tech.Phase, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd() 
+```
+
+Observed technological phases frequencies are largely overlapping in Ansab, Fumane and Les Cottés. Romanesti shows a higher percentage of Management artefacts, while Les Cottés an higher percentage of Initialisation (cortical) ones. 
+
+```{r}
+
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+# Create grouped bar plot
+Blank.Tech.Phase <- grouped_ggbarstats(
+  data = Blanks_Main_lumped, 
+  x = Technology.Phase_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  results.subtitle = FALSE,
+  counts = NULL,
+  ggplot.component = list(
+    scale_fill_manual(values = Tech_pal),  # Specify guide argument to merge legends
+    theme(
+      axis.text = element_text(face = "bold", size = 6, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 6, family = "Arial"),
+      axis.ticks.x = element_blank(),
+      legend.title = element_blank(), 
+      strip.text = element_text(face = "bold", size = 6, family = "Arial"),
+      axis.title.x = element_blank()
+    ))
+)
+Blank.Tech.Phase
+
+ggsave("BlankTechPhase.tiff", plot = Blank.Tech.Phase, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+The percentage of Ordinary blanks it's prevalent in bladelets with similar percentages in Ansab, Fumane and Les Cottés. Ordinary blades are accounting for nearly half the total blades in Ansab, Romanesti and Fumane, while in Les Cottès they are much more frequent. Flakes are largely used for management purposes in all assemblages; uncortical, ordinary flakes are present in equal percentages in Romanesti and Fumane.
+
+###cortex
+```{r}
+Blanks_Main_lumped$Cortex_F <- factor(Blanks_Main_lumped$Cortex, levels= c("No", "Semi", "Extensive", "Full")) #less to fully covered
+library(RColorBrewer)
+# Get unique values in the Platform.Simpl column
+Cx_values <- unique(Blanks_Main_lumped$Cortex_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Cx_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Cortex_pal <- setNames(color_palette, Cx_values)
+
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+# Create grouped bar plot
+Gen.Cortex <- grouped_ggbarstats(
+  data = Blanks_Main_lumped,
+  x = Cortex_F,  
+  y = Site_F,
+  xlab = "Site",
+  grouping.var = Blank.type_F,
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Cortex_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Gen.Cortex
+
+ggsave("Gen.Cortex.tiff", plot = Gen.Cortex, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+```{r}
+Init.Cortex <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Technology.Phase_F == "Init"),
+  x = Cortex_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  results.subtitle = FALSE,
+  xlab = "Site",
+  ggplot.component = list(
+    scale_fill_manual(values =  Cortex_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Init.Cortex
+
+ggsave("Init.Cortex.tiff", plot = Init.Cortex, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+```{r}
+MGMT.Cortex <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Technology.Phase_F == "MGMT"),
+  x = Cortex_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+   xlab = "Site",
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Cortex_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+MGMT.Cortex
+
+ggsave("MGMT.Cortex.tiff", plot = MGMT.Cortex, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+```{r}
+Ordinary.Cortex <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped,  Technology.Phase_F == "Ordinary"),
+  x = Cortex_F,  
+  y = Site_F, 
+  xlab = "Site",
+  grouping.var = Blank.type_F,
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Cortex_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Ordinary.Cortex
+
+ggsave("Ordinary.Cortex.tiff", plot = Ordinary.Cortex, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+Trends about cortical artefacts are largely similar across sites. Cortical artefacts, especially the extensively cortical ones, are much more present in Flakes. Semicortical artefacts are still present in blades. Bladelets are largely uncortical, Les Cottés is showing the larger frequency of semi-cortical bladelets
+
+###cortical position
+```{r}
+Blanks_Main_lumped$Cortex.position.simpl_lump_F <- factor(Blanks_Main_lumped$Cortex.position.simpl_lump, levels= c( "Proximal", "Lateral", "Lateral+Distal", "Distal", "Dorsal","Other")) #proximal to distal
+
+library(RColorBrewer)
+# Get unique values in the Platform.Simpl column
+position_values <- unique(Blanks_Main_lumped$Cortex.position.simpl_lump_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(position_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Cortex.Pos_pal <- setNames(color_palette, position_values)
+
+
+library(ggstatsplot)
+library(ggplot2)
+# Create grouped bar plot
+Gen.Cortex.Pos <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Cortex.y.n == "Yes", Cortex.position.simpl_lump_F != "Other"), 
+  x = Cortex.position.simpl_lump_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  xlab = "Site",
+  results.subtitle = FALSE,
+  ggplot.component = list(scale_fill_manual(values =  Cortex.Pos_pal),
+     # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Gen.Cortex.Pos
+
+ggsave("Gen.Cortex.Pos.tiff", plot = Gen.Cortex.Pos, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+```{r}
+Init.Cortex.Pos <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Cortex.y.n == "Yes", Cortex.position.simpl_lump_F != "Other", Technology.Phase_F == "Init" ), 
+  x = Cortex.position.simpl_lump_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  results.subtitle = FALSE,
+  xlab = "Site",
+  ggplot.component = list(
+    scale_fill_manual(values =  Cortex.Pos_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Init.Cortex.Pos
+
+ggsave("Init.Cortex.Pos.tiff", plot = Init.Cortex.Pos, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+```{r}
+MGMT.Cortex.Pos <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Cortex.y.n == "Yes", Cortex.position.simpl_lump_F != "Other", Technology.Phase_F == "MGMT" ), 
+  x = Cortex.position.simpl_lump_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  xlab="Site",
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Cortex.Pos_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+MGMT.Cortex.Pos
+
+ggsave("MGMT.Cortex.Pos.tiff", plot = MGMT.Cortex.Pos, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+```{r}
+Ordinary.Cortex.Pos <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Cortex.y.n == "Yes", Cortex.position.simpl_lump_F != "Other", Technology.Phase_F == "Ordinary" ), 
+  x = Cortex.position.simpl_lump_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  xlab="Site",
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Cortex.Pos_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Ordinary.Cortex.Pos
+
+ggsave("Ordinary.Cortex.Pos.tiff", plot = Ordinary.Cortex.Pos, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+###platform
+
+```{r}
+
+Blanks_Main_lumped$Platform.simpl_F <- factor(Blanks_Main_lumped$Platform.simpl, levels= c("Natural","Plain", "Faceted",  "Crushed", "ND")) #unprepared to prepared
+
+library(RColorBrewer)
+# Get unique values in the Platform.Simpl column
+platform_values <- unique(Blanks_Main_lumped$Platform.simpl_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(platform_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Platform_pal <- setNames(color_palette, platform_values)
+
+
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+# Create grouped bar plot
+Gen.Platform.simpl <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Preservation !="Mes+Dist", Platform.simpl %in% c("Plain","Natural", "Faceted" ,"Crushed")), #only blanks with a platform
+  x = Platform.simpl_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  xlab="Site",
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values = Platform_pal),
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Gen.Platform.simpl
+
+ggsave("Gen.Platform.simpl.tiff", plot = Gen.Platform.simpl, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+```{r}
+library(dplyr)
+
+Blanks_Main_lumped$Platform_F <- factor(Blanks_Main_lumped$Platform, levels= c("Natural","Plain", "Linear", "Punctiform" , "Concave", "Faceted", "Dihedral", "Crushed", "ND")) #unprepared to prepared
+
+
+library(RColorBrewer)
+# Get unique values in the Platform.Simpl column
+platform_values <- unique(Blanks_Main_lumped$Platform_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(platform_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Platform_pal <- setNames(color_palette, platform_values)
+
+
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+# Create grouped bar plot
+Gen.Platform <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Preservation !="Mes+Dist", Platform %in% c("Linear","Plain","Natural","Punctiform","Dihedral", "Crushed","Concave","Faceted")), 
+  x = Platform_F,  
+  y = Site_F, 
+  xlab="Site",
+  grouping.var = Blank.type_F,
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values = Platform_pal),
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Gen.Platform
+
+ggsave("Gen.Platform.tiff", plot = Gen.Platform, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+
+```{r}
+Init.Platform <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Preservation !="Mes+Dist", Platform %in% c("Linear","Plain","Natural","Punctiform","Dihedral", "Crushed","Concave","Faceted"), Technology.Phase_F == "Init"), 
+  x = Platform_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  xlab="Site",
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values = Platform_pal),
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Init.Platform
+
+ggsave("Init.Platform.tiff", plot = Init.Platform, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+```{r}
+MGMT.Platform <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Preservation !="Mes+Dist", Platform %in% c("Linear","Plain","Natural","Punctiform","Dihedral", "Crushed","Concave","Faceted"), Technology.Phase_F == "MGMT"), 
+  x = Platform_F,  
+  y = Site_F, 
+  xlab="Site",
+  grouping.var = Blank.type_F,
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Platform_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+MGMT.Platform
+
+ggsave("MGMT.Platform.tiff", plot = MGMT.Platform, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+```{r}
+Ordinary.Platform <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Preservation !="Mes+Dist", Platform %in% c("Linear","Plain","Natural","Punctiform","Dihedral", "Crushed","Concave","Faceted"), Technology.Phase_F == "Ordinary"), 
+  x = Platform_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  xlab="Site",
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Platform_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Ordinary.Platform
+
+ggsave("ordinary.Platform.tiff", plot = Ordinary.Platform, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+Unprepared platforms are the norm in all blank types across sites. Les Cottés flakes show a higher platform preparation, but also, in general, a higher frequency of Crushed platforms.
+
+###bulb
+```{r}
+unique(Blanks_Main_lumped$Bulb.simpl)
+Blanks_Main_lumped$Bulb.simpl_F <- factor(Blanks_Main_lumped$Bulb.simpl, levels= c("Diffuse","Not perceived", "Marked", "ND")) #small to big
+
+library(RColorBrewer)
+# Get unique values in the Platform.Simpl column
+Bulb_values <- unique(Blanks_Main_lumped$Bulb.simpl_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Bulb_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Bulb_pal <- setNames(color_palette, Bulb_values)
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+# Create grouped bar plot
+Gen.Bulb <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Preservation !="Mes+Dist", Bulb.simpl_F %in% c("Diffuse","Not perceived", "Marked")), 
+  x = Bulb.simpl_F,  
+  y = Site_F,
+  xlab="Site",
+  grouping.var = Blank.type_F,
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Bulb_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Gen.Bulb
+
+ggsave("Gen.Bulb.tiff", plot = Gen.Bulb, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+```{r}
+Init.Bulb <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Preservation !="Mes+Dist", Bulb.simpl_F %in% c("Diffuse","Not perceived", "Marked"),Technology.Phase_F == "Init" ), 
+  x = Bulb.simpl_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  xlab="Site",
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Bulb_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Init.Bulb
+
+ggsave("Init.Bulb.tiff", plot = Init.Bulb, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+```{r}
+MGMT.Bulb <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Preservation !="Mes+Dist", Bulb.simpl_F %in% c("Diffuse","Not perceived", "Marked"),Technology.Phase_F == "MGMT" ), 
+  x = Bulb.simpl_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  xlab="Site",
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Bulb_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+MGMT.Bulb
+
+ggsave("MGMT.Bulb.tiff", plot = MGMT.Bulb, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+```{r}
+Ordinary.Bulb <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Preservation !="Mes+Dist", Bulb.simpl_F %in% c("Diffuse","Not perceived", "Marked"), Technology.Phase_F == "Ordinary" ), 
+  x = Bulb.simpl_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  xlab="Site",
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Bulb_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Ordinary.Bulb
+
+ggsave("Ordinary.Bulb.tiff", plot = Ordinary.Bulb, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+###abrasion
+```{r}
+Blanks_Main_lumped$Abrasion.simpl_F <- factor(Blanks_Main_lumped$Abrasion.simpl, levels=c("Yes", "No", "ND")) 
+library(RColorBrewer)
+# Get unique values in the Platform.Simpl column
+Abrasion_values <- unique(Blanks_Main_lumped$Abrasion.simpl_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Abrasion_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Abrasion_pal <- setNames(color_palette, Abrasion_values)
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+# Create grouped bar plot
+Gen.Abrasion <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Blank.type_F != "Flake", Preservation !="Mes+Dist", Abrasion.simpl_F != "ND"), 
+  x = Abrasion.simpl_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  xlab="Site",
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Abrasion_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Gen.Abrasion
+
+ggsave("Gen.Abrasion.tiff", plot = Gen.Abrasion, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+```{r}
+Init.Abrasion <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Blank.type_F != "Flake", Preservation !="Mes+Dist", Abrasion.simpl_F != "ND", Technology.Phase_F == "Init" ), 
+  x = Abrasion.simpl_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  xlab="Site",
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Abrasion_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Init.Abrasion
+
+ggsave("Init.Abrasion.tiff", plot = Init.Abrasion, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+```{r}
+MGMT.Abrasion <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Blank.type_F != "Flake", Preservation !="Mes+Dist", Abrasion.simpl_F != "ND",  Technology.Phase_F == "MGMT" ), 
+  x = Abrasion.simpl_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  xlab="Site",
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Abrasion_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+MGMT.Abrasion
+
+ggsave("MGMT.Abrasion.tiff", plot = MGMT.Abrasion, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+```{r}
+Ordinary.Abrasion <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Blank.type_F != "Flake", Preservation !="Mes+Dist", Abrasion.simpl_F != "ND", Technology.Phase_F == "Ordinary" ), 
+  x = Abrasion.simpl_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  xlab="Site",
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Abrasion_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Ordinary.Abrasion
+
+ggsave("Ordinary.Abrasion.tiff", plot = Ordinary.Abrasion, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+###axiality and outline 
+```{r}
+Blanks_Main_lumped$Axiality.simpl_F <- factor(Blanks_Main_lumped$Axiality.simpl, levels=c("Off axis", "On axis")) 
+library(RColorBrewer)
+# Get unique values in the Platform.Simpl column
+Axiality.simpl_values <- unique(Blanks_Main_lumped$Axiality.simpl_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Axiality.simpl_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Axiality.simpl_pal <- setNames(color_palette, Axiality.simpl_values)
+
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+# Create grouped bar plot
+Gen.Ax <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Blank.type_F !="Flake", Preservation != "Prox+Mes", Axiality.simpl_F != "ND" & Axiality.simpl_F != "NA"), 
+  x = Axiality.simpl_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  xlab="Site",
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Axiality.simpl_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Gen.Ax
+
+ggsave("Gen.Axiality.tiff", plot = Gen.Ax, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+```{r}
+Init.Ax <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Blank.type_F !="Flake", Preservation != "Prox+Mes", Axiality.simpl_F != "ND" & Axiality.simpl_F != "NA", Technology.Phase_F == "Init"), 
+  x = Axiality.simpl_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  xlab="Site",
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Axiality.simpl_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Init.Ax
+
+ggsave("Init.Axiality.tiff", plot = Init.Ax, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+```{r}
+MGMT.Ax <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Blank.type_F !="Flake", Preservation != "Prox+Mes", Axiality.simpl_F != "ND" & Axiality.simpl_F != "NA", Technology.Phase_F == "MGMT"), 
+  x = Axiality.simpl_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  xlab="Site",
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Axiality.simpl_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+MGMT.Ax
+
+ggsave("MGMT.Axiality.tiff", plot = MGMT.Ax, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+```{r}
+Ordinary.Ax <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Blank.type_F !="Flake", Preservation != "Prox+Mes", Axiality.simpl_F != "ND" & Axiality.simpl_F != "NA", Technology.Phase_F == "Ordinary"), 
+  x = Axiality.simpl_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  xlab="Site",
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Axiality.simpl_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Ordinary.Ax
+
+ggsave("Ordinary.Axiality.tiff", plot = Ordinary.Ax, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+
+```
+
+```{r}
+Blanks_Main_lumped$Outline.morphology_F <- factor(Blanks_Main_lumped$Outline.morphology, levels=c("Subparallel edges", "Convergent", "Déjète", "ND", "Other")) 
+library(RColorBrewer)
+# Get unique values in the Platform.Simpl column
+Out.Morph_values <- unique(Blanks_Main_lumped$Outline.morphology_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Out.Morph_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Out.Morph_pal <- setNames(color_palette, Out.Morph_values)
+
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+# Create grouped bar plot
+Gen.Out.Morph <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Blank.type_F !="Flake", Preservation != "Prox+Mes", Outline.morphology_F != "ND" & Outline.morphology_F != "Other"), 
+  x = Outline.morphology_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  xlab="Site",
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Out.Morph_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Gen.Out.Morph
+
+ggsave("Gen.Out.Morph.tiff", plot = Gen.Out.Morph, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+```{r}
+Init.Out.Morph <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Blank.type_F !="Flake", Preservation != "Prox+Mes", Outline.morphology_F != "ND" & Outline.morphology_F != "Other", Technology.Phase_F == "Init"), 
+  x = Outline.morphology_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  xlab="Site",
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Out.Morph_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Init.Out.Morph
+
+ggsave("Init.Out.Morph.tiff", plot = Init.Out.Morph, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+```{r}
+MGMT.Out.Morph <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Blank.type_F !="Flake", Preservation != "Prox+Mes", Outline.morphology_F != "ND" & Outline.morphology_F != "Other", Technology.Phase_F == "MGMT"), 
+  x = Outline.morphology_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  results.subtitle = FALSE,
+  xlab="Site",
+  ggplot.component = list(
+    scale_fill_manual(values =  Out.Morph_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+MGMT.Out.Morph
+
+ggsave("MGMT.Out.Morph.tiff", plot = MGMT.Out.Morph, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+```{r}
+Ordinary.Out.Morph <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Blank.type_F !="Flake", Preservation != "Prox+Mes", Outline.morphology_F != "ND" & Outline.morphology_F != "Other", Technology.Phase_F == "Ordinary"), 
+  x = Outline.morphology_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  results.subtitle = FALSE,
+  xlab="Site",
+  ggplot.component = list(
+    scale_fill_manual(values =  Out.Morph_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Ordinary.Out.Morph
+
+ggsave("Ordinary.Out.Morph.tiff", plot = Ordinary.Out.Morph, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+###Symmetry
+```{r}
+Blanks_Main_lumped$Symmetry_F <- factor(Blanks_Main_lumped$Symmetry, levels=c("symmetric", "asymmetric", "ND"))
+library(RColorBrewer)
+# Get unique values in the Platform.Simpl column
+Symmetry_values <- unique(Blanks_Main_lumped$Symmetry_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Symmetry_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Symmetry_pal <- setNames(color_palette,Symmetry_values)
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+# Create grouped bar plot
+Gen.Symmetry <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Blank.type_F !="Flake", Symmetry_F != "ND"), 
+  x = Symmetry_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  xlab="Site",
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Symmetry_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Gen.Symmetry
+
+ggsave("Gen.Symmetry.tiff", plot = Gen.Symmetry, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+
+```{r}
+Init.Symmetry <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Blank.type_F !="Flake", Symmetry_F != "ND", Technology.Phase_F == "Init"), 
+  x = Symmetry_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  results.subtitle = FALSE,
+  xlab="Site",
+  ggplot.component = list(
+    scale_fill_manual(values =  Symmetry_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Init.Symmetry
+
+ggsave("Init.Symmetry.tiff", plot = Init.Symmetry, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+
+```{r}
+MGMT.Symmetry <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Blank.type_F !="Flake", Symmetry_F != "ND", Technology.Phase_F == "MGMT"), 
+  x = Symmetry_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  xlab="Site",
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Symmetry_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+MGMT.Symmetry
+
+ggsave("MGMT.Symmetry.tiff", plot = MGMT.Symmetry, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+```{r}
+Ordinary.Symmetry <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Blank.type_F !="Flake", Symmetry_F != "ND", Technology.Phase_F == "Ordinary"), 
+  x = Symmetry_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  xlab="Site",
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Symmetry_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Ordinary.Symmetry
+
+ggsave("Ordinary.Symmetry.tiff", plot = Ordinary.Symmetry, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+###crosssection shape
+```{r}
+Blanks_Main_lumped$Cross.section_F <- factor(Blanks_Main_lumped$Cross.section, levels=c("Triangular", "Polyhedric" ,"Flat", "ND"))
+
+library(RColorBrewer)
+# Get unique values in the Platform.Simpl column
+Cross.Section_values <- unique(Blanks_Main_lumped$Cross.section_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Cross.Section_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Cross.Section_pal <- setNames(color_palette,Cross.Section_values)
+
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+# Create grouped bar plot
+Gen.Cross.Section <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Blank.type_F !="Flake", Cross.section_F !="ND"), 
+  x = Cross.section_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  xlab="Site",
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Cross.Section_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Gen.Cross.Section
+
+ggsave("Gen.Cross.Section.tiff", plot = Gen.Cross.Section, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+```{r}
+Init.Cross.Section <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Blank.type_F !="Flake", Cross.section_F !="ND", Technology.Phase_F == "Init" ), 
+  x = Cross.section_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  xlab="Site",
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Cross.Section_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Init.Cross.Section
+
+ggsave("Init.Cross.Section.tiff", plot = Init.Cross.Section, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+```{r}
+MGMT.Cross.Section <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Blank.type_F !="Flake", Cross.section_F !="ND", Technology.Phase_F == "MGMT" ), 
+  x = Cross.section_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  xlab="Site",
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Cross.Section_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+MGMT.Cross.Section
+
+ggsave("MGMT.Cross.Section.tiff", plot = MGMT.Cross.Section, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+
+```{r}
+Ordinary.Cross.Section <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Blank.type_F !="Flake", Cross.section_F !="ND", Technology.Phase_F == "Ordinary" ), 
+  x = Cross.section_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  xlab="Site",
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Cross.Section_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Ordinary.Cross.Section
+
+ggsave("Ordinary.Cross.Section.tiff", plot = Ordinary.Cross.Section, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+###profile
+```{r}
+Blanks_Main_lumped$Profile_F <- factor(Blanks_Main_lumped$Profile, levels=c("Straight", "Slightly Curved","Curved","Very Curved","Twisted","ND"))
+library(RColorBrewer)
+# Get unique values in the Platform.Simpl column
+Profile_values <- unique(Blanks_Main_lumped$Profile_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Profile_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Profile_pal <- setNames(color_palette,Profile_values)
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+# Create grouped bar plot
+Gen.Profile <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Blank.type_F !="Flake", Profile_F !="ND"), 
+  x = Profile_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Profile_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Gen.Profile
+
+ggsave("Gen.Profile.tiff", plot = Gen.Profile, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+```{r}
+Init.Profile <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Blank.type_F !="Flake", Profile_F !="ND", Technology.Phase_F == "Init"), 
+  x = Profile_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Profile_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Init.Profile
+
+ggsave("Init.Profile.tiff", plot = Init.Profile, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+```{r}
+MGMT.Profile <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Blank.type_F !="Flake", Profile_F !="ND", Technology.Phase_F == "MGMT"), 
+  x = Profile_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Profile_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+MGMT.Profile
+
+ggsave("MGMT.Profile.tiff", plot = MGMT.Profile, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+```{r}
+Ordinary.Profile <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Blank.type_F !="Flake", Profile_F !="ND", Technology.Phase_F == "Ordinary"), 
+  x = Profile_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Profile_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Ordinary.Profile
+
+ggsave("Ordinary.Profile.tiff", plot = Ordinary.Profile, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+### distal end morphology
+```{r}
+Blanks_Main_lumped$Distal.end.morpho_F <- factor(Blanks_Main_lumped$Distal.end.morpho, levels=c("Feathered","Stepped", "Hinged", "Plunging", "ND"))
+library(RColorBrewer)
+# Get unique values in the Platform.Simpl column
+Distal.end.morpho_values <- unique(Blanks_Main_lumped$Distal.end.morpho_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Distal.end.morpho_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Distal.end.morpho_pal <- setNames(color_palette,Distal.end.morpho_values)
+
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+# Create grouped bar plot
+Gen.Distal.end.morpho <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Blank.type_F !="Flake",Distal.end.morpho_F != "ND", Preservation != "Prox+Mes"), 
+  x = Distal.end.morpho_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Distal.end.morpho_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Gen.Distal.end.morpho
+
+ggsave("Gen.Distal.end.morpho.tiff", plot = Gen.Distal.end.morpho, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+```{r}
+Init.Distal.end.morpho <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Blank.type_F !="Flake",Distal.end.morpho_F != "ND", Preservation != "Prox+Mes", Technology.Phase_F =="Init"), 
+  x = Distal.end.morpho_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Distal.end.morpho_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Init.Distal.end.morpho
+
+ggsave("Init.Distal.end.morpho.tiff", plot = Init.Distal.end.morpho, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+```{r}
+MGMT.Distal.end.morpho <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Blank.type_F !="Flake",Distal.end.morpho_F != "ND", Preservation != "Prox+Mes", Technology.Phase_F =="MGMT"), 
+  x = Distal.end.morpho_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Distal.end.morpho_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+MGMT.Distal.end.morpho
+
+ggsave("MGMT.Distal.end.morpho.tiff", plot = MGMT.Distal.end.morpho, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+```{r}
+Ordinary.Distal.end.morpho <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Blank.type_F !="Flake",Distal.end.morpho_F != "ND", Preservation != "Prox+Mes", Technology.Phase_F =="Ordinary"), 
+  x = Distal.end.morpho_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Distal.end.morpho_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Ordinary.Distal.end.morpho
+
+ggsave("Ordinary.Distal.end.morpho.tiff", plot = Ordinary.Distal.end.morpho, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+###torsion
+```{r}
+library(RColorBrewer)
+# Get unique values in the Torsion column
+Torsion_values <- unique(Blanks_Main_lumped$Torsion)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Torsion_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Torsion_pal <- setNames(color_palette, Torsion_values)
+
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+Gen.Torsion <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Blank.type_F !="Flake", Torsion !="ND"), 
+  x = Torsion,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  results.subtitle = TRUE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Torsion_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Gen.Torsion
+
+ggsave("Gen.Torsion.tiff", plot = Gen.Torsion, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+###dorsal scar pattern
+```{r}
+
+
+Blanks_Main_lumped$Dorsal.scar.1_F <- factor(Blanks_Main_lumped$Dorsal.scar.1, levels=c( "Unidirectional", "Crossed","Bidirectional","Centripetal","Other", "ND"))
+library(RColorBrewer)
+# Get unique values in the Platform.Simpl column
+Dorsal.scar.1_values <- unique(Blanks_Main_lumped$Dorsal.scar.1_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Dorsal.scar.1_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Dorsal.scar.1_pal <- setNames(color_palette, Dorsal.scar.1_values)
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+# Create grouped bar plot
+Gen.Dorsal.scar.1 <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Dorsal.scar.1_F != "ND", Dorsal.scar.1_F != "No negatives", Dorsal.scar.1_F != "Other"), 
+  x = Dorsal.scar.1_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values = Dorsal.scar.1_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Gen.Dorsal.scar.1
+
+ggsave("Gen.Dorsal.scar.1.tiff", plot = Gen.Dorsal.scar.1, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+
+```{r}
+
+
+Init.Dorsal.scar.1 <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Dorsal.scar.1_F != "ND", Dorsal.scar.1_F != "No negatives", Dorsal.scar.1_F != "Other", Technology.Phase_F == "Init"),
+  x = Dorsal.scar.1_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  xlab="Site",
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Dorsal.scar.1_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Init.Dorsal.scar.1
+
+ggsave("Init.Dorsal.scar.1.tiff", plot = Init.Dorsal.scar.1, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+```{r}
+
+
+MGMT.Dorsal.scar.1 <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Dorsal.scar.1_F != "ND", Dorsal.scar.1_F != "No negatives", Dorsal.scar.1_F != "Other", Technology.Phase_F == "MGMT"), 
+  x = Dorsal.scar.1_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  xlab="Site", 
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Dorsal.scar.1_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+MGMT.Dorsal.scar.1
+
+ggsave("MGMT.Dorsal.scar.1.tiff", plot = MGMT.Dorsal.scar.1, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+```{r}
+
+
+Ordinary.Dorsal.scar.1 <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Dorsal.scar.1_F != "ND", Dorsal.scar.1_F != "No negatives", Dorsal.scar.1_F != "Other", Technology.Phase_F == "Ordinary"), 
+  x = Dorsal.scar.1_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  xlab="Site",
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Dorsal.scar.1_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Ordinary.Dorsal.scar.1
+
+ggsave("ordinary.Dorsal.scar.1.tiff", plot = Ordinary.Dorsal.scar.1, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+###retouch position
+```{r}
+
+
+Blanks_Main_lumped$Retouch.Position_F <- factor(Blanks_Main_lumped$Retouch.Position, levels=c( "Direct", "Inverse", "Alternate", "Crossed"))
+library(RColorBrewer)
+# Get unique values in the Platform.Simpl column
+Retouch.Position_values <- unique(Blanks_Main_lumped$Retouch.Position_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Retouch.Position_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Retouch.Position_pal <- setNames(color_palette, Retouch.Position_values)
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+# Create grouped bar plot
+Retouch.Position <- grouped_ggbarstats(
+  data = filter(Blanks_Main_lumped, Blank.type_F != "Flake", Tool == "Yes"), 
+  x = Retouch.Position_F,  
+  y = Site_F, 
+  grouping.var = Blank.type_F,
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Retouch.Position_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Retouch.Position
+
+ggsave("Retouch.Position.tiff", plot = Retouch.Position, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+
+## Plotting and analyising widths
+```{r}
+Blank_Main_reshaped1$Site_F <- factor(Blank_Main_reshaped1$Site, levels= c("AN", "ROM", "FUM", "CTS"))
+Blank_Main_reshaped1$Blank.type_F <- factor(Blank_Main_reshaped1$Blank.type, levels= c("Flake", "Blade", "Bladelet"))
+Blank_Main_reshaped1$Technology.Phase_F <- factor(Blank_Main_reshaped1$Technology.Phase, levels= c("Init", "MGMT", "Tablet", "Ordinary", "Spall")) #reorder earlier to later
+```
+
+
+```{r}
+histowidthLaminar <- ggplot(filter(Blank_Main_reshaped1, Blank.type_F %in% c("Blade", "Bladelet")), aes(Width)) +
+  geom_histogram(aes(y = ..density..), color = "grey", fill = "grey", binwidth = 1) +
+  geom_density() +
+  facet_wrap(~Site_F, ncol = 2) +
+  scale_y_continuous(labels = scales::percent) +
+  geom_vline(aes(xintercept = 12, color = "Blade and Bladelet Threshold"), linetype = "dashed", size = 1) +
+  scale_x_continuous(breaks = seq(0, max(Blank_Main_reshaped1$Width, na.rm = TRUE), by = 2)) +
+  theme(axis.title.y = element_blank(),
+        axis.text.x = element_text(size = 4),
+        legend.position = "top",
+        legend.title = element_text(size = 6, face = "bold"),
+        legend.text = element_text(size = 4)) +
+  labs(x = "Width (mm)") +
+  guides(color = guide_legend(title = "Medians and\nThreshold")) +
+  scale_color_manual(values = c("Blade and Bladelet Threshold" = "red"),
+                     name = "Medians and Threshold",
+                     labels = c("Blade and Bladelet Threshold"))
+histowidthLaminar
+  
+
+histowidthLaminarO <- ggplot(filter(Blank_Main_reshaped1, Blank.type_F %in% c("Blade", "Bladelet"), Technology.Phase_F == "Ordinary"), aes(Width)) +
+  geom_histogram(aes(y = ..density..), color = "grey", fill = "grey", binwidth = 1) +
+  geom_density() +
+  facet_wrap(~Site_F, ncol = 2) +
+  scale_y_continuous(labels = scales::percent) +
+  geom_vline(xintercept = 12, linetype = "dashed", color = "red", size = 1) +
+  scale_x_continuous(breaks = seq(0, max(Blank_Main_reshaped1$Width, na.rm = TRUE), by = 2)) +
+  
+  theme(axis.title.y = element_blank(),
+        axis.text.x = element_text(size = 4),
+        legend.position = "top",
+        legend.title = element_text(size = 6, face = "bold"),
+        legend.text = element_text(size = 4)) +
+  
+  labs(x = "Width (mm)") +
+  
+  guides(color = guide_legend(title = "Medians and\nThreshold")) +
+  
+  scale_color_manual(values = c("Blade and Bladelet Threshold" = "red"),
+                     name = "Medians and Threshold",
+                     labels = c("Blade and Bladelet Threshold"))
+  
+histowidthLaminarO
+
+library(dplyr)
+
+# Assuming your data frame is named Blank_Main_reshaped1
+median_blade <- Blank_Main_reshaped1 %>%
+  filter(Blank.type_F == "Blade") %>%
+  group_by(Site_F) %>%
+  summarise(median_width = median(Width, na.rm = TRUE))
+
+print(median_blade)
+
+# Group by site and calculate median width for Bladelet
+median_bladelet <- Blank_Main_reshaped1 %>%
+  filter(Blank.type_F == "Bladelet") %>%
+  group_by(Site_F) %>%
+  summarise(median_width = median(Width, na.rm = TRUE))
+
+print(median_bladelet)
+
+# Group by site and calculate median width excluding Blade and Bladelet
+median_laminar<- Blank_Main_reshaped1 %>%
+  filter(Blank.type_F %in% c("Blade", "Bladelet")) %>%
+  group_by(Site_F) %>%
+  summarise(median_width = median(Width, na.rm = TRUE))
+
+print(median_laminar)
+
+median_bladeO <- Blank_Main_reshaped1 %>%
+  filter(Blank.type_F == "Blade", Technology.Phase_F == "Ordinary") %>%
+  group_by(Site_F) %>%
+  summarise(median_width = median(Width, na.rm = TRUE))
+
+print(median_bladeO)
+
+# Group by site and calculate median width for Bladelet
+median_bladeletO <- Blank_Main_reshaped1 %>%
+  filter(Blank.type_F == "Bladelet", Technology.Phase_F == "Ordinary") %>%
+  group_by(Site_F) %>%
+  summarise(median_width = median(Width, na.rm = TRUE))
+
+print(median_bladeletO)
+
+# Group by site and calculate median width excluding Blade and Bladelet
+median_laminarO <- Blank_Main_reshaped1 %>%
+  filter(Blank.type_F %in% c("Blade", "Bladelet"), Technology.Phase_F == "Ordinary") %>%
+  group_by(Site_F) %>%
+  summarise(median_width = median(Width, na.rm = TRUE))
+
+print(median_laminarO)
+histolaminarwidth <- histowidthLaminar + 
+  geom_vline(data = median_blade, aes(xintercept = median_width, color = "Blade"), linetype = "dashed") +
+  
+  # Add vertical lines for median Bladelet widths
+  geom_vline(data = median_bladelet, aes(xintercept = median_width, color = "Bladelet"), linetype = "dashed") +
+  
+  # Add vertical lines for median widths excluding Blade and Bladelet
+  geom_vline(data = median_laminar, aes(xintercept = median_width, color = "Blade and Bladelet"), linetype = "dashed") +
+  
+  geom_vline(aes(xintercept = 12, color = "Blade and Bladelet Threshold"), linetype = "dashed", size = 1) +
+  
+  theme(legend.title = element_text(size = 6, face = "bold"),
+        legend.text = element_text(size = 4)) +
+  
+  scale_color_manual(values = c("Blade" = "blue", "Bladelet" = "green", "Blade and Bladelet" = "#FFA500", "Blade and Bladelet Threshold" = "red"),
+                     name = "Medians and Threshold",
+                     labels = c("Blade", "Bladelet",  "Blade and\nBladelet Threshold", "Blade and\nBladelet")) +
+  
+  guides(color = guide_legend(title = "Medians and\nThreshold"))
+
+
+histolaminarwidthO <- histowidthLaminarO + 
+  geom_vline(data = median_bladeO, aes(xintercept = median_width, color = "Blade"), linetype = "dashed") +
+  
+  # Add vertical lines for median Bladelet widths
+  geom_vline(data = median_bladeletO, aes(xintercept = median_width, color = "Bladelet"), linetype = "dashed") +
+  
+  # Add vertical lines for median widths excluding Blade and Bladelet
+  geom_vline(data = median_laminarO, aes(xintercept = median_width, color = "Blade and Bladelet"), linetype = "dashed")+
+   geom_vline(aes(xintercept = 12, color = "Blade and Bladelet Threshold"), linetype = "dashed", size = 1) +
+  
+  theme(legend.title = element_text(size = 6, face = "bold"),
+        legend.text = element_text(size = 4)) +
+  
+  scale_color_manual(values = c("Blade" = "blue", "Bladelet" = "green", "Blade and Bladelet" = "#FFA500", "Blade and Bladelet Threshold" = "red"),
+                     name = "Medians and Threshold",
+                     labels = c("Blade", "Bladelet",  "Blade and\nBladelet Threshold", "Blade and\nBladelet")) +
+  
+  guides(color = guide_legend(title = "Medians and\nThreshold"))
+
+ggsave("histolaminarwidth.tiff", plot = histolaminarwidth, width = 15, height = 10, units = "cm", dpi = 300) #set your working directory with setwd()
+ggsave("histolaminarwidthO.tiff", plot = histolaminarwidthO, width = 15, height = 10, units = "cm", dpi = 300) #directory with setwd() 
+```
+
+The Width values distribution is unimodal both for all laminar blanks (histolaminarwidth, Blade and Bladelets, all phases) and for the Ordinary laminar blanks. Nonetheless, the unimodality of the distributions can be interpreted in the face of the overwhelming abundance of bladelets over blades, especially in the Ordinary technological phase. In fact highest frequency peaks are behind the 12 mm threshold (wide red dashed line). when calculating median values, the Blade and Bladelet one falls next to the threshold, except in Fumane. This is clearly influenced by the bladelets median. Thus, the unimodality in Width values do not refute the Tixier's (1963) threshold between blades and bladelets and should not be interpreted necessarily as a continuous reduction from blades to bladelets, especially when no refitting is available. 
+
+### dimensions 
+####width
+```{r}
+#violin plot
+library(ggstatsplot)
+library(ggplot2)
+Gen.width <- grouped_ggbetweenstats(
+  data = filter(Blank_Main_reshaped1, Blank.type_F %in% c("Blade", "Bladelet"), Tool == "No"),
+  x = Site_F,
+  y = Width,
+  grouping.var = Blank.type_F,
+  type = "non-parametric",
+  results.subtitle = FALSE,
+  combine = TRUE,
+  ggtheme = theme_classic()
+) 
+Gen.width
+
+ggsave("Gen.width.tiff", plot = Gen.width, width = 27.49021 , height =20.29354, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+```{r}
+MGMT.width <- grouped_ggbetweenstats(
+  data = filter(Blank_Main_reshaped1, Blank.type_F %in% c("Blade", "Bladelet"), Tool == "No", Technology.Phase_F == "MGMT"),
+  x = Site_F,
+  y = Width,
+  grouping.var = Blank.type_F,
+  type = "non-parametric",
+  results.subtitle = FALSE,
+  combine = TRUE,
+  ggtheme = theme_minimal(),
+) 
+MGMT.width
+
+ggsave("MGMT.width.tiff", plot = MGMT.width, width = 27.49021 , height =20.29354, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+```{r}
+Ordinary.width <- grouped_ggbetweenstats(
+  data = filter(Blank_Main_reshaped1, Blank.type_F %in% c("Blade", "Bladelet"), Tool == "No", Technology.Phase_F == "Ordinary"),
+  x = Site_F,
+  y = Width,
+  grouping.var = Blank.type_F,
+  type = "non-parametric",
+  results.subtitle = TRUE,
+  combine = TRUE,
+  ggtheme = theme_minimal(),
+) 
+Ordinary.width
+
+ggsave("Ordinary.width.tiff", plot = Ordinary.width,width = 27.49021 , height =20.29354, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+the width are statistically significant across sites, but the effect size is weak or negligible.
+####elongation
+```{r}
+Gen.elon <- grouped_ggbetweenstats(
+  data = filter(Blank_Main_reshaped1, Preservation == "Complete", Tool == "No", Blank.type_F %in% c("Blade", "Bladelet")),
+  x = Site_F,
+  y = Elongation,
+  grouping.var = Blank.type_F,
+  type = "non-parametric",
+  results.subtitle = FALSE,
+  combine = TRUE,
+  ggtheme = theme_minimal(),
+  ) 
+Gen.elon
+
+ggsave("Gen.elon.tiff", plot = Gen.elon, width = 27.49021 , height =20.29354, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+
+```{r}
+MGMT.elon <- grouped_ggbetweenstats(
+  data = filter(Blank_Main_reshaped1, Preservation == "Complete", Tool == "No", Blank.type_F %in% c("Blade", "Bladelet"), Technology.Phase_F == "MGMT"),
+  x = Site_F,
+  y = Elongation,
+  grouping.var = Blank.type_F,
+  type = "non-parametric",
+  results.subtitle = FALSE,
+  combine = TRUE,
+  ggtheme = theme_minimal(),
+) 
+MGMT.elon
+
+ggsave("MGMT.elon.tiff", plot = MGMT.elon, width = 27.49021 , height =20.29354, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+
+```{r}
+Ordinary.elon <- grouped_ggbetweenstats(
+  data = filter(Blank_Main_reshaped1, Preservation == "Complete", Tool == "No", Blank.type_F %in% c("Blade", "Bladelet"), Technology.Phase_F == "Ordinary"),
+  x = Site_F,
+  y = Elongation,
+  grouping.var = Blank.type_F,
+  type = "non-parametric",
+  results.subtitle = TRUE,
+  combine = TRUE,
+  ggtheme = theme_minimal(),
+)
+Ordinary.elon
+
+ggsave("Ordinary.elon.tiff", plot = Ordinary.elon, width = 27.49021 , height =20.29354, units = "cm", dpi = 300) #set your working directory with setwd()
+
+```
+the elongation are statistically significant across sites, the effect size is moderate.
+
+```{r}
+Ordinary.elon <- grouped_ggbetweenstats(
+  data = filter(Blank_Main_reshaped1, Preservation == "Complete", Tool == "No", Blank.type_F %in% c("Blade", "Bladelet"), Technology.Phase_F == "Ordinary"),
+  x = Blank.type_F,
+  y = Elongation,
+  grouping.var = Site_F,
+  type = "non-parametric",
+  results.subtitle = TRUE,
+  combine = TRUE,
+  ggtheme = theme_minimal(),
+)
+Ordinary.elon
+```
+
+
+##Flaking intensity
+```{r}
+library(dplyr)
+Flaking.Int <- Blank_Main_reshaped1 %>%
+  mutate(Area = Width * Length) %>%
+  select(Site_F, Cortex_F, Number.negatives, Area) %>% 
+  group_by(Site_F, Cortex_F) %>% 
+  summarise(ModeScar = as.numeric(which.max(table(Number.negatives))),
+            MeanArea = mean(Area, na.rm = TRUE)) %>%
+  as.data.frame()
+Flaking.Int
+
+
+#plotting it
+library(ggplot2)
+Int <- ggplot(filter(Flaking.Int, !is.na(Cortex_F)), aes(x = Cortex_F, y = MeanArea, group = Site_F)) +
+  geom_bar(stat = "identity", aes(fill = "Area")) +
+  geom_line(aes(y = ModeScar * 200, color = "ModeScar"), size = 1) +
+  scale_y_continuous(name = "Area", sec.axis = sec_axis(~./200, name = "Scar Number")) +
+  facet_wrap(~Site_F, ncol = 2) +
+  theme_classic()+
+  xlab("Cortex") +
+  scale_fill_manual(name = NULL, values = c("Area" = "grey")) +
+  scale_color_manual(name = NULL, values = c("ModeScar" = "#E69F00")) +
+  theme(legend.position = "top")
+
+ggsave("Flaking.Int.tiff", plot = Int, width = 15, height = 10, units = "cm", dpi = 300)
+```
+
+The decreasing trend in blank size along the Cortex axis suggests a linear reduction process at Ansab and Romanesti. In Fumane, the reduction is still notably linear, even though fully cortical blanks are smaller than extensively cortical ones. In Les Cottés, there is no clear linear reduction, possibly indicating that reduction starts with semi-cortical. Notably, non-cortical blanks are consistently smaller in each assemblage. Additionally, the number of scars increases with the reduction of cortical surfaces. This provides evidence of a similar reduction pattern across all four sites, accounting for differences in raw material acquisition and decortication practices.
+
+##MCA 
+
+we will use Multiple correspondence analysis (MCA) for summarizing and visualizing a data table containing more than two categorical variables.The goal is to identify: 
+- A group of individuals with similar profile 
+- The associations between variable categories
+
+first of all we create two Supplementary qualitative variables one that sums up the Site and the Blank Type, and one that sums up Site, Blank Type and Technological Phase (Ordinary or Management)
+```{r}
+library(dplyr)
+Blank_Main_reshaped2 <- Blank_Main_reshaped1 %>%
+  mutate(SiteBlank.type = Site, .after = Site) %>%
+  mutate(SiteBlank.type = case_when(
+    Site == "AN" & Blank.type == "Blade" ~ "ANBld",
+    Site == "CTS" & Blank.type == "Blade" ~ "CTSBld",
+    Site == "FUM" & Blank.type == "Blade" ~ "FUMBld",
+    Site == "ROM" & Blank.type == "Blade" ~ "ROMBld",
+    Site == "AN" & Blank.type == "Bladelet" ~ "ANBldl",
+    Site == "CTS" & Blank.type == "Bladelet" ~ "CTSBldl",
+    Site == "FUM" & Blank.type == "Bladelet" ~ "FUMBldl",
+    Site == "ROM" & Blank.type == "Bladelet" ~ "ROMBldl",
+    Site == "AN" & Blank.type == "Flake" ~ "ANFl",
+    Site == "CTS" & Blank.type == "Flake" ~ "CTSFl",
+    Site == "FUM" & Blank.type == "Flake" ~ "FUMFl",
+    Site == "ROM" & Blank.type == "Flake" ~ "ROMFl"
+  )) %>%
+mutate(SiteBlank.typeTech = SiteBlank.type, .after = SiteBlank.type) %>%
+mutate(SiteBlank.typeTech = case_when(
+    Site == "AN" & Blank.type == "Blade" & Technology.Phase == "Ordinary" ~ "ANOBld",
+    Site == "CTS" & Blank.type == "Blade" & Technology.Phase == "Ordinary" ~ "CTSOBld",
+    Site == "FUM" & Blank.type == "Blade" & Technology.Phase == "Ordinary"~ "FUMOBld",
+    Site == "ROM" & Blank.type == "Blade" & Technology.Phase == "Ordinary"~ "ROMOBld",
+    Site == "AN" & Blank.type == "Bladelet" & Technology.Phase == "Ordinary"~ "ANOBldl",
+    Site == "CTS" & Blank.type == "Bladelet" & Technology.Phase == "Ordinary"~ "CTSOBldl",
+    Site == "FUM" & Blank.type == "Bladelet" & Technology.Phase == "Ordinary" ~ "FUMOBldl",
+    Site == "ROM" & Blank.type == "Bladelet" & Technology.Phase == "Ordinary"~ "ROMOBldl",
+    Site == "AN" & Blank.type == "Flake" & Technology.Phase == "Ordinary"~ "ANOFl",
+    Site == "CTS" & Blank.type == "Flake" & Technology.Phase == "Ordinary"~ "CTSOFl",
+    Site == "FUM" & Blank.type == "Flake" & Technology.Phase == "Ordinary" ~ "FUMOFl",
+    Site == "ROM" & Blank.type == "Flake" & Technology.Phase == "Ordinary"~ "ROMOFl",
+    Site == "AN" & Blank.type == "Blade" & Technology.Phase == "MGMT" ~ "ANMBld",
+    Site == "CTS" & Blank.type == "Blade" & Technology.Phase == "MGMT" ~ "CTSMBld",
+    Site == "FUM" & Blank.type == "Blade" & Technology.Phase == "MGMT"~ "FUMMBld",
+    Site == "ROM" & Blank.type == "Blade" & Technology.Phase == "MGMT"~ "ROMMBld",
+    Site == "AN" & Blank.type == "Bladelet" & Technology.Phase == "MGMT"~ "ANMBldl",
+    Site == "CTS" & Blank.type == "Bladelet" & Technology.Phase == "MGMT"~ "CTSMBldl",
+    Site == "FUM" & Blank.type == "Bladelet" & Technology.Phase == "MGMT" ~ "FUMMBldl",
+    Site == "ROM" & Blank.type == "Bladelet" & Technology.Phase == "MGMT"~ "ROMMBldl",
+    Site == "AN" & Blank.type == "Flake" & Technology.Phase == "MGMT"~ "ANMFl",
+    Site == "CTS" & Blank.type == "Flake" & Technology.Phase == "MGMT"~ "CTSMFl",
+    Site == "FUM" & Blank.type == "Flake" & Technology.Phase == "MGMT" ~ "FUMMFl",
+    Site == "ROM" & Blank.type == "Flake" & Technology.Phase == "MGMT"~ "ROMMFl",
+    Site == "ROM" & Blank.type == "Bladelet" & Technology.Phase == "Init"~ "ROMMBldl",
+    Site == "AN" & Blank.type == "Flake" & Technology.Phase == "Init"~ "ANIFl",
+    Site == "CTS" & Blank.type == "Flake" & Technology.Phase == "Init"~ "CTSIFl",
+    Site == "FUM" & Blank.type == "Flake" & Technology.Phase == "Init" ~ "FUMIFl",
+    Site == "ROM" & Blank.type == "Flake" & Technology.Phase == "Init"~ "ROMIFl",
+    Site == "AN" & Blank.type == "Blade" & Technology.Phase == "Init"~ "ANIBld",
+    Site == "CTS" & Blank.type == "Blade" & Technology.Phase == "Init"~ "CTSIBld",
+    Site == "FUM" & Blank.type == "Blade" & Technology.Phase == "Init" ~ "FUMIBld",
+    Site == "ROM" & Blank.type == "Blade" & Technology.Phase == "Init"~ "ROMIBld",
+    Site == "AN" & Blank.type == "Bladelet" & Technology.Phase == "Init"~ "ANIBld",
+    Site == "CTS" & Blank.type == "Bladelet" & Technology.Phase == "Init"~ "CTSIBldl",
+    Site == "FUM" & Blank.type == "Bladelet" & Technology.Phase == "Init" ~ "FUMIBldl",
+    Site == "ROM" & Blank.type == "Bladelet" & Technology.Phase == "Init"~ "ROMIBldl"
+    ))
+str(Blank_Main_reshaped2)
+```
+What we want t check is the association of categorical variables in three domains of the knapping process across the site
+
+-Platform domain
+-Convexity domain
+-Reduction domain 
+
+
+###Platform
+
+The Platform domain is comprising the Variables Platform, Abrasion.simpl, Blank.type and Cortex.y.n to check if there's variation in platform preparation during the knapping sequence.
+```{r}
+
+
+library(FactoMineR)
+library(factoextra)
+library(dplyr)
+library(ggplot2)
+
+
+
+# Select relevant columns and remove missing values
+platform_maintenanceG <- Blank_Main_reshaped2 %>%
+  filter(Preservation != "Mes+Dist") %>% #only blanks with a Proximal part
+  filter(!Platform %in% c("No butt", "ND", "NA", "Crushed", "Concave")) %>% #removing blanks without clear info
+  filter(!Abrasion.simpl %in% c("NA", "ND")) %>% #removing blanks without clear info
+  select(SiteBlank.typeTech, Abrasion.simpl, Platform, Cortex.y.n) %>%
+  na.omit()
+  
+summary(platform_maintenanceG)
+
+# Run MCA
+res.mca_Platform <- MCA(platform_maintenanceG, graph = FALSE, quali.sup =1, method = "Burt") #Site, SiteBlank.type, SiteBlank.typeTech are not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in platform_maintenanceG, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
+
+print(res.mca_Platform)
+fviz_screeplot(res.mca_Platform, addlabels = TRUE, ylim = c(0, 45)) #To visualize the percentages of inertia explained by each MCA dimensions. Dim1 and Dim2 explain 44.667% of the variance
+summary(res.mca_Platform)
+
+
+fviz_mca_var(res.mca_Platform, choice = "mca.cor", 
+            repel = TRUE, 
+            ggtheme = theme_minimal()) #checking to which dimensions the variable are correlated
+fviz_mca_var(res.mca_Platform, 
+             repel = TRUE, # 
+             ggtheme = theme_minimal()) #Variable categories with a similar profile are grouped together. Negatively correlated variable categories are positioned on opposite sides of the plot origin (opposed quadrants).The distance between category points and the origin measures the quality of the variable category on the factor map. Category points that are away from the origin are well represented on the factor map.
+
+var <- get_mca_var(res.mca_Platform)
+head(var$cos2, 20) #If a variable category is well represented by two dimensions, the sum of the cos2 is closed to one. For some of the row items, more than 2 dimensions are required to perfectly represent the data.
+
+
+fviz_cos2(res.mca_Platform, choice = "var", axes = 1:2) #visualising
+
+fviz_contrib(res.mca_Platform, choice = "var", axes = 1, top = 15) #contribution to Dim 1. above the threshold are  Abrasion.simpl_No, Cortex.y.n_Yes, Natural
+
+fviz_contrib(res.mca_Platform, choice = "var", axes = 2, top = 15) #contribution to Dim 2. above the threshold is only Punctiform
+
+MCA_Platform <- fviz_mca_var(
+  res.mca_Platform,
+  col.var = "contrib",
+  label = "all",
+  invisible = "none",
+  gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+  repel = TRUE,
+  ggtheme = theme_classic()
+)
+MCA_Platform
+ggsave("MCAPlatform.tiff", plot = MCA_Platform, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
+ggsave("MCAPlatform.png", plot = MCA_Platform, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)    
+
+
+fviz_mca_ind(res.mca_Platform, 
+             label = "none", # hide individual labels
+             habillage = "SiteBlank.typeTech", # color by groups
+             addEllipses = TRUE, ellipse.type = "confidence",
+             ggtheme = theme_minimal()) #clustering of type of blanks for each site 
+
+```
+###Convexity
+
+The Convexity domain is comprising the Variables Axiality.simpl, Outline.morphology, Symmetry, Cross.section, Profile, Torsion, Distal.end.morpho, Cortex.position.simpl, Cortex to check if there's association between morphological attributes attributed to a particular position on the core volume.
+
+```{r}
+library(FactoMineR)
+library(factoextra)
+library(dplyr)
+library(ggplot2)
+
+
+
+# Select relevant columns and remove missing values
+convexity_maintenanceG <- Blank_Main_reshaped2 %>%
+  filter(Blank.type != "Flake") %>% #check only laminar
+  filter(!Axiality.simpl %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Symmetry %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Outline.morphology %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Profile %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Torsion %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Distal.end.morpho %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Cortex.position.simpl %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Cortex %in% c("NA", "ND")) %>% #removing blanks without clear info
+  select(SiteBlank.typeTech, Axiality.simpl, Outline.morphology, Symmetry, Cross.section, Profile, Torsion, Distal.end.morpho, Cortex.position.simpl, Cortex) %>%
+  na.omit()
+  
+summary(convexity_maintenanceG)
+
+# Run MCA
+res.mca_Convexity <- MCA(convexity_maintenanceG, graph = FALSE, quali.sup =1, method = "Burt") #Site, SiteBlank.type, SiteBlank.typeTech are not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in platform_maintenanceG, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
+
+print(res.mca_Convexity)
+fviz_screeplot(res.mca_Convexity, addlabels = TRUE, ylim = c(0, 45)) #To visualize the percentages of inertia explained by each MCA dimensions. Dim1 and Dim2 explain 31.664% of the variance
+summary(res.mca_Convexity)
+
+fviz_mca_var(res.mca_Convexity, choice = "mca.cor", 
+            repel = TRUE, 
+            ggtheme = theme_minimal()) #checking to which dimensions the variable are correlated
+fviz_mca_var(res.mca_Convexity, 
+             repel = TRUE, # 
+             ggtheme = theme_minimal()) #Variable categories with a similar profile are grouped together. Negatively correlated variable categories are positioned on opposite sides of the plot origin (opposed quadrants).The distance between category points and the origin measures the quality of the variable category on the factor map. Category points that are away from the origin are well represented on the factor map.
+
+var <- get_mca_var(res.mca_Convexity)
+head(var$cos2, 50) #If a variable category is well represented by two dimensions, the sum of the cos2 is closed to one. For some of the row items, more than 2 dimensions are required to perfectly represent the data.
+
+fviz_cos2(res.mca_Convexity, choice = "var", axes = 1:2) #visualising
+
+fviz_contrib(res.mca_Convexity, choice = "var", axes = 1, top = 15) #contribution to Dim 1. 
+
+fviz_contrib(res.mca_Convexity, choice = "var", axes = 2, top = 15) #contribution to Dim 2. 
+
+MCA_Convexity <- fviz_mca_var(res.mca_Convexity, col.var = "contrib",
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), 
+             repel = TRUE, # avoid text overlapping (slow)
+             ggtheme = theme_classic()
+             )
+MCA_Convexity
+ggsave("MCAConvexity.tiff", plot = MCA_Convexity, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)   
+ggsave("MCAConvexity.png", plot = MCA_Convexity, width = 43.656255, height = 20.29354, units = "cm", dpi = 300) 
+
+
+fviz_mca_ind(res.mca_Convexity, 
+             label = "none", # hide individual labels
+             habillage = "SiteBlank.typeTech", # color by groups
+             addEllipses = TRUE, ellipse.type = "confidence",
+             ggtheme = theme_minimal()) #clustering of type of blanks for each site 
+```
+###Reduction domain
+
+The Reduction domain is comprising the Variables Dorsal.scar.1, Negatives.type, Negatives.number, Cortex.position.simpl, Cortex to check if there's association between negatives and negatives flaking direction during the reduction process
+
+```{r}
+library(FactoMineR)
+library(factoextra)
+library(dplyr)
+library(ggplot2)
+
+
+
+# Select relevant columns and remove missing values
+Reduction <- Blank_Main_reshaped2 %>%
+  filter(Blank.type != "Flake") %>% #check only laminar
+  filter(!Dorsal.scar.1 %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Negatives.type %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Number.negatives %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Cortex.position.simpl %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Cortex %in% c("NA", "ND")) %>% #removing blanks without clear info
+  select(SiteBlank.typeTech, Dorsal.scar.1, Negatives.type, Number.negatives, Cortex.position.simpl, Cortex) %>%
+  na.omit()
+  
+summary(Reduction)
+
+# Run MCA
+res.mca_Reduction <- MCA(Reduction, graph = FALSE, quali.sup =1, method = "Burt") #Site, SiteBlank.type, SiteBlank.typeTech are not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in platform_maintenanceG, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
+
+print(res.mca_Reduction)
+fviz_screeplot(res.mca_Reduction, addlabels = TRUE, ylim = c(0, 45)) #To visualize the percentages of inertia explained by each MCA dimensions. Dim1 and Dim2 explain 37.819% of the variance
+summary(res.mca_Reduction)
+
+fviz_mca_var(res.mca_Reduction, choice = "mca.cor", 
+            repel = TRUE, 
+            ggtheme = theme_minimal()) #checking to which dimensions the variable are correlated
+fviz_mca_var(res.mca_Reduction, 
+             repel = TRUE, # 
+             ggtheme = theme_classic()) #Variable categories with a similar profile are grouped together. Negatively correlated variable categories are positioned on opposite sides of the plot origin (opposed quadrants).The distance between category points and the origin measures the quality of the variable category on the factor map. Category points that are away from the origin are well represented on the factor map.
+
+var <- get_mca_var(res.mca_Reduction)
+head(var$cos2, 50) #If a variable category is well represented by two dimensions, the sum of the cos2 is closed to one. For some of the row items, more than 2 dimensions are required to perfectly represent the data.
+
+fviz_cos2(res.mca_Convexity, choice = "var", axes = 1:2) #visualising
+
+fviz_contrib(res.mca_Reduction, choice = "var", axes = 1, top = 15) #contribution to Dim 1. 
+
+fviz_contrib(res.mca_Reduction, choice = "var", axes = 2, top = 15) #contribution to Dim 2.
+MCA_Reduction <- fviz_mca_var(res.mca_Reduction, col.var = "contrib",
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), 
+             repel = TRUE, # avoid text overlapping (slow)
+             ggtheme = theme_classic()
+             )#
+MCA_Reduction
+ggsave("MCAReduction.tiff", plot = MCA_Reduction, width = 43.656255, height = 20.29354, units = "cm", dpi = 300) 
+ggsave("MCAReduction.png", plot = MCA_Reduction, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
+
+
+fviz_mca_ind(res.mca_Reduction, 
+             label = "none", # hide individual labels
+             habillage = "SiteBlank.typeTech", # color by groups
+             addEllipses = TRUE, ellipse.type = "confidence",
+             ggtheme = theme_minimal()) #clustering of type of blanks for each site 
+```
+#Testing MCA results with ANOVA
+
+```{r}
+#preapring the data
+library(dplyr)
+mca.Reduction <- as.data.frame(res.mca_Reduction$ind)
+SiteTypeTech <- as.data.frame(Reduction$SiteBlank.typeTech)
+
+mca.Reduction <- mca.Reduction %>%
+  select(1:2)
+
+mca.Reduction <- bind_cols(SiteTypeTech, mca.Reduction)
+
+mca.Reduction <- mca.Reduction %>%
+  mutate(SiteTypeTech = Reduction$SiteBlank.typeTech, "dim1" = coord.Dim.1, "dim2" =    coord.Dim.2)%>%
+  select(4:6) #creating a dataframe with the Dim1 and Dim2 coordinates obtained with MCA_Reduction of each individual (blank)
+
+###create unique comparisons
+unique(mca.Reduction$SiteTypeTech)
+
+factors <- c("ANOBldl", "ANOBld", "ROMOBldl", "ROMOBld", "ROMMBldl", "ROMMBld",
+             "ANMBld", "ANMBldl", "CTSOBldl", "CTSMBldl", "CTSOBld", "CTSIBld",
+             "CTSIBldl", "CTSMBld", "FUMMBld", "FUMOBld", "FUMIBld", "FUMMBldl")
+
+
+# Create all unique combinations
+all_combinations <- combn(factors, 2, simplify = TRUE)
+ 
+# Convert to a data frame
+ combinations_df <- data.frame(Var1 = all_combinations[1, ], Var2 = all_combinations[2, ])
+ 
+# Create a vector of comparisons
+ comparisons_Reduction <- paste(combinations_df$Var1, "-", combinations_df$Var2)
+ 
+```
+## Bootstrap
+```{r}
+# Multi-comparison bootstrap
+install.packages("WRS2")
+library(WRS2)
+#preapring the data
+library(dplyr)
+mca.Reduction <- as.data.frame(res.mca_Reduction$ind)
+SiteTypeTech <- as.data.frame(Reduction$SiteBlank.typeTech)
+
+mca.Reduction <- mca.Reduction %>%
+  select(1:2)
+
+mca.Reduction <- bind_cols(SiteTypeTech, mca.Reduction)
+
+mca.Reduction <- mca.Reduction %>%
+  mutate(SiteTypeTech = Reduction$SiteBlank.typeTech, "dim1" = coord.Dim.1, "dim2" =    coord.Dim.2)%>%
+  select(4:6) #creating a dataframe with the Dim1 and Dim2 coordinates obtained with MCA_Reduction of each individual (blank)
+
+mca.Reduction <- na.omit(mca.Reduction)
+###create unique comparisons
+unique(mca.Reduction$SiteTypeTech)
+
+factors <- c("ANOBldl", "ANOBld", "ROMOBldl", "ROMOBld", "ROMMBldl", "ROMMBld",
+             "ANMBld", "ANMBldl", "CTSOBldl", "CTSMBldl", "CTSOBld", "CTSIBld",
+             "CTSIBldl", "CTSMBld", "FUMMBld", "FUMOBld", "FUMIBld", "FUMMBldl")
+
+
+# Create all unique combinations
+all_combinations <- combn(factors, 2, simplify = TRUE)
+ 
+# Convert to a data frame
+ combinations_df <- data.frame(Var1 = all_combinations[1, ], Var2 = all_combinations[2, ])
+ 
+# Create a vector of comparisons
+ comparisons_Reduction <- paste(combinations_df$Var1, "-", combinations_df$Var2)
+ 
+```
+
+```{r}
+# Multi-comparison bootstrap
+install.packages("WRS2")
+library(WRS2)
+# Multi-comparison bootstrap
+boot_dim1 <- mcppb20(dim1 ~ SiteTypeTech, data = mca.Reduction, nboot = 5000)
+boot_dim2 <- mcppb20(dim2 ~ SiteTypeTech, data = mca.Reduction, nboot = 5000)
+
+# Convert results to data frames
+multi_comp_dim1 <- as.data.frame(boot_dim1$comp)
+multi_comp_dim2 <- as.data.frame(boot_dim2$comp)
+
+# Add SiteTypeTech names and transform to column "SiteTypeTech"
+multi_comp_dim1$SiteTypeTech <- comparisons_Reduction
+multi_comp_dim1 <- multi_comp_dim1[!duplicated(names(multi_comp_dim1))]
+
+multi_comp_dim2$SiteTypeTech <- comparisons_Reduction
+multi_comp_dim2 <- multi_comp_dim2[!duplicated(names(multi_comp_dim2))]
+
+# Join the results
+multi_comp <- full_join(multi_comp_dim1, multi_comp_dim2, by = "SiteTypeTech", suffix = c("dim1", "dim2"))
+
+# Select relevant columns
+multi_comp <- select(multi_comp, SiteTypeTech, `p-valuedim1`, `p-valuedim2`)
+
+# Build a list with pairwise p-values
+labels_dim1 <- setNames(multi_comp$`p-valuedim1`, multi_comp_dim1$SiteTypeTech)
+labels_dim2 <- setNames(multi_comp$`p-valuedim2`, multi_comp_dim2$SiteTypeTech)
+
+# Attribute letters to each grouping based on alpha = .05
+grouping_dim1 <- data.frame(multcompLetters(labels_dim1)["Letters"])
+grouping_dim1 <- rownames_to_column(grouping_dim1, "SiteTypeTech")
+
+grouping_dim2 <- data.frame(multcompLetters(labels_dim2)["Letters"])
+grouping_dim2 <- rownames_to_column(grouping_dim2, "SiteTypeTech")
+
+# Join the grouping results
+grouping <- full_join(grouping_dim1, grouping_dim2, by = "SiteTypeTech", suffix = c("dim1", "dim2"))
+
+# Transform to uppercase
+grouping <- mutate(grouping, SiteTypeTech = toupper(SiteTypeTech), Lettersdim1 = toupper(Lettersdim1), Lettersdim2 = toupper(Lettersdim2))
+
+# Print or use the 'grouping' dataframe for further analysis or visualization
+print(grouping)
+
+```
+
