@@ -744,7 +744,10 @@ View(Blank_Main_reshaped1)
 str(Blank_Main_reshaped1)
 Blank_Main_reshaped1 <- Blank_Main_reshaped1 %>% 
   filter(!Technology.Extended %in% c("Levallois")) %>% #removing the Levallois flakes
-  mutate(Number.negatives = as.factor(Number.negatives))
+  mutate(Number.negatives = case_when(
+    Number.negatives > 4 ~ "4+",  # substitute with "4+" when greater than 4
+    TRUE ~ as.character(Number.negatives)  # keep the original value otherwise
+  ))
 ```
 
 ##Reducing variability changing categories that are accounting less than 5% in groups as Other
@@ -2823,7 +2826,7 @@ ggsave("Flaking.Int.tiff", plot = Int, width = 15, height = 10, units = "cm", dp
 
 The decreasing trend in blank size along the Cortex axis suggests a linear reduction process at Ansab and Romanesti. In Fumane, the reduction is still notably linear, even though fully cortical blanks are smaller than extensively cortical ones. In Les Cottés, there is no clear linear reduction, possibly indicating that reduction starts with semi-cortical. Notably, non-cortical blanks are consistently smaller in each assemblage. Additionally, the number of scars increases with the reduction of cortical surfaces. This provides evidence of a similar reduction pattern across all four sites, accounting for differences in raw material acquisition and decortication practices.
 
-##MCA 
+##MCA & ANOVA testing coordinates
 
 we will use Multiple correspondence analysis (MCA) for summarizing and visualizing a data table containing more than two categorical variables.The goal is to identify: 
 - A group of individuals with similar profile 
@@ -2835,58 +2838,57 @@ library(dplyr)
 Blank_Main_reshaped2 <- Blank_Main_reshaped1 %>%
   mutate(SiteBlank.type = Site, .after = Site) %>%
   mutate(SiteBlank.type = case_when(
-    Site == "AN" & Blank.type == "Blade" ~ "ANBld",
-    Site == "CTS" & Blank.type == "Blade" ~ "CTSBld",
-    Site == "FUM" & Blank.type == "Blade" ~ "FUMBld",
-    Site == "ROM" & Blank.type == "Blade" ~ "ROMBld",
-    Site == "AN" & Blank.type == "Bladelet" ~ "ANBldl",
-    Site == "CTS" & Blank.type == "Bladelet" ~ "CTSBldl",
-    Site == "FUM" & Blank.type == "Bladelet" ~ "FUMBldl",
-    Site == "ROM" & Blank.type == "Bladelet" ~ "ROMBldl",
-    Site == "AN" & Blank.type == "Flake" ~ "ANFl",
-    Site == "CTS" & Blank.type == "Flake" ~ "CTSFl",
-    Site == "FUM" & Blank.type == "Flake" ~ "FUMFl",
-    Site == "ROM" & Blank.type == "Flake" ~ "ROMFl"
+    Site == "AN" & Blank.type == "Blade" ~ "A.B",
+    Site == "CTS" & Blank.type == "Blade" ~ "C.B",
+    Site == "FUM" & Blank.type == "Blade" ~ "F.B",
+    Site == "ROM" & Blank.type == "Blade" ~ "R.B",
+    Site == "AN" & Blank.type == "Bladelet" ~ "A.b",
+    Site == "CTS" & Blank.type == "Bladelet" ~ "C.b",
+    Site == "FUM" & Blank.type == "Bladelet" ~ "F.b",
+    Site == "ROM" & Blank.type == "Bladelet" ~ "R.b",
+    Site == "AN" & Blank.type == "Flake" ~ "A.F",
+    Site == "CTS" & Blank.type == "Flake" ~ "C.F",
+    Site == "FUM" & Blank.type == "Flake" ~ "F.F",
+    Site == "ROM" & Blank.type == "Flake" ~ "R.F"
   )) %>%
 mutate(SiteBlank.typeTech = SiteBlank.type, .after = SiteBlank.type) %>%
 mutate(SiteBlank.typeTech = case_when(
-    Site == "AN" & Blank.type == "Blade" & Technology.Phase == "Ordinary" ~ "ANOBld",
-    Site == "CTS" & Blank.type == "Blade" & Technology.Phase == "Ordinary" ~ "CTSOBld",
-    Site == "FUM" & Blank.type == "Blade" & Technology.Phase == "Ordinary"~ "FUMOBld",
-    Site == "ROM" & Blank.type == "Blade" & Technology.Phase == "Ordinary"~ "ROMOBld",
-    Site == "AN" & Blank.type == "Bladelet" & Technology.Phase == "Ordinary"~ "ANOBldl",
-    Site == "CTS" & Blank.type == "Bladelet" & Technology.Phase == "Ordinary"~ "CTSOBldl",
-    Site == "FUM" & Blank.type == "Bladelet" & Technology.Phase == "Ordinary" ~ "FUMOBldl",
-    Site == "ROM" & Blank.type == "Bladelet" & Technology.Phase == "Ordinary"~ "ROMOBldl",
-    Site == "AN" & Blank.type == "Flake" & Technology.Phase == "Ordinary"~ "ANOFl",
-    Site == "CTS" & Blank.type == "Flake" & Technology.Phase == "Ordinary"~ "CTSOFl",
-    Site == "FUM" & Blank.type == "Flake" & Technology.Phase == "Ordinary" ~ "FUMOFl",
-    Site == "ROM" & Blank.type == "Flake" & Technology.Phase == "Ordinary"~ "ROMOFl",
-    Site == "AN" & Blank.type == "Blade" & Technology.Phase == "MGMT" ~ "ANMBld",
-    Site == "CTS" & Blank.type == "Blade" & Technology.Phase == "MGMT" ~ "CTSMBld",
-    Site == "FUM" & Blank.type == "Blade" & Technology.Phase == "MGMT"~ "FUMMBld",
-    Site == "ROM" & Blank.type == "Blade" & Technology.Phase == "MGMT"~ "ROMMBld",
-    Site == "AN" & Blank.type == "Bladelet" & Technology.Phase == "MGMT"~ "ANMBldl",
-    Site == "CTS" & Blank.type == "Bladelet" & Technology.Phase == "MGMT"~ "CTSMBldl",
-    Site == "FUM" & Blank.type == "Bladelet" & Technology.Phase == "MGMT" ~ "FUMMBldl",
-    Site == "ROM" & Blank.type == "Bladelet" & Technology.Phase == "MGMT"~ "ROMMBldl",
-    Site == "AN" & Blank.type == "Flake" & Technology.Phase == "MGMT"~ "ANMFl",
-    Site == "CTS" & Blank.type == "Flake" & Technology.Phase == "MGMT"~ "CTSMFl",
-    Site == "FUM" & Blank.type == "Flake" & Technology.Phase == "MGMT" ~ "FUMMFl",
-    Site == "ROM" & Blank.type == "Flake" & Technology.Phase == "MGMT"~ "ROMMFl",
-    Site == "ROM" & Blank.type == "Bladelet" & Technology.Phase == "Init"~ "ROMMBldl",
-    Site == "AN" & Blank.type == "Flake" & Technology.Phase == "Init"~ "ANIFl",
-    Site == "CTS" & Blank.type == "Flake" & Technology.Phase == "Init"~ "CTSIFl",
-    Site == "FUM" & Blank.type == "Flake" & Technology.Phase == "Init" ~ "FUMIFl",
-    Site == "ROM" & Blank.type == "Flake" & Technology.Phase == "Init"~ "ROMIFl",
-    Site == "AN" & Blank.type == "Blade" & Technology.Phase == "Init"~ "ANIBld",
-    Site == "CTS" & Blank.type == "Blade" & Technology.Phase == "Init"~ "CTSIBld",
-    Site == "FUM" & Blank.type == "Blade" & Technology.Phase == "Init" ~ "FUMIBld",
-    Site == "ROM" & Blank.type == "Blade" & Technology.Phase == "Init"~ "ROMIBld",
-    Site == "AN" & Blank.type == "Bladelet" & Technology.Phase == "Init"~ "ANIBld",
-    Site == "CTS" & Blank.type == "Bladelet" & Technology.Phase == "Init"~ "CTSIBldl",
-    Site == "FUM" & Blank.type == "Bladelet" & Technology.Phase == "Init" ~ "FUMIBldl",
-    Site == "ROM" & Blank.type == "Bladelet" & Technology.Phase == "Init"~ "ROMIBldl"
+    Site == "AN" & Blank.type == "Blade" & Technology.Phase == "Ordinary" ~ "A.B.O",
+    Site == "CTS" & Blank.type == "Blade" & Technology.Phase == "Ordinary" ~ "C.B.O",
+    Site == "FUM" & Blank.type == "Blade" & Technology.Phase == "Ordinary"~ "F.B.O",
+    Site == "ROM" & Blank.type == "Blade" & Technology.Phase == "Ordinary"~ "R.B.O",
+    Site == "AN" & Blank.type == "Bladelet" & Technology.Phase == "Ordinary"~ "A.b.O",
+    Site == "CTS" & Blank.type == "Bladelet" & Technology.Phase == "Ordinary"~ "C.b.O",
+    Site == "FUM" & Blank.type == "Bladelet" & Technology.Phase == "Ordinary" ~ "F.b.O",
+    Site == "ROM" & Blank.type == "Bladelet" & Technology.Phase == "Ordinary"~ "R.b.O",
+    Site == "AN" & Blank.type == "Flake" & Technology.Phase == "Ordinary"~ "A.F.O",
+    Site == "CTS" & Blank.type == "Flake" & Technology.Phase == "Ordinary"~ "C.F.O",
+    Site == "FUM" & Blank.type == "Flake" & Technology.Phase == "Ordinary" ~ "F.F.O",
+    Site == "ROM" & Blank.type == "Flake" & Technology.Phase == "Ordinary"~ "R.F.O",
+    Site == "AN" & Blank.type == "Blade" & Technology.Phase == "MGMT" ~ "A.B.M",
+    Site == "CTS" & Blank.type == "Blade" & Technology.Phase == "MGMT" ~ "C.B.M",
+    Site == "FUM" & Blank.type == "Blade" & Technology.Phase == "MGMT"~ "F.B.M",
+    Site == "ROM" & Blank.type == "Blade" & Technology.Phase == "MGMT"~ "R.B.M",
+    Site == "AN" & Blank.type == "Bladelet" & Technology.Phase == "MGMT"~ "A.b.M",
+    Site == "CTS" & Blank.type == "Bladelet" & Technology.Phase == "MGMT"~ "C.b.M",
+    Site == "FUM" & Blank.type == "Bladelet" & Technology.Phase == "MGMT" ~ "F.b.M",
+    Site == "ROM" & Blank.type == "Bladelet" & Technology.Phase == "MGMT"~ "R.b.M",
+    Site == "AN" & Blank.type == "Flake" & Technology.Phase == "MGMT"~ "A.F.M",
+    Site == "CTS" & Blank.type == "Flake" & Technology.Phase == "MGMT"~ "C.F.M",
+    Site == "FUM" & Blank.type == "Flake" & Technology.Phase == "MGMT" ~ "F.F.M",
+    Site == "ROM" & Blank.type == "Flake" & Technology.Phase == "MGMT"~ "R.F.M",
+    Site == "AN" & Blank.type == "Flake" & Technology.Phase == "Init"~ "A.F.I",
+    Site == "CTS" & Blank.type == "Flake" & Technology.Phase == "Init"~ "C.F.I",
+    Site == "FUM" & Blank.type == "Flake" & Technology.Phase == "Init" ~ "F.F.I",
+    Site == "ROM" & Blank.type == "Flake" & Technology.Phase == "Init"~ "R.F.I",
+    Site == "AN" & Blank.type == "Blade" & Technology.Phase == "Init"~ "A.B.I",
+    Site == "CTS" & Blank.type == "Blade" & Technology.Phase == "Init"~ "C.B.I",
+    Site == "FUM" & Blank.type == "Blade" & Technology.Phase == "Init" ~ "F.B.I",
+    Site == "ROM" & Blank.type == "Blade" & Technology.Phase == "Init"~ "R.B.I",
+    Site == "AN" & Blank.type == "Bladelet" & Technology.Phase == "Init"~ "A.b.I",
+    Site == "CTS" & Blank.type == "Bladelet" & Technology.Phase == "Init"~ "C.b.I",
+    Site == "FUM" & Blank.type == "Bladelet" & Technology.Phase == "Init" ~ "F.b.I",
+    Site == "ROM" & Blank.type == "Bladelet" & Technology.Phase == "Init"~ "R.b.I"
     ))
 str(Blank_Main_reshaped2)
 ```
@@ -2900,6 +2902,7 @@ What we want t check is the association of categorical variables in three domain
 ###Platform
 
 The Platform domain is comprising the Variables Platform, Abrasion.simpl, Blank.type and Cortex.y.n to check if there's variation in platform preparation during the knapping sequence.
+####Ordinary
 ```{r}
 
 
@@ -2911,66 +2914,72 @@ library(ggplot2)
 
 
 # Select relevant columns and remove missing values
-platform_maintenanceG <- Blank_Main_reshaped2 %>%
+platform_maintenanceGO <- Blank_Main_reshaped2 %>%
+  filter(Blank.type != "Flake") %>% #check only laminar
   filter(Preservation != "Mes+Dist") %>% #only blanks with a Proximal part
   filter(!Platform %in% c("No butt", "ND", "NA", "Crushed", "Concave")) %>% #removing blanks without clear info
   filter(!Abrasion.simpl %in% c("NA", "ND")) %>% #removing blanks without clear info
-  select(SiteBlank.typeTech, Abrasion.simpl, Platform, Cortex.y.n) %>%
+  filter(Technology.Phase %in% c("Ordinary")) %>% #getting only Ordinary
+  select(SiteBlank.typeTech, Blank.type, Abrasion.simpl, Platform, Cortex.y.n) %>%
   na.omit()
   
-summary(platform_maintenanceG)
+summary(platform_maintenanceGO)
 
 # Run MCA
-res.mca_Platform <- MCA(platform_maintenanceG, graph = FALSE, quali.sup =1, method = "Burt") #Site, SiteBlank.type, SiteBlank.typeTech are not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in platform_maintenanceG, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
+res.mca_PlatformO <- MCA(platform_maintenanceGO, graph = FALSE, quali.sup =1:2, method = "Burt") #Site, SiteBlank.type, SiteBlank.typeTech are not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in platform_maintenanceG, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
 
-print(res.mca_Platform)
-fviz_screeplot(res.mca_Platform, addlabels = TRUE, ylim = c(0, 45)) #To visualize the percentages of inertia explained by each MCA dimensions. Dim1 and Dim2 explain 44.667% of the variance
-summary(res.mca_Platform)
+print(res.mca_PlatformO)
+fviz_screeplot(res.mca_PlatformO, addlabels = TRUE, ylim = c(0, 45)) #To visualize the percentages of inertia explained by each MCA dimensions. Dim1 and Dim2 explain 43.162% of the variance
+summary(res.mca_PlatformO)
 
 
-fviz_mca_var(res.mca_Platform, choice = "mca.cor", 
+fviz_mca_var(res.mca_PlatformO, choice = "mca.cor", 
             repel = TRUE, 
             ggtheme = theme_minimal()) #checking to which dimensions the variable are correlated
-fviz_mca_var(res.mca_Platform, 
+fviz_mca_var(res.mca_PlatformO, 
              repel = TRUE, # 
              ggtheme = theme_minimal()) #Variable categories with a similar profile are grouped together. Negatively correlated variable categories are positioned on opposite sides of the plot origin (opposed quadrants).The distance between category points and the origin measures the quality of the variable category on the factor map. Category points that are away from the origin are well represented on the factor map.
 
-var <- get_mca_var(res.mca_Platform)
+var <- get_mca_var(res.mca_PlatformO)
 head(var$cos2, 20) #If a variable category is well represented by two dimensions, the sum of the cos2 is closed to one. For some of the row items, more than 2 dimensions are required to perfectly represent the data.
 
 
-fviz_cos2(res.mca_Platform, choice = "var", axes = 1:2) #visualising
+fviz_cos2(res.mca_PlatformO, choice = "var", axes = 1:2) #visualising
 
-fviz_contrib(res.mca_Platform, choice = "var", axes = 1, top = 15) #contribution to Dim 1. above the threshold are  Abrasion.simpl_No, Cortex.y.n_Yes, Natural
+fviz_contrib(res.mca_PlatformO, choice = "var", axes = 1, top = 15) #contribution to Dim 1. above the threshold are  Abrasion.simpl_No, Cortex.y.n_Yes, Natural
 
-fviz_contrib(res.mca_Platform, choice = "var", axes = 2, top = 15) #contribution to Dim 2. above the threshold is only Punctiform
+fviz_contrib(res.mca_PlatformO, choice = "var", axes = 2, top = 15) #contribution to Dim 2. above the threshold is only Punctiform
 
-MCA_Platform <- fviz_mca_var(
-  res.mca_Platform,
+MCA_PlatformO <- fviz_mca_var(
+  res.mca_PlatformO,
   col.var = "contrib",
   label = "all",
   invisible = "none",
   gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
   repel = TRUE,
+  max.overlaps=Inf,
   ggtheme = theme_classic()
 )
-MCA_Platform
-ggsave("MCAPlatform.tiff", plot = MCA_Platform, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
-ggsave("MCAPlatform.png", plot = MCA_Platform, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)    
+MCA_PlatformO
+ggsave("MCAPlatformOrdinary.tiff", plot = MCA_PlatformO, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
+ggsave("MCAPlatformOrdinary.png", plot = MCA_PlatformO, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)    
 
 
-fviz_mca_ind(res.mca_Platform, 
-             label = "none", # hide individual labels
-             habillage = "SiteBlank.typeTech", # color by groups
-             addEllipses = TRUE, ellipse.type = "confidence",
-             ggtheme = theme_minimal()) #clustering of type of blanks for each site 
+fviz_mca_ind(
+  res.mca_PlatformO, 
+  label = "none",                   # hide individual labels
+  habillage = "SiteBlank.typeTech", # color by groups
+  addEllipses = TRUE,               # add confidence ellipses
+  ellipse.type = "confidence",      # type of ellipse
+  ggtheme = theme_minimal(),        # set the ggplot theme
+  geom = "point",                   # use points for symbols
+  ) # set custom colors              # use grouping variable for shapes
 
 ```
-###Convexity
-
-The Convexity domain is comprising the Variables Axiality.simpl, Outline.morphology, Symmetry, Cross.section, Profile, Torsion, Distal.end.morpho, Cortex.position.simpl, Cortex to check if there's association between morphological attributes attributed to a particular position on the core volume.
-
+####Management
 ```{r}
+
+
 library(FactoMineR)
 library(factoextra)
 library(dplyr)
@@ -2979,214 +2988,134 @@ library(ggplot2)
 
 
 # Select relevant columns and remove missing values
-convexity_maintenanceG <- Blank_Main_reshaped2 %>%
+platform_maintenanceGM <- Blank_Main_reshaped2 %>%
   filter(Blank.type != "Flake") %>% #check only laminar
-  filter(!Axiality.simpl %in% c("NA", "ND")) %>% #removing blanks without clear info
-  filter(!Symmetry %in% c("NA", "ND")) %>% #removing blanks without clear info
-  filter(!Outline.morphology %in% c("NA", "ND")) %>% #removing blanks without clear info
-  filter(!Profile %in% c("NA", "ND")) %>% #removing blanks without clear info
-  filter(!Torsion %in% c("NA", "ND")) %>% #removing blanks without clear info
-  filter(!Distal.end.morpho %in% c("NA", "ND")) %>% #removing blanks without clear info
-  filter(!Cortex.position.simpl %in% c("NA", "ND")) %>% #removing blanks without clear info
-  filter(!Cortex %in% c("NA", "ND")) %>% #removing blanks without clear info
-  select(SiteBlank.typeTech, Axiality.simpl, Outline.morphology, Symmetry, Cross.section, Profile, Torsion, Distal.end.morpho, Cortex.position.simpl, Cortex) %>%
+  filter(Preservation != "Mes+Dist") %>% #only blanks with a Proximal part
+  filter(!Platform %in% c("No butt", "ND", "NA", "Crushed", "Concave")) %>% #removing blanks without clear info
+  filter(!Abrasion.simpl %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(Technology.Phase %in% c("MGMT")) %>% #getting only Ordinary
+  select(SiteBlank.typeTech, Blank.type, Abrasion.simpl, Platform, Cortex.y.n) %>%
   na.omit()
   
-summary(convexity_maintenanceG)
+summary(platform_maintenanceGM)
 
 # Run MCA
-res.mca_Convexity <- MCA(convexity_maintenanceG, graph = FALSE, quali.sup =1, method = "Burt") #Site, SiteBlank.type, SiteBlank.typeTech are not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in platform_maintenanceG, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
+res.mca_PlatformM <- MCA(platform_maintenanceGM, graph = FALSE, quali.sup =1:2, method = "Burt") #Site, SiteBlank.type, SiteBlank.typeTech are not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in platform_maintenanceG, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
 
-print(res.mca_Convexity)
-fviz_screeplot(res.mca_Convexity, addlabels = TRUE, ylim = c(0, 45)) #To visualize the percentages of inertia explained by each MCA dimensions. Dim1 and Dim2 explain 31.664% of the variance
-summary(res.mca_Convexity)
+print(res.mca_PlatformM)
+fviz_screeplot(res.mca_PlatformM, addlabels = TRUE, ylim = c(0, 45)) #To visualize the percentages of inertia explained by each MCA dimensions. Dim1 and Dim2 explain 43.310% of the variance
+summary(res.mca_PlatformM)
 
-fviz_mca_var(res.mca_Convexity, choice = "mca.cor", 
+
+fviz_mca_var(res.mca_PlatformM, choice = "mca.cor", 
             repel = TRUE, 
             ggtheme = theme_minimal()) #checking to which dimensions the variable are correlated
-fviz_mca_var(res.mca_Convexity, 
+fviz_mca_var(res.mca_PlatformM, 
              repel = TRUE, # 
              ggtheme = theme_minimal()) #Variable categories with a similar profile are grouped together. Negatively correlated variable categories are positioned on opposite sides of the plot origin (opposed quadrants).The distance between category points and the origin measures the quality of the variable category on the factor map. Category points that are away from the origin are well represented on the factor map.
 
-var <- get_mca_var(res.mca_Convexity)
-head(var$cos2, 50) #If a variable category is well represented by two dimensions, the sum of the cos2 is closed to one. For some of the row items, more than 2 dimensions are required to perfectly represent the data.
-
-fviz_cos2(res.mca_Convexity, choice = "var", axes = 1:2) #visualising
-
-fviz_contrib(res.mca_Convexity, choice = "var", axes = 1, top = 15) #contribution to Dim 1. 
-
-fviz_contrib(res.mca_Convexity, choice = "var", axes = 2, top = 15) #contribution to Dim 2. 
-
-MCA_Convexity <- fviz_mca_var(res.mca_Convexity, col.var = "contrib",
-             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), 
-             repel = TRUE, # avoid text overlapping (slow)
-             ggtheme = theme_classic()
-             )
-MCA_Convexity
-ggsave("MCAConvexity.tiff", plot = MCA_Convexity, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)   
-ggsave("MCAConvexity.png", plot = MCA_Convexity, width = 43.656255, height = 20.29354, units = "cm", dpi = 300) 
+var <- get_mca_var(res.mca_PlatformM)
+head(var$cos2, 20) #If a variable category is well represented by two dimensions, the sum of the cos2 is closed to one. For some of the row items, more than 2 dimensions are required to perfectly represent the data.
 
 
-fviz_mca_ind(res.mca_Convexity, 
-             label = "none", # hide individual labels
-             habillage = "SiteBlank.typeTech", # color by groups
-             addEllipses = TRUE, ellipse.type = "confidence",
-             ggtheme = theme_minimal()) #clustering of type of blanks for each site 
+fviz_cos2(res.mca_PlatformM, choice = "var", axes = 1:2) #visualising
+
+fviz_contrib(res.mca_PlatformM, choice = "var", axes = 1, top = 15) #contribution to Dim 1. above the threshold are  Abrasion.simpl_No, Cortex.y.n_Yes, Natural
+
+fviz_contrib(res.mca_PlatformM, choice = "var", axes = 2, top = 15) #contribution to Dim 2. above the threshold is only Punctiform
+
+MCA_PlatformM <- fviz_mca_var(
+  res.mca_PlatformM,
+  col.var = "contrib",
+  label = "all",
+  invisible = "none",
+  gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+  repel = TRUE,
+  max.overlaps=Inf,
+  ggtheme = theme_classic()
+)
+MCA_PlatformM
+ggsave("MCAPlatformMGMT.tiff", plot = MCA_PlatformM, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
+ggsave("MCAPlatformMGMT.png", plot = MCA_PlatformM, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)    
+
+
+fviz_mca_ind(
+  res.mca_PlatformM, 
+  label = "none",                   # hide individual labels
+  habillage = "SiteBlank.typeTech", # color by groups
+  addEllipses = TRUE,               # add confidence ellipses
+  ellipse.type = "confidence",      # type of ellipse
+  ggtheme = theme_minimal(),        # set the ggplot theme
+  geom = "point",                   # use points for symbols
+  )  # set custom colors              # use grouping variable for shapes
 ```
-###Reduction domain
+###ANOVA testing Platform domain
 
-The Reduction domain is comprising the Variables Dorsal.scar.1, Negatives.type, Negatives.number, Cortex.position.simpl, Cortex to check if there's association between negatives and negatives flaking direction during the reduction process
-
+#####Ordinary
 ```{r}
-library(FactoMineR)
-library(factoextra)
+#preparing the data
 library(dplyr)
-library(ggplot2)
+MCA_PlatformO <- as.data.frame(res.mca_PlatformO$ind)
+SiteTypeTech <- as.data.frame(platform_maintenanceGO$SiteBlank.typeTech)
 
-
-
-# Select relevant columns and remove missing values
-Reduction <- Blank_Main_reshaped2 %>%
-  filter(Blank.type != "Flake") %>% #check only laminar
-  filter(!Dorsal.scar.1 %in% c("NA", "ND")) %>% #removing blanks without clear info
-  filter(!Negatives.type %in% c("NA", "ND")) %>% #removing blanks without clear info
-  filter(!Number.negatives %in% c("NA", "ND")) %>% #removing blanks without clear info
-  filter(!Cortex.position.simpl %in% c("NA", "ND")) %>% #removing blanks without clear info
-  filter(!Cortex %in% c("NA", "ND")) %>% #removing blanks without clear info
-  select(SiteBlank.typeTech, Dorsal.scar.1, Negatives.type, Number.negatives, Cortex.position.simpl, Cortex) %>%
-  na.omit()
-  
-summary(Reduction)
-
-# Run MCA
-res.mca_Reduction <- MCA(Reduction, graph = FALSE, quali.sup =1, method = "Burt") #Site, SiteBlank.type, SiteBlank.typeTech are not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in platform_maintenanceG, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
-
-print(res.mca_Reduction)
-fviz_screeplot(res.mca_Reduction, addlabels = TRUE, ylim = c(0, 45)) #To visualize the percentages of inertia explained by each MCA dimensions. Dim1 and Dim2 explain 37.819% of the variance
-summary(res.mca_Reduction)
-
-fviz_mca_var(res.mca_Reduction, choice = "mca.cor", 
-            repel = TRUE, 
-            ggtheme = theme_minimal()) #checking to which dimensions the variable are correlated
-fviz_mca_var(res.mca_Reduction, 
-             repel = TRUE, # 
-             ggtheme = theme_classic()) #Variable categories with a similar profile are grouped together. Negatively correlated variable categories are positioned on opposite sides of the plot origin (opposed quadrants).The distance between category points and the origin measures the quality of the variable category on the factor map. Category points that are away from the origin are well represented on the factor map.
-
-var <- get_mca_var(res.mca_Reduction)
-head(var$cos2, 50) #If a variable category is well represented by two dimensions, the sum of the cos2 is closed to one. For some of the row items, more than 2 dimensions are required to perfectly represent the data.
-
-fviz_cos2(res.mca_Convexity, choice = "var", axes = 1:2) #visualising
-
-fviz_contrib(res.mca_Reduction, choice = "var", axes = 1, top = 15) #contribution to Dim 1. 
-
-fviz_contrib(res.mca_Reduction, choice = "var", axes = 2, top = 15) #contribution to Dim 2.
-MCA_Reduction <- fviz_mca_var(res.mca_Reduction, col.var = "contrib",
-             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), 
-             repel = TRUE, # avoid text overlapping (slow)
-             ggtheme = theme_classic()
-             )#
-MCA_Reduction
-ggsave("MCAReduction.tiff", plot = MCA_Reduction, width = 43.656255, height = 20.29354, units = "cm", dpi = 300) 
-ggsave("MCAReduction.png", plot = MCA_Reduction, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
-
-
-fviz_mca_ind(res.mca_Reduction, 
-             label = "none", # hide individual labels
-             habillage = "SiteBlank.typeTech", # color by groups
-             addEllipses = TRUE, ellipse.type = "confidence",
-             ggtheme = theme_minimal()) #clustering of type of blanks for each site 
-```
-#Testing MCA results with ANOVA
-
-```{r}
-#preapring the data
-library(dplyr)
-mca.Reduction <- as.data.frame(res.mca_Reduction$ind)
-SiteTypeTech <- as.data.frame(Reduction$SiteBlank.typeTech)
-
-mca.Reduction <- mca.Reduction %>%
+mca.PlatformO <- MCA_PlatformO %>%
   select(1:2)
 
-mca.Reduction <- bind_cols(SiteTypeTech, mca.Reduction)
+Mca.PlatformO <- bind_cols(SiteTypeTech, mca.PlatformO)
 
-mca.Reduction <- mca.Reduction %>%
-  mutate(SiteTypeTech = Reduction$SiteBlank.typeTech, "dim1" = coord.Dim.1, "dim2" =    coord.Dim.2)%>%
+Mca.PlatformO <- Mca.PlatformO %>%
+  mutate(SiteTypeTech = platform_maintenanceGO$SiteBlank.typeTech, "dim1" = coord.Dim.1, "dim2" =  coord.Dim.2)%>%
   select(4:6) #creating a dataframe with the Dim1 and Dim2 coordinates obtained with MCA_Reduction of each individual (blank)
 
 ###create unique comparisons
-unique(mca.Reduction$SiteTypeTech)
+unique(Mca.PlatformO$SiteTypeTech)
 
-factors <- c("ANOBldl", "ANOBld", "ROMOBldl", "ROMOBld", "ROMMBldl", "ROMMBld",
-             "ANMBld", "ANMBldl", "CTSOBldl", "CTSMBldl", "CTSOBld", "CTSIBld",
-             "CTSIBldl", "CTSMBld", "FUMMBld", "FUMOBld", "FUMIBld", "FUMMBldl")
+#setting the unique comparisons 
+assemblages <- c("A.b.O", "A.B.O", "R.b.O", "R.B.O", "C.b.O", "C.B.O", "F.B.O", "F.b.O")
+
+# Generate all possible unique combinations of size 2
+all_combinations <- combn(assemblages, 2)
+
+# Convert the result to a data frame for better readability
+combinations_df <- data.frame(t(all_combinations))
+
+# Print the result
+print(combinations_df)
+
+comparisons_PlatformO <- c(
+  "A.b.O-A.B.O", "A.b.O-R.b.O", "A.b.O-R.B.O","A.b.O-C.b.O",
+  "A.b.O-C.B.O", "A.b.O-F.B.O", "A.b.O-F.b.O", "A.B.O-R.b.O",
+  "A.B.O-R.B.O", "A.B.O-C.b.O", "A.B.O-C.B.O", "A.B.O-F.B.O",
+  "A.B.O-F.b.O", "R.b.O-R.B.O", "R.b.O-C.b.O", "R.b.O-C.B.O",
+  "R.b.O-F.B.O", "R.b.O-F.b.O", "R.B.O-C.b.O", "R.B.O-C.B.O",
+  "R.B.O-F.B.O", "R.B.O-F.b.O", "C.b.O-C.B.O", "C.b.O-F.B.O",
+  "C.b.O-F.b.O", "C.B.O-F.B.O", "C.B.O-F.b.O", "F.B.O-F.b.O"
+)
 
 
-# Create all unique combinations
-all_combinations <- combn(factors, 2, simplify = TRUE)
- 
-# Convert to a data frame
- combinations_df <- data.frame(Var1 = all_combinations[1, ], Var2 = all_combinations[2, ])
- 
-# Create a vector of comparisons
- comparisons_Reduction <- paste(combinations_df$Var1, "-", combinations_df$Var2)
- 
 ```
-## Bootstrap
-```{r}
-# Multi-comparison bootstrap
-install.packages("WRS2")
-library(WRS2)
-#preapring the data
-library(dplyr)
-mca.Reduction <- as.data.frame(res.mca_Reduction$ind)
-SiteTypeTech <- as.data.frame(Reduction$SiteBlank.typeTech)
 
-mca.Reduction <- mca.Reduction %>%
-  select(1:2)
-
-mca.Reduction <- bind_cols(SiteTypeTech, mca.Reduction)
-
-mca.Reduction <- mca.Reduction %>%
-  mutate(SiteTypeTech = Reduction$SiteBlank.typeTech, "dim1" = coord.Dim.1, "dim2" =    coord.Dim.2)%>%
-  select(4:6) #creating a dataframe with the Dim1 and Dim2 coordinates obtained with MCA_Reduction of each individual (blank)
-
-mca.Reduction <- na.omit(mca.Reduction)
-###create unique comparisons
-unique(mca.Reduction$SiteTypeTech)
-
-factors <- c("ANOBldl", "ANOBld", "ROMOBldl", "ROMOBld", "ROMMBldl", "ROMMBld",
-             "ANMBld", "ANMBldl", "CTSOBldl", "CTSMBldl", "CTSOBld", "CTSIBld",
-             "CTSIBldl", "CTSMBld", "FUMMBld", "FUMOBld", "FUMIBld", "FUMMBldl")
-
-
-# Create all unique combinations
-all_combinations <- combn(factors, 2, simplify = TRUE)
- 
-# Convert to a data frame
- combinations_df <- data.frame(Var1 = all_combinations[1, ], Var2 = all_combinations[2, ])
- 
-# Create a vector of comparisons
- comparisons_Reduction <- paste(combinations_df$Var1, "-", combinations_df$Var2)
- 
-```
+####Bootstrapping
 
 ```{r}
 # Multi-comparison bootstrap
 install.packages("WRS2")
 library(WRS2)
 # Multi-comparison bootstrap
-boot_dim1 <- mcppb20(dim1 ~ SiteTypeTech, data = mca.Reduction, nboot = 5000)
-boot_dim2 <- mcppb20(dim2 ~ SiteTypeTech, data = mca.Reduction, nboot = 5000)
+
+
+boot_dim1 <- mcppb20(dim1 ~ SiteTypeTech, data = Mca.PlatformO, nboot = 5000)
+boot_dim2 <- mcppb20(dim2 ~ SiteTypeTech, data = Mca.PlatformO, nboot = 5000)
 
 # Convert results to data frames
 multi_comp_dim1 <- as.data.frame(boot_dim1$comp)
 multi_comp_dim2 <- as.data.frame(boot_dim2$comp)
 
 # Add SiteTypeTech names and transform to column "SiteTypeTech"
-multi_comp_dim1$SiteTypeTech <- comparisons_Reduction
+multi_comp_dim1$SiteTypeTech <- comparisons_PlatformO
 multi_comp_dim1 <- multi_comp_dim1[!duplicated(names(multi_comp_dim1))]
 
-multi_comp_dim2$SiteTypeTech <- comparisons_Reduction
+multi_comp_dim2$SiteTypeTech <- comparisons_PlatformO
 multi_comp_dim2 <- multi_comp_dim2[!duplicated(names(multi_comp_dim2))]
 
 # Join the results
@@ -3200,6 +3129,9 @@ labels_dim1 <- setNames(multi_comp$`p-valuedim1`, multi_comp_dim1$SiteTypeTech)
 labels_dim2 <- setNames(multi_comp$`p-valuedim2`, multi_comp_dim2$SiteTypeTech)
 
 # Attribute letters to each grouping based on alpha = .05
+install.packages("multcompView")
+library(multcompView)
+library(tibble)
 grouping_dim1 <- data.frame(multcompLetters(labels_dim1)["Letters"])
 grouping_dim1 <- rownames_to_column(grouping_dim1, "SiteTypeTech")
 
@@ -3209,11 +3141,1153 @@ grouping_dim2 <- rownames_to_column(grouping_dim2, "SiteTypeTech")
 # Join the grouping results
 grouping <- full_join(grouping_dim1, grouping_dim2, by = "SiteTypeTech", suffix = c("dim1", "dim2"))
 
-# Transform to uppercase
-grouping <- mutate(grouping, SiteTypeTech = toupper(SiteTypeTech), Lettersdim1 = toupper(Lettersdim1), Lettersdim2 = toupper(Lettersdim2))
 
 # Print or use the 'grouping' dataframe for further analysis or visualization
 print(grouping)
 
 ```
+####Plotting
+```{r}
+library(RcmdrMisc)
+library(gridExtra)
+library(DescTools)
 
+mca_summary <- Mca.PlatformO %>% 
+  group_by(SiteTypeTech) %>% 
+  summarise(meandim1 = mean(dim1, trim = 0.2), meandim2 = mean(dim2, trim = 0.2), 
+            LCIdim1 = MeanCI(dim1, trim = 0.2)[2], MCIdim1 = MeanCI(dim1, trim = 0.2)[3],
+            LCIdim2 = MeanCI(dim2, trim = 0.2)[2], MCIdim2 = MeanCI(dim2, trim = 0.2)[3]) 
+
+m1 <- max(mca_summary$MCIdim1)
+m2 <- max(mca_summary$MCIdim2)
+
+dim1 <- ggplot(mca_summary) +
+  geom_point(stat = "identity", aes(x = SiteTypeTech, y = meandim1), size = 3) +
+  geom_errorbar(stat = "identity", aes(x = SiteTypeTech, ymin = LCIdim1, ymax = MCIdim1), width = 0) +
+  geom_hline(aes(yintercept = 0), color = "red", linetype = "dashed", show.legend = FALSE) +
+  geom_text(data = grouping, aes(x = SiteTypeTech, y = m1 + 0.08, label = Lettersdim1, size = 15), show.legend = FALSE) +
+  xlab("") +
+  ylab("Dimension 1") +
+  scale_colour_discrete(l = 40) +
+  theme(text = element_text(size = 18)) +
+  coord_flip()
+
+
+dim2 <- ggplot(mca_summary) +
+  geom_point(stat = "identity", aes(x = SiteTypeTech, y = meandim2), size = 3) +
+  geom_errorbar(stat = "identity", aes(x = SiteTypeTech, ymin = LCIdim2, ymax = MCIdim2), width = 0) +
+  geom_hline(aes(yintercept = 0), color = "red", linetype = "dashed", show.legend = FALSE) +
+  geom_text(data = grouping, aes(x = SiteTypeTech, y = m2 + 0.08, label = Lettersdim2, size = 15), show.legend = FALSE) +
+  xlab("") +
+  ylab("Dimension 2") +
+  scale_colour_discrete(l = 40) +
+  theme(text = element_text(size = 18)) +
+  coord_flip()
+
+
+ANOVAPlatformO <- grid.arrange(dim1, dim2, ncol = 1)
+
+ggsave("ANOVAPlatformOrdinary.tiff", plot = ANOVAPlatformO, width = 43.656255, height = 20.29354, units = "cm", dpi = 300) 
+ggsave("ANOVAPlatformOrdinary.png", plot = ANOVAPlatformO, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
+
+```
+Interpretation ANOVA
+
+According to the p-values of the single comparison between different categories and the resulting letters assigned the following categories are statistically similar on the Dim1:
+
+Ansab bladelets, Ansab blades, and Fumane blades (letter a)
+Ansab bladelets, Les Cottés bladelets, and Fumane blades (letter b)
+Romanesti bladelets, Les Cottés blades and Fumane bladelets (letter c)
+
+
+Dimension 1 is mostly defined by Natural platforms, presence of Cortex and no Overhang Abrasion. which are all occuring on the positive part of the biplot, all categories are showing negative lodgings, meaning they are characterised by non-cortical platforms, non cortical blanks and prepared overhangs. Only Les Cottés blades are showing positive lodging. 
+
+on Dim2
+
+Ansab bladelets and Fumane blades (letter a)
+Ansab blades, Romanesti bladelets, Romanesti blades, Les Cottés blades (letter b)
+Ansab blades, Romanesti blades, Les Cottés bladelets, Fumane bladelets (letter c)
+Fumane blades and Fumane bladelets (letter d)
+
+Dimension 2 is mostly defined by Punctiform platforms and no Overhang Abrasion. which are all occuring on the positive part of the biplot, all categories are showing negative lodgings, meaning they are characterised by non punctiform platforms and prepared overhangs. Only Ansab bladelets are showing positive lodging. 
+
+#####MGMT
+```{r}
+#preparing the data
+library(dplyr)
+MCA_PlatformM <- as.data.frame(res.mca_PlatformM$ind)
+SiteTypeTech <- as.data.frame(platform_maintenanceGM$SiteBlank.typeTech)
+
+mca.PlatformM <- MCA_PlatformM %>%
+  select(1:2)
+
+Mca.PlatformM <- bind_cols(SiteTypeTech, mca.PlatformM)
+
+Mca.PlatformM <- Mca.PlatformM %>%
+  mutate(SiteTypeTech = platform_maintenanceGM$SiteBlank.typeTech, "dim1" = coord.Dim.1, "dim2" =  coord.Dim.2)%>%
+  select(4:6) #creating a dataframe with the Dim1 and Dim2 coordinates obtained with MCA_Reduction of each individual (blank)
+
+###create unique comparisons
+unique(Mca.PlatformM$SiteTypeTech)
+
+#setting the unique comparisons 
+assemblages <- c("A.b.M", "A.B.M", "R.b.M", "R.B.M", "C.b.M", "C.B.M", "F.B.M", "F.b.M")
+
+# Generate all possible unique combinations of size 2
+all_combinations <- combn(assemblages, 2)
+
+# Convert the result to a data frame for better readability
+combinations_df <- data.frame(t(all_combinations))
+
+# Print the result
+print(combinations_df)
+
+comparisons_PlatformM <- c(
+  "A.b.M-A.B.M", "A.b.M-R.b.M", "A.b.M-R.B.M", "A.b.M-C.b.M",
+  "A.b.M-C.B.M", "A.b.M-F.B.M" ,"A.b.M-F.b.M", "A.B.M-R.b.M",
+  "A.B.M-R.B.M", "A.B.M-C.b.M", "A.B.M-C.B.M", "A.B.M-F.B.M",
+  "A.B.M-F.b.M", "R.b.M-R.B.M","R.b.M-C.b.M", "R.b.M-C.B.M", 
+  "R.b.M-F.B.M", "R.b.M-F.b.M", "R.B.M-C.b.M", "R.B.M-C.B.M",
+  "R.B.M-F.B.M", "R.B.M-F.b.M", "C.b.M-C.B.M", "C.b.M-F.B.M", 
+  "C.b.M-F.b.M", "C.B.M-F.B.M", "C.B.M-F.b.M", "F.B.M-F.b.M"
+)
+
+
+```
+
+####Bootstrapping
+
+```{r}
+# Multi-comparison bootstrap
+install.packages("WRS2")
+library(WRS2)
+# Multi-comparison bootstrap
+
+
+boot_dim1 <- mcppb20(dim1 ~ SiteTypeTech, data = Mca.PlatformM, nboot = 5000)
+boot_dim2 <- mcppb20(dim2 ~ SiteTypeTech, data = Mca.PlatformM, nboot = 5000)
+
+# Convert results to data frames
+multi_comp_dim1 <- as.data.frame(boot_dim1$comp)
+multi_comp_dim2 <- as.data.frame(boot_dim2$comp)
+
+# Add SiteTypeTech names and transform to column "SiteTypeTech"
+multi_comp_dim1$SiteTypeTech <- comparisons_PlatformM
+multi_comp_dim1 <- multi_comp_dim1[!duplicated(names(multi_comp_dim1))]
+
+multi_comp_dim2$SiteTypeTech <- comparisons_PlatformM
+multi_comp_dim2 <- multi_comp_dim2[!duplicated(names(multi_comp_dim2))]
+
+# Join the results
+multi_comp <- full_join(multi_comp_dim1, multi_comp_dim2, by = "SiteTypeTech", suffix = c("dim1", "dim2"))
+
+# Select relevant columns
+multi_comp <- select(multi_comp, SiteTypeTech, `p-valuedim1`, `p-valuedim2`)
+
+# Build a list with pairwise p-values
+labels_dim1 <- setNames(multi_comp$`p-valuedim1`, multi_comp_dim1$SiteTypeTech)
+labels_dim2 <- setNames(multi_comp$`p-valuedim2`, multi_comp_dim2$SiteTypeTech)
+
+# Attribute letters to each grouping based on alpha = .05
+install.packages("multcompView")
+library(multcompView)
+library(tibble)
+grouping_dim1 <- data.frame(multcompLetters(labels_dim1)["Letters"])
+grouping_dim1 <- rownames_to_column(grouping_dim1, "SiteTypeTech")
+
+grouping_dim2 <- data.frame(multcompLetters(labels_dim2)["Letters"])
+grouping_dim2 <- rownames_to_column(grouping_dim2, "SiteTypeTech")
+
+# Join the grouping results
+grouping <- full_join(grouping_dim1, grouping_dim2, by = "SiteTypeTech", suffix = c("dim1", "dim2"))
+
+
+# Print or use the 'grouping' dataframe for further analysis or visualization
+print(grouping)
+
+```
+####Plotting
+```{r}
+library(RcmdrMisc)
+library(gridExtra)
+library(DescTools)
+
+mca_summary <- Mca.PlatformM %>% 
+  group_by(SiteTypeTech) %>% 
+  summarise(meandim1 = mean(dim1, trim = 0.2), meandim2 = mean(dim2, trim = 0.2), 
+            LCIdim1 = MeanCI(dim1, trim = 0.2)[2], MCIdim1 = MeanCI(dim1, trim = 0.2)[3],
+            LCIdim2 = MeanCI(dim2, trim = 0.2)[2], MCIdim2 = MeanCI(dim2, trim = 0.2)[3]) 
+
+m1 <- max(mca_summary$MCIdim1)
+m2 <- max(mca_summary$MCIdim2)
+
+dim1 <- ggplot(mca_summary) +
+  geom_point(stat = "identity", aes(x = SiteTypeTech, y = meandim1), size = 3) +
+  geom_errorbar(stat = "identity", aes(x = SiteTypeTech, ymin = LCIdim1, ymax = MCIdim1), width = 0) +
+  geom_hline(aes(yintercept = 0), color = "red", linetype = "dashed", show.legend = FALSE) +
+  geom_text(data = grouping, aes(x = SiteTypeTech, y = m1 + 0.08, label = Lettersdim1, size = 15), show.legend = FALSE) +
+  xlab("") +
+  ylab("Dimension 1") +
+  scale_colour_discrete(l = 40) +
+  theme(text = element_text(size = 18)) +
+  coord_flip()
+
+
+dim2 <- ggplot(mca_summary) +
+  geom_point(stat = "identity", aes(x = SiteTypeTech, y = meandim2), size = 3) +
+  geom_errorbar(stat = "identity", aes(x = SiteTypeTech, ymin = LCIdim2, ymax = MCIdim2), width = 0) +
+  geom_hline(aes(yintercept = 0), color = "red", linetype = "dashed", show.legend = FALSE) +
+  geom_text(data = grouping, aes(x = SiteTypeTech, y = m2 + 0.08, label = Lettersdim2, size = 15), show.legend = FALSE) +
+  xlab("") +
+  ylab("Dimension 2") +
+  scale_colour_discrete(l = 40) +
+  theme(text = element_text(size = 18)) +
+  coord_flip()
+
+
+ANOVAPlatformM <- grid.arrange(dim1, dim2, ncol = 1)
+
+ggsave("ANOVAPlatformMGMT.tiff", plot = ANOVAPlatformM, width = 43.656255, height = 20.29354, units = "cm", dpi = 300) 
+ggsave("ANOVAPlatformMGMT.png", plot = ANOVAPlatformM, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
+
+```
+Interpretation ANOVA
+
+According to the p-values of the single comparison between different categories and the resulting letters assigned the following categories are statistically similar on the Dim1:
+
+Ansab bladelets, Ansab blades, Romanesti blades, Les Cottés bladelets, Les Cottés blades (letter a)
+Ansab bladelets, Romanesti blades, Les Cottés bladelets, and Fumane bladelets (letter b)
+Ansab blades, Romanesti bladelets, Romanesti blades (letter c)
+Fumane blades and bladelets (letter d)
+
+
+Dimension 1 is mostly defined by Natural platforms and no Overhang Abrasion. which are all occuring on the positive part of the biplot, most of the categories are showing negative lodgings, meaning they are characterised by non-cortical platforms and prepared overhangs. Romanesti blades and bladelets are showing positive lodging. 
+
+on Dim2
+
+Ansab bladelets and Fumane blades (letter a)
+Ansab blades, Romanesti blades,Les Cottés bladelets, and Les Cottés blades (letter b)
+Romanesti bladelets and Fumane bladelets (letter c)
+Les Cottés bladelets Fumane bladelets (letter d)
+
+Dimension 2 is mostly defined by Punctiform platforms, presence of Cortex, absence of cortex and Linear platforms. Linear platforms and Cortex presence are present on the negative part of the biplot, while Punctiform platforms and Cortex absence on the positive part. Fumane blades and bladelets, Les Cottés blades and Ansab blades are showing negative lodging, meaning they are mostly associated with cortical blanks and linear platforms. Romanesti blades and bladelets, Les Cottés bladelets and Ansab bladelets positive lodgings, meaning they are characterised by punctiform platforms and cortex absence. 
+
+
+###Convexity
+
+The Convexity domain is comprising the Variables Axiality.simpl, Outline.morphology, Symmetry, Cross.section, Profile, Torsion, Distal.end.morpho, Cortex.position.simpl, Cortex to check if there's association between morphological attributes attributed to a particular position on the core volume.
+
+####Ordinary
+
+```{r}
+library(FactoMineR)
+library(factoextra)
+library(dplyr)
+library(ggplot2)
+
+
+
+# Select relevant columns and remove missing values
+convexity_maintenanceGO <- Blank_Main_reshaped2 %>%
+  filter(Blank.type != "Flake") %>% #check only laminar
+  filter(!Axiality.simpl %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Symmetry %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Outline.morphology %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Profile %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Torsion %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Distal.end.morpho %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Cortex.position.simpl %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(Technology.Phase == "Ordinary") %>% #only ordinary
+  filter(!Cortex %in% c("NA", "ND")) %>% #removing blanks without clear info
+  select(SiteBlank.typeTech, Blank.type, Axiality.simpl, Outline.morphology, Symmetry, Cross.section, Profile, Torsion, Distal.end.morpho, Cortex.position.simpl, Cortex) %>%
+  na.omit()
+  
+summary(convexity_maintenanceGO)
+
+# Run MCA
+res.mca_ConvexityO <- MCA(convexity_maintenanceGO, graph = FALSE, quali.sup =1:2, method = "Burt") #Site, SiteBlank.type, SiteBlank.typeTech are not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in platform_maintenanceG, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
+
+print(res.mca_ConvexityO)
+fviz_screeplot(res.mca_ConvexityO, addlabels = TRUE, ylim = c(0, 45)) #To visualize the percentages of inertia explained by each MCA dimensions. Dim1 and Dim2 explain 33.314% of the variance
+summary(res.mca_ConvexityO)
+
+fviz_mca_var(res.mca_ConvexityO, choice = "mca.cor", 
+            repel = TRUE, 
+            ggtheme = theme_minimal()) #checking to which dimensions the variable are correlated
+fviz_mca_var(res.mca_ConvexityO, 
+             repel = TRUE, # 
+             ggtheme = theme_minimal()) #Variable categories with a similar profile are grouped together. Negatively correlated variable categories are positioned on opposite sides of the plot origin (opposed quadrants).The distance between category points and the origin measures the quality of the variable category on the factor map. Category points that are away from the origin are well represented on the factor map.
+
+var <- get_mca_var(res.mca_ConvexityO)
+head(var$cos2, 50) #If a variable category is well represented by two dimensions, the sum of the cos2 is closed to one. For some of the row items, more than 2 dimensions are required to perfectly represent the data.
+
+fviz_cos2(res.mca_ConvexityO, choice = "var", axes = 1:2) #visualising
+
+fviz_contrib(res.mca_ConvexityO, choice = "var", axes = 1, top = 15) #contribution to Dim 1. 
+
+fviz_contrib(res.mca_ConvexityO, choice = "var", axes = 2, top = 15) #contribution to Dim 2. 
+
+MCA_ConvexityO <- fviz_mca_var(res.mca_ConvexityO, col.var = "contrib",
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), 
+             repel = TRUE, # avoid text overlapping (slow)
+             ggtheme = theme_classic()
+             )
+MCA_ConvexityO
+ggsave("MCAConvexityOrdinary.tiff", plot = MCA_ConvexityO, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)   
+ggsave("MCAConvexityOrdinary.png", plot = MCA_ConvexityO, width = 43.656255, height = 20.29354, units = "cm", dpi = 300) 
+
+
+fviz_mca_ind(res.mca_ConvexityO, 
+             label = "none", # hide individual labels
+             habillage = "SiteBlank.typeTech", # color by groups
+             addEllipses = TRUE, 
+             ellipse.type = "confidence",
+             ggtheme = theme_minimal(),
+             geom = "point",  # set custom colors              
+) #clustering of type of blanks for each site 
+```
+####Management
+```{r}
+library(FactoMineR)
+library(factoextra)
+library(dplyr)
+library(ggplot2)
+
+
+
+# Select relevant columns and remove missing values
+convexity_maintenanceGM <- Blank_Main_reshaped2 %>%
+  filter(Blank.type != "Flake") %>% #check only laminar
+  filter(!Axiality.simpl %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Symmetry %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Outline.morphology %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Profile %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Torsion %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Distal.end.morpho %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Cortex.position.simpl %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(Technology.Phase == "MGMT") %>% #only ordinary
+  filter(!Cortex %in% c("NA", "ND")) %>% #removing blanks without clear info
+  select(SiteBlank.typeTech, Blank.type, Axiality.simpl, Outline.morphology, Symmetry, Cross.section, Profile, Torsion, Distal.end.morpho, Cortex.position.simpl, Cortex) %>%
+  na.omit()
+  
+summary(convexity_maintenanceGM)
+
+# Run MCA
+res.mca_ConvexityM <- MCA(convexity_maintenanceGM, graph = FALSE, quali.sup =1:2, method = "Burt") #Site, SiteBlank.type, SiteBlank.typeTech are not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in platform_maintenanceG, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
+
+print(res.mca_ConvexityM)
+fviz_screeplot(res.mca_ConvexityM, addlabels = TRUE, ylim = c(0, 45)) #To visualize the percentages of inertia explained by each MCA dimensions. Dim1 and Dim2 explain 31.908% of the variance
+summary(res.mca_ConvexityM)
+
+fviz_mca_var(res.mca_ConvexityM, choice = "mca.cor", 
+            repel = TRUE, 
+            ggtheme = theme_minimal()) #checking to which dimensions the variable are correlated
+fviz_mca_var(res.mca_ConvexityM, 
+             repel = TRUE, # 
+             ggtheme = theme_minimal()) #Variable categories with a similar profile are grouped together. Negatively correlated variable categories are positioned on opposite sides of the plot origin (opposed quadrants).The distance between category points and the origin measures the quality of the variable category on the factor map. Category points that are away from the origin are well represented on the factor map.
+
+var <- get_mca_var(res.mca_ConvexityM)
+head(var$cos2, 50) #If a variable category is well represented by two dimensions, the sum of the cos2 is closed to one. For some of the row items, more than 2 dimensions are required to perfectly represent the data.
+
+fviz_cos2(res.mca_ConvexityM, choice = "var", axes = 1:2) #visualising
+
+fviz_contrib(res.mca_ConvexityM, choice = "var", axes = 1, top = 15) #contribution to Dim 1. 
+
+fviz_contrib(res.mca_ConvexityM, choice = "var", axes = 2, top = 15) #contribution to Dim 2. 
+
+MCA_ConvexityM <- fviz_mca_var(res.mca_ConvexityM, col.var = "contrib",
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), 
+             repel = TRUE, # avoid text overlapping (slow)
+             ggtheme = theme_classic()
+             )
+MCA_ConvexityM
+ggsave("MCAConvexityMGMT.tiff", plot = MCA_ConvexityM, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)   
+ggsave("MCAConvexityMGMT.png", plot = MCA_ConvexityM, width = 43.656255, height = 20.29354, units = "cm", dpi = 300) 
+
+
+fviz_mca_ind(res.mca_ConvexityM, 
+             label = "none", # hide individual labels
+             habillage = "SiteBlank.typeTech", # color by groups
+             addEllipses = TRUE, 
+             ellipse.type = "confidence",
+             ggtheme = theme_minimal(),
+             geom = "point",  # set custom colors              
+) #clustering of type of blanks for each site 
+```
+###ANOVA testing Convexity domain
+
+#####Ordinary
+```{r}
+#preparing the data
+library(dplyr)
+MCA_ConvexityO <- as.data.frame(res.mca_ConvexityO$ind)
+SiteTypeTech <- as.data.frame(convexity_maintenanceGO$SiteBlank.typeTech)
+
+mca.ConvexityO <- MCA_ConvexityO %>%
+  select(1:2)
+
+Mca.ConvexityO <- bind_cols(SiteTypeTech, mca.ConvexityO)
+
+Mca.ConvexityO <- Mca.ConvexityO %>%
+  mutate(SiteTypeTech = convexity_maintenanceGO$SiteBlank.typeTech, "dim1" = coord.Dim.1, "dim2" =  coord.Dim.2)%>%
+  select(4:6) #creating a dataframe with the Dim1 and Dim2 coordinates obtained with MCA_Reduction of each individual (blank)
+
+###create unique comparisons
+unique(Mca.ConvexityO$SiteTypeTech)
+
+#setting the unique comparisons 
+assemblages <- c("A.b.O", "A.B.O", "R.b.O", "R.B.O", "C.b.O", "C.B.O", "F.B.O", "F.b.O")
+
+# Generate all possible unique combinations of size 2
+all_combinations <- combn(assemblages, 2)
+
+# Convert the result to a data frame for better readability
+combinations_df <- data.frame(t(all_combinations))
+
+# Print the result
+print(combinations_df)
+
+comparisons_ConvexityO <- c(
+  "A.b.O-A.B.O", "A.b.O-R.b.O", "A.b.O-R.B.O","A.b.O-C.b.O",
+  "A.b.O-C.B.O", "A.b.O-F.B.O", "A.b.O-F.b.O", "A.B.O-R.b.O",
+  "A.B.O-R.B.O", "A.B.O-C.b.O", "A.B.O-C.B.O", "A.B.O-F.B.O",
+  "A.B.O-F.b.O", "R.b.O-R.B.O", "R.b.O-C.b.O", "R.b.O-C.B.O",
+  "R.b.O-F.B.O", "R.b.O-F.b.O", "R.B.O-C.b.O", "R.B.O-C.B.O",
+  "R.B.O-F.B.O", "R.B.O-F.b.O", "C.b.O-C.B.O", "C.b.O-F.B.O",
+  "C.b.O-F.b.O", "C.B.O-F.B.O", "C.B.O-F.b.O", "F.B.O-F.b.O"
+)
+
+
+```
+
+####Bootstrapping
+
+```{r}
+# Multi-comparison bootstrap
+install.packages("WRS2")
+library(WRS2)
+# Multi-comparison bootstrap
+
+
+boot_dim1 <- mcppb20(dim1 ~ SiteTypeTech, data = Mca.ConvexityO, nboot = 5000)
+boot_dim2 <- mcppb20(dim2 ~ SiteTypeTech, data = Mca.ConvexityO, nboot = 5000)
+
+# Convert results to data frames
+multi_comp_dim1 <- as.data.frame(boot_dim1$comp)
+multi_comp_dim2 <- as.data.frame(boot_dim2$comp)
+
+# Add SiteTypeTech names and transform to column "SiteTypeTech"
+multi_comp_dim1$SiteTypeTech <- comparisons_ConvexityO
+multi_comp_dim1 <- multi_comp_dim1[!duplicated(names(multi_comp_dim1))]
+
+multi_comp_dim2$SiteTypeTech <- comparisons_ConvexityO
+multi_comp_dim2 <- multi_comp_dim2[!duplicated(names(multi_comp_dim2))]
+
+# Join the results
+multi_comp <- full_join(multi_comp_dim1, multi_comp_dim2, by = "SiteTypeTech", suffix = c("dim1", "dim2"))
+
+# Select relevant columns
+multi_comp <- select(multi_comp, SiteTypeTech, `p-valuedim1`, `p-valuedim2`)
+
+# Build a list with pairwise p-values
+labels_dim1 <- setNames(multi_comp$`p-valuedim1`, multi_comp_dim1$SiteTypeTech)
+labels_dim2 <- setNames(multi_comp$`p-valuedim2`, multi_comp_dim2$SiteTypeTech)
+
+# Attribute letters to each grouping based on alpha = .05
+install.packages("multcompView")
+library(multcompView)
+library(tibble)
+grouping_dim1 <- data.frame(multcompLetters(labels_dim1)["Letters"])
+grouping_dim1 <- rownames_to_column(grouping_dim1, "SiteTypeTech")
+
+grouping_dim2 <- data.frame(multcompLetters(labels_dim2)["Letters"])
+grouping_dim2 <- rownames_to_column(grouping_dim2, "SiteTypeTech")
+
+# Join the grouping results
+grouping <- full_join(grouping_dim1, grouping_dim2, by = "SiteTypeTech", suffix = c("dim1", "dim2"))
+
+
+# Print or use the 'grouping' dataframe for further analysis or visualization
+print(grouping)
+
+```
+####Plotting
+```{r}
+library(RcmdrMisc)
+library(gridExtra)
+library(DescTools)
+
+mca_summary <- Mca.ConvexityO %>% 
+  group_by(SiteTypeTech) %>% 
+  summarise(meandim1 = mean(dim1, trim = 0.2), meandim2 = mean(dim2, trim = 0.2), 
+            LCIdim1 = MeanCI(dim1, trim = 0.2)[2], MCIdim1 = MeanCI(dim1, trim = 0.2)[3],
+            LCIdim2 = MeanCI(dim2, trim = 0.2)[2], MCIdim2 = MeanCI(dim2, trim = 0.2)[3]) 
+
+m1 <- max(mca_summary$MCIdim1)
+m2 <- max(mca_summary$MCIdim2)
+
+dim1 <- ggplot(mca_summary) +
+  geom_point(stat = "identity", aes(x = SiteTypeTech, y = meandim1), size = 3) +
+  geom_errorbar(stat = "identity", aes(x = SiteTypeTech, ymin = LCIdim1, ymax = MCIdim1), width = 0) +
+  geom_hline(aes(yintercept = 0), color = "red", linetype = "dashed", show.legend = FALSE) +
+  geom_text(data = grouping, aes(x = SiteTypeTech, y = m1 + 0.08, label = Lettersdim1, size = 15), show.legend = FALSE) +
+  xlab("") +
+  ylab("Dimension 1") +
+  scale_colour_discrete(l = 40) +
+  theme(text = element_text(size = 18)) +
+  coord_flip()
+
+
+dim2 <- ggplot(mca_summary) +
+  geom_point(stat = "identity", aes(x = SiteTypeTech, y = meandim2), size = 3) +
+  geom_errorbar(stat = "identity", aes(x = SiteTypeTech, ymin = LCIdim2, ymax = MCIdim2), width = 0) +
+  geom_hline(aes(yintercept = 0), color = "red", linetype = "dashed", show.legend = FALSE) +
+  geom_text(data = grouping, aes(x = SiteTypeTech, y = m2 + 0.08, label = Lettersdim2, size = 15), show.legend = FALSE) +
+  xlab("") +
+  ylab("Dimension 2") +
+  scale_colour_discrete(l = 40) +
+  theme(text = element_text(size = 18)) +
+  coord_flip()
+
+
+ANOVAConvexityO <- grid.arrange(dim1, dim2, ncol = 1)
+
+ggsave("ANOVAConvexityOrdinary.tiff", plot = ANOVAConvexityO, width = 43.656255, height = 20.29354, units = "cm", dpi = 300) 
+ggsave("ANOVAConvexityOrdinary.png", plot = ANOVAConvexityO, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
+
+```
+Interpretation ANOVA
+
+According to the p-values of the single comparison between different categories and the resulting letters assigned the following categories are statistically similar on the Dim1:
+
+Ansab bladelets, Les Cottés blades, Fumane bladelets, and Fumane blades (letter a)
+Ansab blades, Fumane bladelets, and Fumane blades (letter b)
+
+
+
+Dimension 1 is mostly defined by Semicortical blanks, Twisting in profile, presence of Torsion, lateral cortex, being off-axis, with a déjetè outline.  which are all occuring on the positive part of the biplot, except for Les Cottés blanks, all categories are showing negative lodgings, meaning they are characterised by non-cortical blanks, non-Twisted, on axis outlines 
+
+on Dim2
+
+Ansab bladelets and Fumane blades (letter a)
+Ansab blades, Fumane bladelets (letter b)
+Les Cottés blades and Les Cottés bladelets (letter e)
+
+Dimension 2 is mostly defined by the déjetè outline, being off-axis, semi-cortical blanks. lateral cortex. the attributes linked with outline (dejete and off-axis) are on the negative part of the biplot, while cortex attributes on the positive part. Ansab and Romanesti blanks are showing negative lodging, meaning they are much more characterised by off-axis outlines, Fumane is positive close to 0, instead Les Cottés blanks are influenced by cortical blanks. 
+
+#####MGMT
+```{r}
+#preparing the data
+library(dplyr)
+MCA_ConvexityM <- as.data.frame(res.mca_ConvexityM$ind)
+SiteTypeTech <- as.data.frame(convexity_maintenanceGM$SiteBlank.typeTech)
+
+mca.ConvexityM <- MCA_ConvexityM %>%
+  select(1:2)
+
+Mca.ConvexityM <- bind_cols(SiteTypeTech, mca.ConvexityM)
+
+Mca.ConvexityM <- Mca.ConvexityM %>%
+  mutate(SiteTypeTech = convexity_maintenanceGM$SiteBlank.typeTech, "dim1" = coord.Dim.1, "dim2" =  coord.Dim.2)%>%
+  select(4:6) #creating a dataframe with the Dim1 and Dim2 coordinates obtained with MCA_Reduction of each individual (blank)
+
+###create unique comparisons
+unique(Mca.ConvexityM$SiteTypeTech)
+
+#setting the unique comparisons 
+assemblages <- c("A.b.M", "A.B.M", "R.b.M", "R.B.M", "C.b.M", "C.B.M", "F.B.M", "F.b.M")
+
+# Generate all possible unique combinations of size 2
+all_combinations <- combn(assemblages, 2)
+
+# Convert the result to a data frame for better readability
+combinations_df <- data.frame(t(all_combinations))
+
+# Print the result
+print(combinations_df)
+
+comparisons_ConvexityM <- c(
+  "A.b.M-A.B.M", "A.b.M-R.b.M", "A.b.M-R.B.M", "A.b.M-C.b.M",
+  "A.b.M-C.B.M", "A.b.M-F.B.M" ,"A.b.M-F.b.M", "A.B.M-R.b.M",
+  "A.B.M-R.B.M", "A.B.M-C.b.M", "A.B.M-C.B.M", "A.B.M-F.B.M",
+  "A.B.M-F.b.M", "R.b.M-R.B.M","R.b.M-C.b.M", "R.b.M-C.B.M", 
+  "R.b.M-F.B.M", "R.b.M-F.b.M", "R.B.M-C.b.M", "R.B.M-C.B.M",
+  "R.B.M-F.B.M", "R.B.M-F.b.M", "C.b.M-C.B.M", "C.b.M-F.B.M", 
+  "C.b.M-F.b.M", "C.B.M-F.B.M", "C.B.M-F.b.M", "F.B.M-F.b.M"
+)
+
+
+```
+
+####Bootstrapping
+
+```{r}
+# Multi-comparison bootstrap
+install.packages("WRS2")
+library(WRS2)
+# Multi-comparison bootstrap
+
+
+boot_dim1 <- mcppb20(dim1 ~ SiteTypeTech, data = Mca.ConvexityM, nboot = 5000)
+boot_dim2 <- mcppb20(dim2 ~ SiteTypeTech, data = Mca.ConvexityM, nboot = 5000)
+
+# Convert results to data frames
+multi_comp_dim1 <- as.data.frame(boot_dim1$comp)
+multi_comp_dim2 <- as.data.frame(boot_dim2$comp)
+
+# Add SiteTypeTech names and transform to column "SiteTypeTech"
+multi_comp_dim1$SiteTypeTech <- comparisons_ConvexityM
+multi_comp_dim1 <- multi_comp_dim1[!duplicated(names(multi_comp_dim1))]
+
+multi_comp_dim2$SiteTypeTech <- comparisons_ConvexityM
+multi_comp_dim2 <- multi_comp_dim2[!duplicated(names(multi_comp_dim2))]
+
+# Join the results
+multi_comp <- full_join(multi_comp_dim1, multi_comp_dim2, by = "SiteTypeTech", suffix = c("dim1", "dim2"))
+
+# Select relevant columns
+multi_comp <- select(multi_comp, SiteTypeTech, `p-valuedim1`, `p-valuedim2`)
+
+# Build a list with pairwise p-values
+labels_dim1 <- setNames(multi_comp$`p-valuedim1`, multi_comp_dim1$SiteTypeTech)
+labels_dim2 <- setNames(multi_comp$`p-valuedim2`, multi_comp_dim2$SiteTypeTech)
+
+# Attribute letters to each grouping based on alpha = .05
+install.packages("multcompView")
+library(multcompView)
+library(tibble)
+grouping_dim1 <- data.frame(multcompLetters(labels_dim1)["Letters"])
+grouping_dim1 <- rownames_to_column(grouping_dim1, "SiteTypeTech")
+
+grouping_dim2 <- data.frame(multcompLetters(labels_dim2)["Letters"])
+grouping_dim2 <- rownames_to_column(grouping_dim2, "SiteTypeTech")
+
+# Join the grouping results
+grouping <- full_join(grouping_dim1, grouping_dim2, by = "SiteTypeTech", suffix = c("dim1", "dim2"))
+
+
+# Print or use the 'grouping' dataframe for further analysis or visualization
+print(grouping)
+
+```
+####Plotting
+```{r}
+library(RcmdrMisc)
+library(gridExtra)
+library(DescTools)
+
+mca_summary <- Mca.ConvexityM %>% 
+  group_by(SiteTypeTech) %>% 
+  summarise(meandim1 = mean(dim1, trim = 0.2), meandim2 = mean(dim2, trim = 0.2), 
+            LCIdim1 = MeanCI(dim1, trim = 0.2)[2], MCIdim1 = MeanCI(dim1, trim = 0.2)[3],
+            LCIdim2 = MeanCI(dim2, trim = 0.2)[2], MCIdim2 = MeanCI(dim2, trim = 0.2)[3]) 
+
+m1 <- max(mca_summary$MCIdim1)
+m2 <- max(mca_summary$MCIdim2)
+
+dim1 <- ggplot(mca_summary) +
+  geom_point(stat = "identity", aes(x = SiteTypeTech, y = meandim1), size = 3) +
+  geom_errorbar(stat = "identity", aes(x = SiteTypeTech, ymin = LCIdim1, ymax = MCIdim1), width = 0) +
+  geom_hline(aes(yintercept = 0), color = "red", linetype = "dashed", show.legend = FALSE) +
+  geom_text(data = grouping, aes(x = SiteTypeTech, y = m1 + 0.08, label = Lettersdim1, size = 15), show.legend = FALSE) +
+  xlab("") +
+  ylab("Dimension 1") +
+  scale_colour_discrete(l = 40) +
+  theme(text = element_text(size = 18)) +
+  coord_flip()
+
+
+dim2 <- ggplot(mca_summary) +
+  geom_point(stat = "identity", aes(x = SiteTypeTech, y = meandim2), size = 3) +
+  geom_errorbar(stat = "identity", aes(x = SiteTypeTech, ymin = LCIdim2, ymax = MCIdim2), width = 0) +
+  geom_hline(aes(yintercept = 0), color = "red", linetype = "dashed", show.legend = FALSE) +
+  geom_text(data = grouping, aes(x = SiteTypeTech, y = m2 + 0.08, label = Lettersdim2, size = 15), show.legend = FALSE) +
+  xlab("") +
+  ylab("Dimension 2") +
+  scale_colour_discrete(l = 40) +
+  theme(text = element_text(size = 18)) +
+  coord_flip()
+
+
+ANOVAConvexityM <- grid.arrange(dim1, dim2, ncol = 1)
+
+ggsave("ANOVAConvexityMGMT.tiff", plot = ANOVAConvexityM, width = 43.656255, height = 20.29354, units = "cm", dpi = 300) 
+ggsave("ANOVAConvexityMGMT.png", plot = ANOVAConvexityM, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
+
+```
+Interpretation ANOVA
+
+According to the p-values of the single comparison between different categories and the resulting letters assigned the following categories are statistically similar on the Dim1:
+
+Ansab bladelets and Fumane blades (letter a)
+Ansab blades, Romanesti blades, Fumane bladelets, and Fumane blades (letter b)
+Romnaesti bladelets and Fumane blades (letter c)
+
+Dimension 1 is mostly defined by Déjetè, off axis outlines and presence of Torsion and parallel, on axis outlines and no Torsion.  The the first ones are in the negative part of the biplot, the second in the positive part. except for Les Cottés blanks, all categories are showing negative lodgings, meaning they are characterised by non-cortical blanks, non-Twisted, on axis outlines. Ansab and Romanesti blanks are showing negative lodgings, so associated more with Torsion and being off-axis, Fumane positive lodging, therefore mostly parallel and no Torsion, Les Cottés positive lodging close to O.
+
+on Dim2
+
+Ansab blanks and Les Cottés bladelets (letter a)
+Ansab bladelets, Les Cottés bladelets, and Fumane bladelets (letter b)
+Ansab bladelets, Fumane blades, and Fumane bladelets (letter c)
+Romnesti blades and Les Cottés blades (letter e)
+Les Cottés blanks (letter f)
+
+Dimension 2 is mostly defined by the absence or the presence of cortex (semi). No cortex is on the negative part of the biplot, while cortex (semi) is on the positive part. Fumane and Les Cottés blades are the only categories showing positive lodging therefore, mostly associated with semi-cortical blanks. Les Cottés bladelets are the less associated with cortical blanks.
+###Reduction domain
+
+The Reduction domain is comprising the Variables Dorsal.scar.1, Negatives.type, Negatives.number, Cortex.position.simpl, Cortex to check if there's association between negatives and negatives flaking direction during the reduction process
+
+####Ordinary
+
+```{r}
+library(FactoMineR)
+library(factoextra)
+library(dplyr)
+library(ggplot2)
+
+
+
+# Select relevant columns and remove missing values
+ReductionO <- Blank_Main_reshaped2 %>%
+  filter(Blank.type != "Flake") %>% #check only laminar
+  filter(Technology.Phase == "Ordinary") %>% #check only Ordinary
+  filter(!Dorsal.scar.1 %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Negatives.type %in% c("NA")) %>% #removing blanks without clear info, Fumane bladelets are only ND
+  filter(!Number.negatives %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Cortex.position.simpl %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Cortex %in% c("NA", "ND")) %>% #removing blanks without clear info
+  select(SiteBlank.typeTech, Blank.type, Dorsal.scar.1, Negatives.type, Number.negatives, Cortex.position.simpl, Cortex) %>%
+  na.omit()
+  
+summary(ReductionO)
+
+# Run MCA
+res.mca_ReductionO <- MCA(ReductionO, graph = FALSE, quali.sup =1:2, method = "Burt") #Site, SiteBlank.type, SiteBlank.typeTech are not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in Reduction, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
+
+print(res.mca_ReductionO)
+fviz_screeplot(res.mca_ReductionO, addlabels = TRUE, ylim = c(0, 45)) #To visualize the percentages of inertia explained by each MCA dimensions. Dim1 and Dim2 explain 31.520% of the variance
+summary(res.mca_ReductionO)
+
+fviz_mca_var(res.mca_ReductionO, choice = "mca.cor", 
+            repel = TRUE, 
+            ggtheme = theme_minimal()) #checking to which dimensions the variable are correlated
+fviz_mca_var(res.mca_ReductionO, 
+             repel = TRUE, # 
+             ggtheme = theme_classic()) #Variable categories with a similar profile are grouped together. Negatively correlated variable categories are positioned on opposite sides of the plot origin (opposed quadrants).The distance between category points and the origin measures the quality of the variable category on the factor map. Category points that are away from the origin are well represented on the factor map.
+
+var <- get_mca_var(res.mca_ReductionO)
+head(var$cos2, 50) #If a variable category is well represented by two dimensions, the sum of the cos2 is closed to one. For some of the row items, more than 2 dimensions are required to perfectly represent the data.
+
+fviz_cos2(res.mca_ReductionO, choice = "var", axes = 1:2) #visualising
+
+fviz_contrib(res.mca_ReductionO, choice = "var", axes = 1, top = 15) #contribution to Dim 1. 
+
+fviz_contrib(res.mca_ReductionO, choice = "var", axes = 2, top = 15) #contribution to Dim 2.
+MCA_ReductionO <- fviz_mca_var(res.mca_ReductionO, col.var = "contrib",
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), 
+             repel = TRUE, # avoid text overlapping (slow)
+             ggtheme = theme_classic()
+             )#
+MCA_ReductionO
+ggsave("MCAReductionOrdinary.tiff", plot = MCA_ReductionO, width = 43.656255, height = 20.29354, units = "cm", dpi = 300) 
+ggsave("MCAReductionOrdinary.png", plot = MCA_ReductionO, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
+
+
+fviz_mca_ind(res.mca_ReductionO, 
+             label = "none", # hide individual labels
+             habillage = "SiteBlank.typeTech", # color by groups
+             addEllipses = TRUE, ellipse.type = "confidence",
+             ggtheme = theme_minimal(),
+             geom = "point",  # set custom colors              
+) #clustering of type of blanks for each site 
+            
+```
+
+library(FactoMineR)
+library(factoextra)
+library(dplyr)
+library(ggplot2)
+
+####MGMT
+
+```{r}
+# Select relevant columns and remove missing values
+ReductionM <- Blank_Main_reshaped2 %>%
+  filter(Blank.type != "Flake") %>% #check only laminar
+  filter(Technology.Phase == "MGMT") %>% #check only MGMT
+  filter(!Dorsal.scar.1 %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Negatives.type %in% c("NA")) %>% #removing blanks without clear info, Fumane bladelets are only ND
+  filter(!Number.negatives %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Cortex.position.simpl %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Cortex %in% c("NA", "ND")) %>% #removing blanks without clear info
+  select(SiteBlank.typeTech, Blank.type, Dorsal.scar.1, Negatives.type, Number.negatives, Cortex.position.simpl, Cortex) %>%
+  na.omit()
+  
+summary(ReductionM)
+
+# Run MCA
+res.mca_ReductionM <- MCA(ReductionM, graph = FALSE, quali.sup =1:2, method = "Burt") #Site, SiteBlank.type, SiteBlank.typeTech are not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in Reduction, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
+
+print(res.mca_ReductionM)
+fviz_screeplot(res.mca_ReductionM, addlabels = TRUE, ylim = c(0, 45)) #To visualize the percentages of inertia explained by each MCA dimensions. Dim1 and Dim2 explain 35.114% of the variance
+summary(res.mca_ReductionM)
+
+fviz_mca_var(res.mca_ReductionM, choice = "mca.cor", 
+            repel = TRUE, 
+            ggtheme = theme_minimal()) #checking to which dimensions the variable are correlated
+fviz_mca_var(res.mca_ReductionM, 
+             repel = TRUE, # 
+             ggtheme = theme_classic()) #Variable categories with a similar profile are grouped together. Negatively correlated variable categories are positioned on opposite sides of the plot origin (opposed quadrants).The distance between category points and the origin measures the quality of the variable category on the factor map. Category points that are away from the origin are well represented on the factor map.
+
+var <- get_mca_var(res.mca_ReductionM)
+head(var$cos2, 50) #If a variable category is well represented by two dimensions, the sum of the cos2 is closed to one. For some of the row items, more than 2 dimensions are required to perfectly represent the data.
+
+fviz_cos2(res.mca_ReductionM, choice = "var", axes = 1:2) #visualising
+
+fviz_contrib(res.mca_ReductionM, choice = "var", axes = 1, top = 15) #contribution to Dim 1. 
+
+fviz_contrib(res.mca_ReductionM, choice = "var", axes = 2, top = 15) #contribution to Dim 2.
+MCA_ReductionM <- fviz_mca_var(res.mca_ReductionM, col.var = "contrib",
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), 
+             repel = TRUE, # avoid text overlapping (slow)
+             ggtheme = theme_classic()
+             )#
+MCA_ReductionM
+ggsave("MCAReductionMGMT.tiff", plot = MCA_ReductionM, width = 43.656255, height = 20.29354, units = "cm", dpi = 300) 
+ggsave("MCAReductionMGMT.png", plot = MCA_ReductionM, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
+
+
+fviz_mca_ind(res.mca_ReductionM, 
+             label = "none", # hide individual labels
+             habillage = "SiteBlank.typeTech", # color by groups
+             addEllipses = TRUE, ellipse.type = "confidence",
+             ggtheme = theme_minimal(),
+             geom = "point",  # set custom colors              
+) #clustering of type of blanks for each site 
+            
+```
+
+###ANOVA testing Reduction domain
+
+#####Ordinary
+```{r}
+#preparing the data
+library(dplyr)
+MCA_ReductionO <- as.data.frame(res.mca_ReductionO$ind)
+SiteTypeTech <- as.data.frame(ReductionO$SiteBlank.typeTech)
+
+mca.ReductionO <- MCA_ReductionO %>%
+  select(1:2)
+
+Mca.ReductionO <- bind_cols(SiteTypeTech, mca.ReductionO)
+
+Mca.ReductionO <- Mca.ReductionO %>%
+  mutate(SiteTypeTech = ReductionO$SiteBlank.typeTech, "dim1" = coord.Dim.1, "dim2" =  coord.Dim.2)%>%
+  select(4:6) #creating a dataframe with the Dim1 and Dim2 coordinates obtained with MCA_Reduction of each individual (blank)
+
+###create unique comparisons
+unique(Mca.ReductionO$SiteTypeTech)
+
+#setting the unique comparisons 
+assemblages <- c("A.b.O", "A.B.O", "R.b.O", "R.B.O", "C.b.O", "C.B.O", "F.B.O", "F.b.O")
+
+# Generate all possible unique combinations of size 2
+all_combinations <- combn(assemblages, 2)
+
+# Convert the result to a data frame for better readability
+combinations_df <- data.frame(t(all_combinations))
+
+# Print the result
+print(combinations_df)
+
+comparisons_ReductionO <- c(
+  "A.b.O-A.B.O", "A.b.O-R.b.O", "A.b.O-R.B.O","A.b.O-C.b.O",
+  "A.b.O-C.B.O", "A.b.O-F.B.O", "A.b.O-F.b.O", "A.B.O-R.b.O",
+  "A.B.O-R.B.O", "A.B.O-C.b.O", "A.B.O-C.B.O", "A.B.O-F.B.O",
+  "A.B.O-F.b.O", "R.b.O-R.B.O", "R.b.O-C.b.O", "R.b.O-C.B.O",
+  "R.b.O-F.B.O", "R.b.O-F.b.O", "R.B.O-C.b.O", "R.B.O-C.B.O",
+  "R.B.O-F.B.O", "R.B.O-F.b.O", "C.b.O-C.B.O", "C.b.O-F.B.O",
+  "C.b.O-F.b.O", "C.B.O-F.B.O", "C.B.O-F.b.O", "F.B.O-F.b.O"
+)
+
+
+```
+
+####Bootstrapping
+
+```{r}
+# Multi-comparison bootstrap
+install.packages("WRS2")
+library(WRS2)
+# Multi-comparison bootstrap
+
+
+boot_dim1 <- mcppb20(dim1 ~ SiteTypeTech, data = Mca.ReductionO, nboot = 5000)
+boot_dim2 <- mcppb20(dim2 ~ SiteTypeTech, data = Mca.ReductionO, nboot = 5000)
+
+# Convert results to data frames
+multi_comp_dim1 <- as.data.frame(boot_dim1$comp)
+multi_comp_dim2 <- as.data.frame(boot_dim2$comp)
+
+# Add SiteTypeTech names and transform to column "SiteTypeTech"
+multi_comp_dim1$SiteTypeTech <- comparisons_ReductionO
+multi_comp_dim1 <- multi_comp_dim1[!duplicated(names(multi_comp_dim1))]
+
+multi_comp_dim2$SiteTypeTech <- comparisons_ReductionO
+multi_comp_dim2 <- multi_comp_dim2[!duplicated(names(multi_comp_dim2))]
+
+# Join the results
+multi_comp <- full_join(multi_comp_dim1, multi_comp_dim2, by = "SiteTypeTech", suffix = c("dim1", "dim2"))
+
+# Select relevant columns
+multi_comp <- select(multi_comp, SiteTypeTech, `p-valuedim1`, `p-valuedim2`)
+
+# Build a list with pairwise p-values
+labels_dim1 <- setNames(multi_comp$`p-valuedim1`, multi_comp_dim1$SiteTypeTech)
+labels_dim2 <- setNames(multi_comp$`p-valuedim2`, multi_comp_dim2$SiteTypeTech)
+
+# Attribute letters to each grouping based on alpha = .05
+install.packages("multcompView")
+library(multcompView)
+library(tibble)
+grouping_dim1 <- data.frame(multcompLetters(labels_dim1)["Letters"])
+grouping_dim1 <- rownames_to_column(grouping_dim1, "SiteTypeTech")
+
+grouping_dim2 <- data.frame(multcompLetters(labels_dim2)["Letters"])
+grouping_dim2 <- rownames_to_column(grouping_dim2, "SiteTypeTech")
+
+# Join the grouping results
+grouping <- full_join(grouping_dim1, grouping_dim2, by = "SiteTypeTech", suffix = c("dim1", "dim2"))
+
+
+# Print or use the 'grouping' dataframe for further analysis or visualization
+print(grouping)
+
+```
+####Plotting
+```{r}
+library(RcmdrMisc)
+library(gridExtra)
+library(DescTools)
+
+mca_summary <- Mca.ReductionO %>% 
+  group_by(SiteTypeTech) %>% 
+  summarise(meandim1 = mean(dim1, trim = 0.2), meandim2 = mean(dim2, trim = 0.2), 
+            LCIdim1 = MeanCI(dim1, trim = 0.2)[2], MCIdim1 = MeanCI(dim1, trim = 0.2)[3],
+            LCIdim2 = MeanCI(dim2, trim = 0.2)[2], MCIdim2 = MeanCI(dim2, trim = 0.2)[3]) 
+
+m1 <- max(mca_summary$MCIdim1)
+m2 <- max(mca_summary$MCIdim2)
+
+dim1 <- ggplot(mca_summary) +
+  geom_point(stat = "identity", aes(x = SiteTypeTech, y = meandim1), size = 3) +
+  geom_errorbar(stat = "identity", aes(x = SiteTypeTech, ymin = LCIdim1, ymax = MCIdim1), width = 0) +
+  geom_hline(aes(yintercept = 0), color = "red", linetype = "dashed", show.legend = FALSE) +
+  geom_text(data = grouping, aes(x = SiteTypeTech, y = m1 + 0.08, label = Lettersdim1, size = 15), show.legend = FALSE) +
+  xlab("") +
+  ylab("Dimension 1") +
+  scale_colour_discrete(l = 40) +
+  theme(text = element_text(size = 18)) +
+  coord_flip()
+
+
+dim2 <- ggplot(mca_summary) +
+  geom_point(stat = "identity", aes(x = SiteTypeTech, y = meandim2), size = 3) +
+  geom_errorbar(stat = "identity", aes(x = SiteTypeTech, ymin = LCIdim2, ymax = MCIdim2), width = 0) +
+  geom_hline(aes(yintercept = 0), color = "red", linetype = "dashed", show.legend = FALSE) +
+  geom_text(data = grouping, aes(x = SiteTypeTech, y = m2 + 0.08, label = Lettersdim2, size = 15), show.legend = FALSE) +
+  xlab("") +
+  ylab("Dimension 2") +
+  scale_colour_discrete(l = 40) +
+  theme(text = element_text(size = 18)) +
+  coord_flip()
+
+
+ANOVAReductionO <- grid.arrange(dim1, dim2, ncol = 1)
+
+ggsave("ANOVAReductionOrdinary.tiff", plot = ANOVAReductionO, width = 43.656255, height = 20.29354, units = "cm", dpi = 300) 
+ggsave("ANOVAReductionOrdinary.png", plot = ANOVAReductionO, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
+
+```
+Interpretation ANOVA
+
+According to the p-values of the single comparison between different categories and the resulting letters assigned the following categories are statistically similar on the Dim1:
+
+Ansab bladelets and Fumane bladelets (letter a)
+Ansab blades, Romanesti bladelets(letter b)
+Romanesti bladelets and Fumane blades (letter c)
+Les Cottés blades and Fumane blades 
+
+Dimension 1 the absence of negatives. The absence of negatives is in the positive part of the biplot. most of the categories categories are showing negative lodgings, meaning they are characterised having one or more negatives. 
+
+on Dim2
+
+Ansab bladelets and Fumane bladelets (letter a)
+Ansab blades, Romanesti bladelets (letter b)
+Ansab blades and Fumane bladelets (letter c)
+Romnesti blades and Les Cottés blades (letter e)
+Les Cottés blades and Fumane blades (letter f)
+
+Dimension 2 is mostly defined by the presence of cortex (semi). No cortex is on the negative part of the biplot, while cortex (semi) is on the positive part. Les Cottés blades is the only categories showing positive lodging therefore, mostly associated with semi-cortical blanks.
+
+
+#####MGMT
+```{r}
+#preparing the data
+library(dplyr)
+MCA_ReductionM <- as.data.frame(res.mca_ReductionM$ind)
+SiteTypeTech <- as.data.frame(ReductionM$SiteBlank.typeTech)
+
+mca.ReductionM <- MCA_ReductionM %>%
+  select(1:2)
+
+Mca.ReductionM <- bind_cols(SiteTypeTech, mca.ReductionM)
+
+Mca.ReductionM <- Mca.ReductionM %>%
+  mutate(SiteTypeTech = ReductionM$SiteBlank.typeTech, "dim1" = coord.Dim.1, "dim2" =  coord.Dim.2)%>%
+  select(4:6) #creating a dataframe with the Dim1 and Dim2 coordinates obtained with MCA_Reduction of each individual (blank)
+
+###create unique comparisons
+unique(Mca.ReductionM$SiteTypeTech)
+
+#setting the unique comparisons 
+assemblages <- c("A.b.M", "A.B.M", "R.b.M", "R.B.M", "C.b.M", "C.B.M", "F.B.M", "F.b.M")
+
+# Generate all possible unique combinations of size 2
+all_combinations <- combn(assemblages, 2)
+
+# Convert the result to a data frame for better readability
+combinations_df <- data.frame(t(all_combinations))
+
+# Print the result
+print(combinations_df)
+
+comparisons_ReductionM <- c(
+  "A.b.M-A.B.M", "A.b.M-R.b.M", "A.b.M-R.B.M", "A.b.M-C.b.M",
+  "A.b.M-C.B.M", "A.b.M-F.B.M" ,"A.b.M-F.b.M", "A.B.M-R.b.M",
+  "A.B.M-R.B.M", "A.B.M-C.b.M", "A.B.M-C.B.M", "A.B.M-F.B.M",
+  "A.B.M-F.b.M", "R.b.M-R.B.M","R.b.M-C.b.M", "R.b.M-C.B.M", 
+  "R.b.M-F.B.M", "R.b.M-F.b.M", "R.B.M-C.b.M", "R.B.M-C.B.M",
+  "R.B.M-F.B.M", "R.B.M-F.b.M", "C.b.M-C.B.M", "C.b.M-F.B.M", 
+  "C.b.M-F.b.M", "C.B.M-F.B.M", "C.B.M-F.b.M", "F.B.M-F.b.M"
+)
+
+
+```
+
+####Bootstrapping
+
+```{r}
+# Multi-comparison bootstrap
+install.packages("WRS2")
+library(WRS2)
+# Multi-comparison bootstrap
+
+
+boot_dim1 <- mcppb20(dim1 ~ SiteTypeTech, data = Mca.ReductionM, nboot = 5000)
+boot_dim2 <- mcppb20(dim2 ~ SiteTypeTech, data = Mca.ReductionM, nboot = 5000)
+
+# Convert results to data frames
+multi_comp_dim1 <- as.data.frame(boot_dim1$comp)
+multi_comp_dim2 <- as.data.frame(boot_dim2$comp)
+
+# Add SiteTypeTech names and transform to column "SiteTypeTech"
+multi_comp_dim1$SiteTypeTech <- comparisons_ReductionM
+multi_comp_dim1 <- multi_comp_dim1[!duplicated(names(multi_comp_dim1))]
+
+multi_comp_dim2$SiteTypeTech <- comparisons_ReductionM
+multi_comp_dim2 <- multi_comp_dim2[!duplicated(names(multi_comp_dim2))]
+
+# Join the results
+multi_comp <- full_join(multi_comp_dim1, multi_comp_dim2, by = "SiteTypeTech", suffix = c("dim1", "dim2"))
+
+# Select relevant columns
+multi_comp <- select(multi_comp, SiteTypeTech, `p-valuedim1`, `p-valuedim2`)
+
+# Build a list with pairwise p-values
+labels_dim1 <- setNames(multi_comp$`p-valuedim1`, multi_comp_dim1$SiteTypeTech)
+labels_dim2 <- setNames(multi_comp$`p-valuedim2`, multi_comp_dim2$SiteTypeTech)
+
+# Attribute letters to each grouping based on alpha = .05
+install.packages("multcompView")
+library(multcompView)
+library(tibble)
+grouping_dim1 <- data.frame(multcompLetters(labels_dim1)["Letters"])
+grouping_dim1 <- rownames_to_column(grouping_dim1, "SiteTypeTech")
+
+grouping_dim2 <- data.frame(multcompLetters(labels_dim2)["Letters"])
+grouping_dim2 <- rownames_to_column(grouping_dim2, "SiteTypeTech")
+
+# Join the grouping results
+grouping <- full_join(grouping_dim1, grouping_dim2, by = "SiteTypeTech", suffix = c("dim1", "dim2"))
+
+
+# Print or use the 'grouping' dataframe for further analysis or visualization
+print(grouping)
+
+```
+####Plotting
+```{r}
+library(RcmdrMisc)
+library(gridExtra)
+library(DescTools)
+
+mca_summary <- Mca.ReductionM %>% 
+  group_by(SiteTypeTech) %>% 
+  summarise(meandim1 = mean(dim1, trim = 0.2), meandim2 = mean(dim2, trim = 0.2), 
+            LCIdim1 = MeanCI(dim1, trim = 0.2)[2], MCIdim1 = MeanCI(dim1, trim = 0.2)[3],
+            LCIdim2 = MeanCI(dim2, trim = 0.2)[2], MCIdim2 = MeanCI(dim2, trim = 0.2)[3]) 
+
+m1 <- max(mca_summary$MCIdim1)
+m2 <- max(mca_summary$MCIdim2)
+
+dim1 <- ggplot(mca_summary) +
+  geom_point(stat = "identity", aes(x = SiteTypeTech, y = meandim1), size = 3) +
+  geom_errorbar(stat = "identity", aes(x = SiteTypeTech, ymin = LCIdim1, ymax = MCIdim1), width = 0) +
+  geom_hline(aes(yintercept = 0), color = "red", linetype = "dashed", show.legend = FALSE) +
+  geom_text(data = grouping, aes(x = SiteTypeTech, y = m1 + 0.08, label = Lettersdim1, size = 15), show.legend = FALSE) +
+  xlab("") +
+  ylab("Dimension 1") +
+  scale_colour_discrete(l = 40) +
+  theme(text = element_text(size = 18)) +
+  coord_flip()
+
+
+dim2 <- ggplot(mca_summary) +
+  geom_point(stat = "identity", aes(x = SiteTypeTech, y = meandim2), size = 3) +
+  geom_errorbar(stat = "identity", aes(x = SiteTypeTech, ymin = LCIdim2, ymax = MCIdim2), width = 0) +
+  geom_hline(aes(yintercept = 0), color = "red", linetype = "dashed", show.legend = FALSE) +
+  geom_text(data = grouping, aes(x = SiteTypeTech, y = m2 + 0.08, label = Lettersdim2, size = 15), show.legend = FALSE) +
+  xlab("") +
+  ylab("Dimension 2") +
+  scale_colour_discrete(l = 40) +
+  theme(text = element_text(size = 18)) +
+  coord_flip()
+
+
+ANOVAReductionM <- grid.arrange(dim1, dim2, ncol = 1)
+
+ggsave("ANOVAReductionMGMT.tiff", plot = ANOVAReductionM, width = 43.656255, height = 20.29354, units = "cm", dpi = 300) 
+ggsave("ANOVAReductionMGMT.png", plot = ANOVAReductionM, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
+
+```
+Interpretation ANOVA
+
+According to the p-values of the single comparison between different categories and the resulting letters assigned the following categories are statistically similar on the Dim1:
+
+Ansab blanks and Romanesti bladelets (letter a)
+Les Cottés blanks and Fumane blades (letter c)
+Fumane blanks (letter d)
+
+
+Dimension 1 the absence of negatives. The absence of negatives is in the positive part of the biplot. most of the categories categories are showing negative lodgings, meaning they are characterised having one or more negatives. 
+
+on Dim2
+
+Ansab bladelets and Fumane blades (letter a)
+Ansab blades, Fumane bladelets, Romanesti blades (letter b)
+Les Cottés bladelets and Romanesti bladelets (letter d)
+Les Cottés blanks (letter e)
+
+Dimension 2 is mostly defined by the presence of cortex (semi). No cortex is on the negative part of the biplot, while cortex (semi) is on the positive part. Les Cottés blades and the Fumane blanks are the only categories showing positive lodging therefore, mostly associated with semi-cortical blanks.
