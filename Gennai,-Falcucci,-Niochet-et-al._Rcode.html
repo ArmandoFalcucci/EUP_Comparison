@@ -11,6 +11,7 @@
 
 <meta name="author" content="Jacopo Gennai" />
 
+<meta name="date" content="2024-03-21" />
 
 <title>Gennai, Falcucci, Niochet et al. EUP Comparison</title>
 
@@ -352,7 +353,7 @@ display: none;
 <h1 class="title toc-ignore">Gennai, Falcucci, Niochet et al. EUP
 Comparison</h1>
 <h4 class="author">Jacopo Gennai</h4>
-<h4 class="date">05-01-2024</h4>
+<h4 class="date">2024-03-21</h4>
 
 </div>
 
@@ -658,6 +659,7 @@ unique(Gennai_Blanks_reshaped$Technology.Extended)
 unique(Gennai_Blanks_reshaped$Dorsal.scar.1)</code></pre>
 <pre class="r"><code>Niochet_Blanks_reshaped &lt;- Niochet_CTS_US04inf_Blanks %&gt;%
   rename(ID2 = &quot;Piece Original ID&quot;, Preservation = &quot;Entirety&quot;, Cortex=&quot;CxSimpl&quot;, Cortex.position = &quot;CxPosition&quot;, Thickness = &quot;Thick&quot;, Elongation = &quot;El&quot;, Platform = &quot;ButtType&quot;, Bulb = &quot;BulbMorph&quot;, Lip = &quot;Lipp&quot;, Abrasion = &quot;OvAb&quot;, Outline.morphology = &quot;Out&quot;, Cross.section = &quot;CrossSectMorph&quot;, Profile = &quot;Pro&quot;, Distal.end.morpho = &quot;DEndMorph&quot;,Blank.type = &quot;StructureCat&quot;, Technology.Phase = &quot;TechCat&quot;, Technology.Extended = &quot;Cat&quot;, Number.negatives = &quot;NegN&quot;, Negatives.type = &quot;NegType&quot;, Dorsal.scar.1= &quot;NegOSimpl&quot;, Dorsal.scar.2 = &quot;NegO&quot;, Tool = &quot;R&quot;, Retouch.Position =&quot;RPos&quot;, Retouch.Location =&quot;RLoc&quot;, Retouch.Distribution=&quot;RDis&quot;) %&gt;%
+  filter(RawMatSimpl == &quot;RMLocal&quot;) %&gt;% #only local raw material
   mutate(Cortex.y.n = Cortex, .after = Cortex.position) %&gt;% #INSERT CORTEX.Y.N
   mutate(Cortex.y.n = recode(Cortex.y.n, Extensive = &quot;Yes&quot;, Full = &quot;Yes&quot;, Semi =&quot;Yes&quot;))%&gt;%
   mutate(Torsion = Profile, .after = Profile) %&gt;% #INSERT Torsion
@@ -1007,7 +1009,7 @@ mutate(Lip.simpl = case_when(
                             &quot;(sub)Parellel edges&quot; , 
                             &quot;Sub-parallel&quot; , 
                             &quot;(sub)Parallel Edges&quot; ) ~ &quot;Subparallel edges&quot;,
-  Outline.morphology == &quot;Off-axis&quot; | Axiality.simpl == &quot;Off axis&quot; ~ &quot;Déjète&quot;,
+  Outline.morphology == &quot;Off-axis&quot; | Axiality.simpl == &quot;Off axis&quot; ~ &quot;Déjeté&quot;,
   Outline.morphology == &quot;Undetermined&quot; ~ &quot;ND&quot;,
   Outline.morphology == &quot;Irregular&quot; ~ &quot;Other&quot;,
   Outline.morphology == &quot;Convex&quot; ~ &quot;Convergent&quot;,
@@ -1095,7 +1097,7 @@ mutate(Retouch.Position = case_when(
     TRUE ~ Retouch.Position  # keep the others
 ))
 library(writexl)
-writexl::write_xlsx(Blank_Main_reshaped1, &quot;Ans_Rom_Fum_CTS_Blanksmerged_reshaped.xlsx&quot;)
+write_xlsx(Blank_Main_reshaped1, &quot;Ans_Rom_Fum_CTS_Blanksmerged_reshaped.xlsx&quot;)
 
 #checking
 View(Blank_Main_reshaped1)
@@ -1138,177 +1140,352 @@ Blank_Main_reshaped1 &lt;- Blank_Main_reshaped1 %&gt;%
 than 5% in groups as Other</p>
 <pre class="r"><code>library(dplyr)
 
-ANCxPosBld &lt;- Blank_Main_reshaped1 %&gt;%
+ANBld &lt;- Blank_Main_reshaped1 %&gt;%
   filter(Site == &quot;AN&quot;, Blank.type == &quot;Blade&quot;) %&gt;%
-  mutate(Cortex.position.simpl_lump = Cortex.position.simpl, .after = Cortex.position.simpl)
+  mutate(Cortex.position.simpl_lump = Cortex.position.simpl, .after = Cortex.position.simpl) %&gt;%
+  mutate(Platform_lump = Platform, .after = Platform)
+
+ANCxBld &lt;- ANBld %&gt;%
+  filter(Site == &quot;AN&quot;, Blank.type == &quot;Blade&quot;, Cortex.y.n== &quot;Yes&quot;)
 
 # Check the proportions table
-proportions_table &lt;- table(ANCxPosBld$Cortex.position.simpl_lump, useNA = &quot;no&quot;) / sum(!is.na(ANCxPosBld$Cortex.position.simpl_lump)) * 100
+proportions_table &lt;- table(ANCxBld$Cortex.position.simpl_lump, useNA = &quot;no&quot;) / sum(!is.na(ANCxBld$Cortex.position.simpl_lump)) * 100
+print(proportions_table)
+
+ANPlatBld &lt;- ANBld %&gt;%
+  filter(Site == &quot;AN&quot;, Blank.type == &quot;Blade&quot;, !Platform== &quot;No Prox part&quot;) 
+
+# Check the proportions table
+proportions_table &lt;- table(ANPlatBld$Platform_lump, useNA = &quot;no&quot;) / sum(!is.na(ANPlatBld$Platform_lump)) * 100
 print(proportions_table)
 
 # Modify levels based on proportions and create &quot;Other&quot; category
-ANCxPosBld &lt;- ANCxPosBld %&gt;%
+ANBld &lt;- ANBld %&gt;%
+  mutate(Platform_lump = case_when(
+    Platform_lump %in% c(&quot;Concave&quot;, &quot;Crushed&quot;, &quot;Dihedral&quot;, &quot;Natural&quot;, &quot;ND&quot;) ~ &quot;Other&quot;, #less than 5% categories
+    TRUE ~ as.character(Platform_lump))) %&gt;%
   mutate(Cortex.position.simpl_lump = case_when(
     Cortex.position.simpl_lump %in% c(&quot;Proximal&quot;) ~ &quot;Other&quot;, #less than 5% categories
     TRUE ~ as.character(Cortex.position.simpl_lump)
-  ))
+  )) 
 
-ANCxPosBldl &lt;- Blank_Main_reshaped1 %&gt;% 
+ANBldl &lt;- Blank_Main_reshaped1 %&gt;% 
   filter(Site == &quot;AN&quot;, Blank.type == &quot;Bladelet&quot;) %&gt;%
-mutate(Cortex.position.simpl_lump = Cortex.position.simpl, .after = Cortex.position.simpl)
+mutate(Cortex.position.simpl_lump = Cortex.position.simpl, .after = Cortex.position.simpl)%&gt;%
+  mutate(Platform_lump = Platform, .after = Platform)
 
-proportions_table &lt;- table(ANCxPosBldl$Cortex.position.simpl_lump, useNA = &quot;no&quot;) / sum(!is.na(ANCxPosBldl$Cortex.position.simpl_lump)) * 100
+ANCxBldl &lt;- ANBldl %&gt;%
+  filter(Site == &quot;AN&quot;, Blank.type == &quot;Bladelet&quot;, Cortex.y.n== &quot;Yes&quot;)
+
+proportions_table &lt;- table(ANCxBldl$Cortex.position.simpl_lump, useNA = &quot;no&quot;) / sum(!is.na(ANCxBldl$Cortex.position.simpl_lump)) * 100
 print(proportions_table)
+
+ANPlatBldl &lt;- ANBldl %&gt;%
+  filter(Site == &quot;AN&quot;, Blank.type == &quot;Bladelet&quot;, !Platform== &quot;No Prox part&quot;) %&gt;%
+  mutate(Platform_lump = Platform, .after = Platform)
+
+# Check the proportions table
+proportions_table &lt;- table(ANPlatBldl$Platform_lump, useNA = &quot;no&quot;) / sum(!is.na(ANPlatBldl$Platform_lump)) * 100
+print(proportions_table)
+
 # Modify levels based on proportions and create &quot;Other&quot; category
-ANCxPosBldl &lt;- ANCxPosBldl %&gt;%
+ANBldl &lt;- ANBldl %&gt;%
+  mutate(Platform_lump = case_when(
+    Platform_lump %in% c(&quot;Distal+Proximal&quot;, &quot;Proximal&quot;) ~ &quot;Other&quot;, #less than 5% categories
+    TRUE ~ as.character(Platform_lump) 
+  )) %&gt;%
   mutate(Cortex.position.simpl_lump = case_when(
     Cortex.position.simpl_lump %in% c(&quot;Distal+Proximal&quot;, &quot;Proximal&quot;) ~ &quot;Other&quot;, #less than 5% categories
     TRUE ~ as.character(Cortex.position.simpl_lump)
   ))
 
-ANCxPosFl &lt;- Blank_Main_reshaped1 %&gt;% 
+ANFl &lt;- Blank_Main_reshaped1 %&gt;% 
   filter(Site == &quot;AN&quot;, Blank.type == &quot;Flake&quot;)%&gt;%
-mutate(Cortex.position.simpl_lump = Cortex.position.simpl, .after = Cortex.position.simpl)
+mutate(Cortex.position.simpl_lump = Cortex.position.simpl, .after = Cortex.position.simpl) %&gt;%
+mutate(Platform_lump = Platform, .after = Platform)
 
-proportions_table &lt;- table(ANCxPosFl$Cortex.position.simpl_lump, useNA = &quot;no&quot;) / sum(!is.na(ANCxPosFl$Cortex.position.simpl_lump)) * 100
+ANCxFl &lt;- ANFl %&gt;%
+  filter(Site == &quot;AN&quot;, Blank.type == &quot;Flake&quot;, Cortex.y.n== &quot;Yes&quot;)
+
+proportions_table &lt;- table(ANCxFl$Cortex.position.simpl_lump, useNA = &quot;no&quot;) / sum(!is.na(ANCxFl$Cortex.position.simpl_lump)) * 100
 print(proportions_table)
 
-ANCxPosFl &lt;- ANCxPosFl %&gt;%
+ANPlatFl &lt;- ANFl %&gt;%
+  filter(Site == &quot;AN&quot;, Blank.type == &quot;Flake&quot;, !Platform== &quot;No Prox part&quot;) %&gt;%
+  mutate(Platform_lump = Platform, .after = Platform)
+
+# Check the proportions table
+proportions_table &lt;- table(ANPlatFl$Platform_lump, useNA = &quot;no&quot;) / sum(!is.na(ANPlatFl$Platform_lump)) * 100
+print(proportions_table)
+
+# Modify levels based on proportions and create &quot;Other&quot; category
+ANFl &lt;- ANFl %&gt;%
+  mutate(Platform_lump = case_when(
+    Platform_lump %in% c(&quot;Crushed&quot;, &quot;Dihedral&quot;, &quot;ND&quot;, &quot;Punctiform&quot;) ~ &quot;Other&quot;, #less than 5% categories
+    TRUE ~ as.character(Platform_lump)
+  )) %&gt;%
   mutate(Cortex.position.simpl_lump = case_when(
     Cortex.position.simpl_lump %in% c(&quot;Bilateral&quot;) ~ &quot;Other&quot;, #less than 5% categories
     TRUE ~ as.character(Cortex.position.simpl_lump)
   ))
 
-
-CTSCxPosBldl &lt;- Blank_Main_reshaped1 %&gt;% 
+CTSBldl &lt;- Blank_Main_reshaped1 %&gt;% 
   filter(Site == &quot;CTS&quot;, Blank.type == &quot;Bladelet&quot;)%&gt;%
-mutate(Cortex.position.simpl_lump = Cortex.position.simpl, .after = Cortex.position.simpl)
+mutate(Cortex.position.simpl_lump = Cortex.position.simpl, .after = Cortex.position.simpl)%&gt;%
+mutate(Platform_lump = Platform, .after = Platform)
 
-proportions_table &lt;- table(CTSCxPosBldl$Cortex.position.simpl_lump, useNA = &quot;no&quot;) / sum(!is.na(CTSCxPosBldl$Cortex.position.simpl_lump)) * 100
+CTSCxBldl &lt;- CTSBldl %&gt;%
+  filter(Site == &quot;CTS&quot;, Blank.type == &quot;Bladelet&quot;, Cortex.y.n== &quot;Yes&quot;)
+
+proportions_table &lt;- table(CTSCxBldl$Cortex.position.simpl_lump, useNA = &quot;no&quot;) / sum(!is.na(CTSCxBldl$Cortex.position.simpl_lump)) * 100
 print(proportions_table)
 
-CTSCxPosBldl &lt;- CTSCxPosBldl %&gt;%
+CTSPlatBldl &lt;- CTSBldl %&gt;%
+  filter(Site == &quot;CTS&quot;, Blank.type == &quot;Bladelet&quot;, !Platform== &quot;No butt&quot;)
+
+# Check the proportions table
+proportions_table &lt;- table(CTSPlatBldl$Platform_lump, useNA = &quot;no&quot;) / sum(!is.na(CTSPlatBldl$Platform_lump)) * 100
+print(proportions_table)
+
+# Modify levels based on proportions and create &quot;Other&quot; category
+CTSBldl &lt;- CTSBldl %&gt;%
+  mutate(Platform_lump = case_when(
+    Platform_lump %in% c(&quot;Concave&quot;, &quot;Dihedral&quot;, &quot;Faceted&quot;, &quot;Natural&quot;) ~ &quot;Other&quot;, #less than 5% categories
+    TRUE ~ as.character(Platform_lump)
+  ))%&gt;%
   mutate(Cortex.position.simpl_lump = case_when(
-    Cortex.position.simpl_lump %in% c(&quot;Bilateral&quot;, &quot;Lateral+Distal&quot;, &quot;Lateral+Dorsal&quot;, &quot;Lateral+Proximal&quot;, &quot;Proximal&quot;) ~ &quot;Other&quot;, #less than 5% categories
+    Cortex.position.simpl_lump %in% c(&quot;Bilateral&quot;, &quot;Lateral+Dorsal&quot;, &quot;Lateral+Proximal&quot;, &quot;ND&quot;, &quot;Proximal&quot;) ~ &quot;Other&quot;, #less than 5% categories
     TRUE ~ as.character(Cortex.position.simpl_lump)  
   ))
 
-CTSCxPosBld &lt;- Blank_Main_reshaped1 %&gt;% 
+CTSBld &lt;- Blank_Main_reshaped1 %&gt;% 
   filter(Site == &quot;CTS&quot;, Blank.type == &quot;Blade&quot;) %&gt;%
-mutate(Cortex.position.simpl_lump = Cortex.position.simpl, .after = Cortex.position.simpl) 
+mutate(Cortex.position.simpl_lump = Cortex.position.simpl, .after = Cortex.position.simpl) %&gt;%
+  mutate(Platform_lump = Platform, .after = Platform)
 
-proportions_table &lt;- table(CTSCxPosBld$Cortex.position.simpl_lump, useNA = &quot;no&quot;) / sum(!is.na(CTSCxPosBld$Cortex.position.simpl_lump)) * 100
+CTSCxBld &lt;- CTSBld %&gt;%
+  filter(Site == &quot;CTS&quot;, Blank.type == &quot;Blade&quot;, Cortex.y.n== &quot;Yes&quot;)
+
+proportions_table &lt;- table(CTSCxBld$Cortex.position.simpl_lump, useNA = &quot;no&quot;) / sum(!is.na(CTSCxBld$Cortex.position.simpl_lump)) * 100
 print(proportions_table)
 
-CTSCxPosBld &lt;- CTSCxPosBld %&gt;%
+CTSPlatBld &lt;- CTSBld %&gt;%
+  filter(Site == &quot;CTS&quot;, Blank.type == &quot;Blade&quot;, !Platform== &quot;No butt&quot;) 
+
+# Check the proportions table
+proportions_table &lt;- table(CTSPlatBld$Platform_lump, useNA = &quot;no&quot;) / sum(!is.na(CTSPlatBld$Platform_lump)) * 100
+print(proportions_table)
+
+# Modify levels based on proportions and create &quot;Other&quot; category
+CTSBld &lt;- CTSBld %&gt;%
+  mutate(Platform_lump = case_when(
+    Platform_lump %in% c(&quot;Concave&quot;, &quot;Dihedral&quot;, &quot;Natural&quot;, &quot;ND&quot;, &quot;Punctiform&quot;) ~ &quot;Other&quot;, #less than 5% categories
+    TRUE ~ as.character(Platform_lump)
+  ))%&gt;%
   mutate(Cortex.position.simpl_lump = case_when(
-    Cortex.position.simpl_lump %in% c(&quot;Bilateral&quot;, &quot;Lateral+Dorsal&quot;, &quot;Lateral+Proximal&quot;) ~ &quot;Other&quot;, #less than 5% categories
+    Cortex.position.simpl_lump %in% c(&quot;Bilateral&quot;, &quot;Lateral+Distal&quot;, &quot;Lateral+Dorsal&quot;, &quot;Lateral+Proximal&quot;) ~ &quot;Other&quot;, #less than 5% categories
     TRUE ~ as.character(Cortex.position.simpl_lump)  
   ))
 
-CTSCxPosFl &lt;- Blank_Main_reshaped1 %&gt;% 
-  filter(Site == &quot;CTS&quot;, Blank.type == &quot;Flake&quot;)%&gt;%
-mutate(Cortex.position.simpl_lump = Cortex.position.simpl, .after = Cortex.position.simpl) 
+CTSPlatFl &lt;- Blank_Main_reshaped1 %&gt;%
+  filter(Site == &quot;CTS&quot;, Blank.type == &quot;Flake&quot;, !Platform== &quot;No butt&quot;) %&gt;%
+  mutate(Platform_lump = Platform, .after = Platform)
 
-proportions_table &lt;- table(CTSCxPosFl$Cortex.position.simpl_lump, useNA = &quot;no&quot;) / sum(!is.na(CTSCxPosFl$Cortex.position.simpl_lump)) * 100
+# Check the proportions table
+proportions_table &lt;- table(CTSPlatFl$Platform_lump, useNA = &quot;no&quot;) / sum(!is.na(CTSPlatFl$Platform_lump)) * 100
 print(proportions_table)
 
-CTSCxPosFl &lt;- CTSCxPosFl %&gt;%
-  mutate(Cortex.position.simpl_lump = case_when(
-    Cortex.position.simpl_lump %in% c(&quot;Bilateral&quot;, &quot;Lateral+Dorsal&quot;, &quot;Lateral+Proximal&quot;) ~ &quot;Other&quot;, #less than 5% categories
-    TRUE ~ as.character(Cortex.position.simpl_lump)  
-  ))
-
-FUMCxPosBldl &lt;- Blank_Main_reshaped1 %&gt;% 
+#no less than 5% categories
+  
+FUMBldl &lt;- Blank_Main_reshaped1 %&gt;% 
   filter(Site == &quot;FUM&quot;, Blank.type == &quot;Bladelet&quot;) %&gt;%
-mutate(Cortex.position.simpl_lump = Cortex.position.simpl, .after = Cortex.position.simpl) 
+mutate(Cortex.position.simpl_lump = Cortex.position.simpl, .after = Cortex.position.simpl)  %&gt;%
+  mutate(Platform_lump = Platform, .after = Platform)
 
-proportions_table &lt;- table(FUMCxPosBldl$Cortex.position.simpl_lump, useNA = &quot;no&quot;) / sum(!is.na(FUMCxPosBldl$Cortex.position.simpl_lump)) * 100
+FUMCxBldl &lt;- FUMBldl %&gt;%
+  filter(Site == &quot;FUM&quot;, Blank.type == &quot;Bladelet&quot;, Cortex.y.n== &quot;Yes&quot;)
+
+proportions_table &lt;- table(FUMCxBldl$Cortex.position.simpl_lump, useNA = &quot;no&quot;) / sum(!is.na(FUMCxBldl$Cortex.position.simpl_lump)) * 100
 print(proportions_table)
 
-FUMCxPosBldl &lt;- FUMCxPosBldl %&gt;%
+FUMPlatBldl &lt;- FUMBldl %&gt;%
+  filter(Site == &quot;FUM&quot;, Blank.type == &quot;Bladelet&quot;, !Platform == &quot;No butt&quot;)
+
+# Check the proportions table
+proportions_table &lt;- table(FUMPlatBldl$Platform_lump, useNA = &quot;no&quot;) / sum(!is.na(FUMPlatBldl$Platform_lump)) * 100
+print(proportions_table)
+
+# Modify levels based on proportions and create &quot;Other&quot; category
+FUMBldl &lt;- FUMBldl %&gt;%
+  mutate(Platform_lump = case_when(
+    Platform_lump %in% c( &quot;Dihedral&quot;, &quot;Faceted&quot;, &quot;ND&quot;) ~ &quot;Other&quot;, #less than 5% categories
+    TRUE ~ as.character(Platform_lump)
+  ))%&gt;%
   mutate(Cortex.position.simpl_lump = case_when(
     Cortex.position.simpl_lump %in% c(&quot;Distal+Proximal&quot;, &quot;Proximal&quot;) ~ &quot;Other&quot;, #less than 5% categories
     TRUE ~ as.character(Cortex.position.simpl_lump)  
   ))
 
-FUMCxPosBld &lt;- Blank_Main_reshaped1 %&gt;% 
+FUMBld &lt;- Blank_Main_reshaped1 %&gt;% 
   filter(Site == &quot;FUM&quot;, Blank.type == &quot;Blade&quot;) %&gt;%
-mutate(Cortex.position.simpl_lump = Cortex.position.simpl, .after = Cortex.position.simpl) 
+mutate(Cortex.position.simpl_lump = Cortex.position.simpl, .after = Cortex.position.simpl)  %&gt;%
+  mutate(Platform_lump = Platform, .after = Platform)
 
-proportions_table &lt;- table(FUMCxPosBld$Cortex.position.simpl_lump, useNA = &quot;no&quot;) / sum(!is.na(FUMCxPosBld$Cortex.position.simpl_lump)) * 100
+FUMCxBld &lt;- FUMBld %&gt;%
+  filter(Site == &quot;FUM&quot;, Blank.type == &quot;Blade&quot;, Cortex.y.n== &quot;Yes&quot;)
+
+proportions_table &lt;- table(FUMCxBld$Cortex.position.simpl_lump, useNA = &quot;no&quot;) / sum(!is.na(FUMCxBld$Cortex.position.simpl_lump)) * 100
 print(proportions_table)
 
-FUMCxPosBld &lt;- FUMCxPosBld %&gt;%
+FUMPlatBld&lt;- FUMBld %&gt;%
+  filter(Site == &quot;FUM&quot;, Blank.type == &quot;Blade&quot;, !Platform== &quot;No butt&quot;)
+
+# Check the proportions table
+proportions_table &lt;- table(FUMPlatBld$Platform_lump, useNA = &quot;no&quot;) / sum(!is.na(FUMPlatBld$Platform_lump)) * 100
+print(proportions_table)
+
+# Modify levels based on proportions and create &quot;Other&quot; category
+FUMBld &lt;- FUMBld %&gt;%
+  mutate(Platform_lump = case_when(
+    Platform_lump %in% c( &quot;Dihedral&quot;, &quot;Faceted&quot;, &quot;Natural&quot;, &quot;Punctiform&quot;) ~ &quot;Other&quot;, #less than 5% categories
+    TRUE ~ as.character(Platform_lump)
+  )) %&gt;%
   mutate(Cortex.position.simpl_lump = case_when(
     Cortex.position.simpl_lump %in% c(&quot;Distal+Proximal&quot;, &quot;Lateral+Proximal&quot;, &quot;Proximal&quot;) ~ &quot;Other&quot;, #less than 5% categories
     TRUE ~ as.character(Cortex.position.simpl_lump)  
   ))
 
-FUMCxPosFl &lt;- Blank_Main_reshaped1 %&gt;% 
+FUMFl &lt;- Blank_Main_reshaped1 %&gt;% 
   filter(Site == &quot;FUM&quot;, Blank.type == &quot;Flake&quot;) %&gt;%
-mutate(Cortex.position.simpl_lump = Cortex.position.simpl, .after = Cortex.position.simpl)  
+mutate(Cortex.position.simpl_lump = Cortex.position.simpl, .after = Cortex.position.simpl) %&gt;%
+  mutate(Platform_lump = Platform, .after = Platform) 
 
-proportions_table &lt;- table(FUMCxPosFl$Cortex.position.simpl_lump, useNA = &quot;no&quot;) / sum(!is.na(FUMCxPosFl$Cortex.position.simpl_lump)) * 100
+FUMFl &lt;- FUMFl %&gt;%
+  filter(Site == &quot;FUM&quot;, Blank.type == &quot;Flake&quot;, Cortex.y.n== &quot;Yes&quot;)
+
+proportions_table &lt;- table(FUMCxBldl$Cortex.position.simpl_lump, useNA = &quot;no&quot;) / sum(!is.na(FUMCxBldl$Cortex.position.simpl_lump)) * 100
 print(proportions_table)
 
-FUMCxPosFl &lt;- FUMCxPosFl %&gt;%
+FUMPlatFl &lt;- FUMFl %&gt;%
+  filter(Site == &quot;FUM&quot;, Blank.type == &quot;Flake&quot;, !Platform== &quot;No butt&quot;) 
+# Check the proportions table
+proportions_table &lt;- table(FUMPlatFl$Platform_lump, useNA = &quot;no&quot;) / sum(!is.na(FUMPlatFl$Platform_lump)) * 100
+print(proportions_table)
+
+FUMFl &lt;- FUMFl %&gt;%
+  mutate(Platform_lump = case_when(
+    Platform_lump %in% c( &quot;Dihedral&quot;, &quot;Natural&quot;, &quot;Punctiform&quot;) ~ &quot;Other&quot;, #less than 5% categories
+    TRUE ~ as.character(Platform_lump)
+  ))%&gt;%
   mutate(Cortex.position.simpl_lump = case_when(
-    Cortex.position.simpl_lump %in% c(&quot;Bilateral&quot;, &quot;Distal+Proximal&quot;, &quot;Lateral+Distal&quot;, &quot;Lateral+Proximal&quot;, &quot;Proximal&quot;) ~ &quot;Other&quot;, #less than 5% categories
+    Cortex.position.simpl_lump %in% c(&quot;Distal+Proximal&quot;) ~ &quot;Other&quot;, #less than 5% categories
     TRUE ~ as.character(Cortex.position.simpl_lump)  
   ))
 
-ROMCxPosBldl &lt;- Blank_Main_reshaped1 %&gt;% 
+ROMBldl &lt;- Blank_Main_reshaped1 %&gt;% 
   filter(Site == &quot;ROM&quot;, Blank.type == &quot;Bladelet&quot;) %&gt;%
-mutate(Cortex.position.simpl_lump = Cortex.position.simpl, .after = Cortex.position.simpl)
+mutate(Cortex.position.simpl_lump = Cortex.position.simpl, .after = Cortex.position.simpl)%&gt;%
+  mutate(Platform_lump = Platform, .after = Platform)
 
-proportions_table &lt;- table(ROMCxPosBldl$Cortex.position.simpl_lump, useNA = &quot;no&quot;) / sum(!is.na(ROMCxPosBldl$Cortex.position.simpl_lump)) * 100
+ROMCxBldl &lt;- ROMBldl %&gt;%
+  filter(Site == &quot;ROM&quot;, Blank.type == &quot;Bladelet&quot;, Cortex.y.n== &quot;Yes&quot;)
+
+proportions_table &lt;- table(ROMCxBldl$Cortex.position.simpl_lump, useNA = &quot;no&quot;) / sum(!is.na(ROMCxBldl$Cortex.position.simpl_lump)) * 100
 print(proportions_table)
 
-#no categories less than 5%
+ROMPlatBldl &lt;- ROMBldl %&gt;%
+  filter(Site == &quot;ROM&quot;, Blank.type == &quot;Bladelet&quot;, !Platform== &quot;No Prox part&quot;) 
 
-ROMCxPosBld &lt;- Blank_Main_reshaped1 %&gt;% 
+# Check the proportions table
+proportions_table &lt;- table(ROMPlatBldl$Platform_lump, useNA = &quot;no&quot;) / sum(!is.na(ROMPlatBldl$Platform_lump)) * 100
+print(proportions_table)
+
+# Modify levels based on proportions and create &quot;Other&quot; category
+ROMBldl &lt;- ROMBldl %&gt;%
+  mutate(Platform_lump = case_when(
+    Platform_lump %in% c(&quot;Dihedral&quot;, &quot;Natural&quot;, &quot;ND&quot;) ~ &quot;Other&quot;, #less than 5% categories
+    TRUE ~ as.character(Platform_lump)
+  ))
+
+ROMBld &lt;- Blank_Main_reshaped1 %&gt;% 
   filter(Site == &quot;ROM&quot;, Blank.type == &quot;Blade&quot;)%&gt;%
-mutate(Cortex.position.simpl_lump = Cortex.position.simpl, .after = Cortex.position.simpl) 
+mutate(Cortex.position.simpl_lump = Cortex.position.simpl, .after = Cortex.position.simpl)%&gt;%
+  mutate(Platform_lump = Platform, .after = Platform) 
 
-proportions_table &lt;- table(ROMCxPosBld$Cortex.position.simpl_lump, useNA = &quot;no&quot;) / sum(!is.na(ROMCxPosBld$Cortex.position.simpl_lump)) * 100
+ROMCxBld &lt;- ROMBld %&gt;%
+  filter(Site == &quot;ROM&quot;, Blank.type == &quot;Blade&quot;, Cortex.y.n== &quot;Yes&quot;)
+
+proportions_table &lt;- table(ROMCxBld$Cortex.position.simpl_lump, useNA = &quot;no&quot;) / sum(!is.na(ROMCxBld$Cortex.position.simpl_lump)) * 100
 print(proportions_table)
 
-ROMCxPosBld &lt;- ROMCxPosBld %&gt;%
+ROMPlatBld &lt;- ROMBld %&gt;%
+  filter(Site == &quot;ROM&quot;, Blank.type == &quot;Blade&quot;, !Platform== &quot;No Prox part&quot;) 
+
+# Check the proportions table
+proportions_table &lt;- table(ROMPlatBld$Platform_lump, useNA = &quot;no&quot;) / sum(!is.na(ROMPlatBld$Platform_lump)) * 100
+print(proportions_table)
+
+# Modify levels based on proportions and create &quot;Other&quot; category
+ROMBld &lt;- ROMBld %&gt;%
+  mutate(Platform_lump = case_when(
+    Platform_lump %in% c(&quot;Crushed&quot;, &quot;Dihedral&quot;, &quot;Faceted&quot;, &quot;ND&quot;) ~ &quot;Other&quot;, #less than 5% categories
+    TRUE ~ as.character(Platform_lump)
+    ))%&gt;%
   mutate(Cortex.position.simpl_lump = case_when(
     Cortex.position.simpl_lump %in% c(&quot;Distal+Proximal&quot;, &quot;Lateral+Proximal&quot;) ~ &quot;Other&quot;, #less than 5% categories
     TRUE ~ as.character(Cortex.position.simpl_lump)  
   ))
 
-ROMCxPosFl &lt;- Blank_Main_reshaped1 %&gt;% 
+ROMFl &lt;- Blank_Main_reshaped1 %&gt;% 
   filter(Site == &quot;ROM&quot;, Blank.type == &quot;Flake&quot;)%&gt;%
-mutate(Cortex.position.simpl_lump = Cortex.position.simpl, .after = Cortex.position.simpl) 
+mutate(Cortex.position.simpl_lump = Cortex.position.simpl, .after = Cortex.position.simpl) %&gt;%
+  mutate(Platform_lump = Platform, .after = Platform)
 
-proportions_table &lt;- table(ROMCxPosFl$Cortex.position.simpl_lump, useNA = &quot;no&quot;) / sum(!is.na(ROMCxPosFl$Cortex.position.simpl_lump)) * 100
+ROMCxFl &lt;- ROMFl %&gt;%
+  filter(Site == &quot;ROM&quot;, Blank.type == &quot;Flake&quot;, Cortex.y.n== &quot;Yes&quot;)
+
+proportions_table &lt;- table(ROMCxFl$Cortex.position.simpl_lump, useNA = &quot;no&quot;) / sum(!is.na(ROMCxFl$Cortex.position.simpl_lump)) * 100
 print(proportions_table)
 
-ROMCxPosFl &lt;- ROMCxPosFl %&gt;%
+ROMPlatFl &lt;- ROMFl %&gt;%
+  filter(Site == &quot;ROM&quot;, Blank.type == &quot;Flake&quot;, !Platform== &quot;No Prox part&quot;) 
+
+# Check the proportions table
+proportions_table &lt;- table(ROMPlatFl$Platform_lump, useNA = &quot;no&quot;) / sum(!is.na(ROMPlatFl$Platform_lump)) * 100
+print(proportions_table)
+
+# Modify levels based on proportions and create &quot;Other&quot; category
+ROMFl &lt;- ROMFl %&gt;%
+  mutate(Platform_lump = case_when(
+    Platform_lump %in% c(&quot;Crushed&quot;, &quot;Dihedral&quot;, &quot;Faceted&quot;, &quot;ND&quot;) ~ &quot;Other&quot;, #less than 5% categories
+    TRUE ~ as.character(Platform_lump)
+  ))%&gt;%
   mutate(Cortex.position.simpl_lump = case_when(
     Cortex.position.simpl_lump %in% c(&quot;Lateral+Distal&quot;, &quot;Lateral+Dorsal&quot;) ~ &quot;Other&quot;, #less than 5% categories
     TRUE ~ as.character(Cortex.position.simpl_lump)  
   ))
 
-
 # Combine the results into a single data frame
-Blanks_Main_lumped &lt;- rbind(ANCxPosBld,
-  ANCxPosBldl,
-  ANCxPosFl,
-  CTSCxPosBldl,
-  CTSCxPosBld,
-  CTSCxPosFl,
-  FUMCxPosBldl,
-  FUMCxPosBld,
-  FUMCxPosFl,
-  ROMCxPosBldl,
-  ROMCxPosBld,
-  ROMCxPosFl
-)</code></pre>
+Blanks_Main_lumped &lt;- rbind(
+ANBld,
+ANBldl,
+ANFl,
+FUMBld,
+FUMBldl,
+FUMFl,
+CTSBld,
+CTSBldl,
+ROMBld,
+ROMBldl,
+ROMFl
+  )
+
+library(writexl)
+writexl::write_xlsx(Blanks_Main_lumped, &quot;Ans_Rom_Fum_CTS_Blanks_lumped.xlsx&quot;)</code></pre>
 <p>##Exploratory plots</p>
+<pre class="r"><code>library(readxl)
+library(dplyr)
+Blanks_Main_lumped &lt;- read_excel(file.choose()) #get the Ans_Rom_Fum_CTS_Blanks_lumped.xlsx</code></pre>
 <pre class="r"><code>#reordering for more intuitive display
 Blanks_Main_lumped$Site_F &lt;- factor(Blanks_Main_lumped$Site, levels= c(&quot;AN&quot;, &quot;ROM&quot;, &quot;FUM&quot;, &quot;CTS&quot;)) #geographical South East to NorthWest</code></pre>
 <pre class="r"><code>Blanks_Main_lumped$Blank.type_F &lt;- factor(Blanks_Main_lumped$Blank.type, levels= c(&quot;Flake&quot;, &quot;Blade&quot;, &quot;Bladelet&quot;)) #reorder bigger to smaller
@@ -1345,14 +1522,15 @@ Blank &lt;- ggbarstats(
     )
   Blank
   
-  ggsave(&quot;Blank.tiff&quot;, plot = Blank, width = 13.20271, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd() </code></pre>
+  ggsave(&quot;Blank.tiff&quot;, plot = Blank, width = 13.20271, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd() 
+  ggsave(&quot;Blank.png&quot;, plot = Blank, width = 13.20271, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd() </code></pre>
 <p>Observed blank types frequencies vary markedly between sites.
 Romanesti shows the highest percentage of flakes, dwarfing the other
 three assemblages. Ansab and Les Cottés shows a similar pattern, blades
 are more represented than bladelets in general. Blades and bladelets are
 equal in Romanesti, consisting in the other half of the assemblage. In
-Fumane bladelets are accounting for over half of the assemblage.
-###technological phases</p>
+Fumane bladelets are accounting for over half of the assemblage. ###
+technological phases</p>
 <pre class="r"><code>Blanks_Main_lumped$Technology.Phase_F &lt;- factor(Blanks_Main_lumped$Technology.Phase, levels= c(&quot;Init&quot;, &quot;MGMT&quot;, &quot;Tablet&quot;, &quot;Ordinary&quot;, &quot;Spall&quot;)) #reorder earlier to later
 library(RColorBrewer)
 # Get unique values in the Technology.Phase_F column
@@ -1386,7 +1564,8 @@ Tech.Phase &lt;- ggbarstats(
     )))
  Tech.Phase
  
-ggsave(&quot;TechPhase.tiff&quot;, plot = Tech.Phase, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd() </code></pre>
+ggsave(&quot;TechPhase.tiff&quot;, plot = Tech.Phase, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd() 
+ggsave(&quot;TechPhase.png&quot;, plot = Tech.Phase, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd() </code></pre>
 <p>Observed technological phases frequencies are largely overlapping in
 Ansab, Fumane and Les Cottés. Romanesti shows a higher percentage of
 Management artefacts, while Les Cottés an higher percentage of
@@ -1415,7 +1594,8 @@ Blank.Tech.Phase &lt;- grouped_ggbarstats(
 )
 Blank.Tech.Phase
 
-ggsave(&quot;BlankTechPhase.tiff&quot;, plot = Blank.Tech.Phase, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;BlankTechPhase.tiff&quot;, plot = Blank.Tech.Phase, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;BlankTechPhase.png&quot;, plot = Blank.Tech.Phase, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <p>The percentage of Ordinary blanks it’s prevalent in bladelets with
 similar percentages in Ansab, Fumane and Les Cottés. Ordinary blades are
 accounting for nearly half the total blades in Ansab, Romanesti and
@@ -1459,7 +1639,8 @@ Gen.Cortex &lt;- grouped_ggbarstats(
     )))
 Gen.Cortex
 
-ggsave(&quot;Gen.Cortex.tiff&quot;, plot = Gen.Cortex, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;Gen.Cortex.tiff&quot;, plot = Gen.Cortex, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;Gen.Cortex.png&quot;, plot = Gen.Cortex, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <pre class="r"><code>Init.Cortex &lt;- grouped_ggbarstats(
   data = filter(Blanks_Main_lumped, Technology.Phase_F == &quot;Init&quot;),
   x = Cortex_F,  
@@ -1480,7 +1661,8 @@ ggsave(&quot;Gen.Cortex.tiff&quot;, plot = Gen.Cortex, width = 27.49021, height 
     )))
 Init.Cortex
 
-ggsave(&quot;Init.Cortex.tiff&quot;, plot = Init.Cortex, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;Init.Cortex.tiff&quot;, plot = Init.Cortex, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;Init.Cortex.png&quot;, plot = Init.Cortex, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <pre class="r"><code>MGMT.Cortex &lt;- grouped_ggbarstats(
   data = filter(Blanks_Main_lumped, Technology.Phase_F == &quot;MGMT&quot;),
   x = Cortex_F,  
@@ -1501,7 +1683,8 @@ ggsave(&quot;Init.Cortex.tiff&quot;, plot = Init.Cortex, width = 27.49021, heigh
     )))
 MGMT.Cortex
 
-ggsave(&quot;MGMT.Cortex.tiff&quot;, plot = MGMT.Cortex, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;MGMT.Cortex.tiff&quot;, plot = MGMT.Cortex, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;MGMT.Cortex.png&quot;, plot = MGMT.Cortex, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <pre class="r"><code>Ordinary.Cortex &lt;- grouped_ggbarstats(
   data = filter(Blanks_Main_lumped,  Technology.Phase_F == &quot;Ordinary&quot;),
   x = Cortex_F,  
@@ -1522,14 +1705,16 @@ ggsave(&quot;MGMT.Cortex.tiff&quot;, plot = MGMT.Cortex, width = 27.49021, heigh
     )))
 Ordinary.Cortex
 
-ggsave(&quot;Ordinary.Cortex.tiff&quot;, plot = Ordinary.Cortex, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;Ordinary.Cortex.tiff&quot;, plot = Ordinary.Cortex, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;Ordinary.Cortex.png&quot;, plot = Ordinary.Cortex, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <p>Trends about cortical artefacts are largely similar across sites.
 Cortical artefacts, especially the extensively cortical ones, are much
 more present in Flakes. Semicortical artefacts are still present in
 blades. Bladelets are largely uncortical, Les Cottés is showing the
 larger frequency of semi-cortical bladelets</p>
 <p>###cortical position</p>
-<pre class="r"><code>Blanks_Main_lumped$Cortex.position.simpl_lump_F &lt;- factor(Blanks_Main_lumped$Cortex.position.simpl_lump, levels= c( &quot;Proximal&quot;, &quot;Lateral&quot;, &quot;Lateral+Distal&quot;, &quot;Distal&quot;, &quot;Dorsal&quot;,&quot;Other&quot;)) #proximal to distal
+<pre class="r"><code>unique(Blanks_Main_lumped$Cortex.position.simpl_lump)
+Blanks_Main_lumped$Cortex.position.simpl_lump_F &lt;- factor(Blanks_Main_lumped$Cortex.position.simpl_lump, levels= c(&quot;Proximal&quot;, &quot;Lateral&quot;, &quot;Lateral+Proximal&quot;, &quot;Lateral+Distal&quot;, &quot;Distal&quot;, &quot;Dorsal&quot;, &quot;Other&quot;)) #proximal to distal
 
 library(RColorBrewer)
 # Get unique values in the Platform.Simpl column
@@ -1546,7 +1731,7 @@ library(ggstatsplot)
 library(ggplot2)
 # Create grouped bar plot
 Gen.Cortex.Pos &lt;- grouped_ggbarstats(
-  data = filter(Blanks_Main_lumped, Cortex.y.n == &quot;Yes&quot;, Cortex.position.simpl_lump_F != &quot;Other&quot;), 
+  data = filter(Blanks_Main_lumped, Cortex.y.n == &quot;Yes&quot;), 
   x = Cortex.position.simpl_lump_F,  
   y = Site_F, 
   grouping.var = Blank.type_F,
@@ -1565,9 +1750,10 @@ Gen.Cortex.Pos &lt;- grouped_ggbarstats(
     )))
 Gen.Cortex.Pos
 
-ggsave(&quot;Gen.Cortex.Pos.tiff&quot;, plot = Gen.Cortex.Pos, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;Gen.Cortex.Pos.tiff&quot;, plot = Gen.Cortex.Pos, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;Gen.Cortex.Pos.png&quot;, plot = Gen.Cortex.Pos, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <pre class="r"><code>Init.Cortex.Pos &lt;- grouped_ggbarstats(
-  data = filter(Blanks_Main_lumped, Cortex.y.n == &quot;Yes&quot;, Cortex.position.simpl_lump_F != &quot;Other&quot;, Technology.Phase_F == &quot;Init&quot; ), 
+  data = filter(Blanks_Main_lumped, Cortex.y.n == &quot;Yes&quot;, Technology.Phase_F == &quot;Init&quot; ), 
   x = Cortex.position.simpl_lump_F,  
   y = Site_F, 
   grouping.var = Blank.type_F,
@@ -1586,7 +1772,8 @@ ggsave(&quot;Gen.Cortex.Pos.tiff&quot;, plot = Gen.Cortex.Pos, width = 27.49021,
     )))
 Init.Cortex.Pos
 
-ggsave(&quot;Init.Cortex.Pos.tiff&quot;, plot = Init.Cortex.Pos, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;Init.Cortex.Pos.tiff&quot;, plot = Init.Cortex.Pos, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;Init.Cortex.Pos.png&quot;, plot = Init.Cortex.Pos, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <pre class="r"><code>MGMT.Cortex.Pos &lt;- grouped_ggbarstats(
   data = filter(Blanks_Main_lumped, Cortex.y.n == &quot;Yes&quot;, Cortex.position.simpl_lump_F != &quot;Other&quot;, Technology.Phase_F == &quot;MGMT&quot; ), 
   x = Cortex.position.simpl_lump_F,  
@@ -1607,7 +1794,8 @@ ggsave(&quot;Init.Cortex.Pos.tiff&quot;, plot = Init.Cortex.Pos, width = 27.4902
     )))
 MGMT.Cortex.Pos
 
-ggsave(&quot;MGMT.Cortex.Pos.tiff&quot;, plot = MGMT.Cortex.Pos, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;MGMT.Cortex.Pos.tiff&quot;, plot = MGMT.Cortex.Pos, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;MGMT.Cortex.Pos.png&quot;, plot = MGMT.Cortex.Pos, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <pre class="r"><code>Ordinary.Cortex.Pos &lt;- grouped_ggbarstats(
   data = filter(Blanks_Main_lumped, Cortex.y.n == &quot;Yes&quot;, Cortex.position.simpl_lump_F != &quot;Other&quot;, Technology.Phase_F == &quot;Ordinary&quot; ), 
   x = Cortex.position.simpl_lump_F,  
@@ -1628,9 +1816,11 @@ ggsave(&quot;MGMT.Cortex.Pos.tiff&quot;, plot = MGMT.Cortex.Pos, width = 27.4902
     )))
 Ordinary.Cortex.Pos
 
-ggsave(&quot;Ordinary.Cortex.Pos.tiff&quot;, plot = Ordinary.Cortex.Pos, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;Ordinary.Cortex.Pos.tiff&quot;, plot = Ordinary.Cortex.Pos, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;Ordinary.Cortex.Pos.png&quot;, plot = Ordinary.Cortex.Pos, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <p>###platform</p>
-<pre class="r"><code>Blanks_Main_lumped$Platform.simpl_F &lt;- factor(Blanks_Main_lumped$Platform.simpl, levels= c(&quot;Natural&quot;,&quot;Plain&quot;, &quot;Faceted&quot;,  &quot;Crushed&quot;, &quot;ND&quot;)) #unprepared to prepared
+<pre class="r"><code>unique(Blanks_Main_lumped$Platform.simpl)
+Blanks_Main_lumped$Platform.simpl_F &lt;- factor(Blanks_Main_lumped$Platform.simpl, levels= c(&quot;Plain&quot;, &quot;ND&quot; ,&quot;Natural&quot;,&quot;Faceted&quot; ,&quot;Crushed&quot;)) #unprepared to prepared
 
 library(RColorBrewer)
 # Get unique values in the Platform.Simpl column
@@ -1648,7 +1838,7 @@ library(ggplot2)
 library(ggstatsplot)
 # Create grouped bar plot
 Gen.Platform.simpl &lt;- grouped_ggbarstats(
-  data = filter(Blanks_Main_lumped, Preservation !=&quot;Mes+Dist&quot;, Platform.simpl %in% c(&quot;Plain&quot;,&quot;Natural&quot;, &quot;Faceted&quot; ,&quot;Crushed&quot;)), #only blanks with a platform
+  data = filter(Blanks_Main_lumped, Preservation !=&quot;Mes+Dist&quot;, !Platform.simpl == &quot;ND&quot;), #only blanks with a platform
   x = Platform.simpl_F,  
   y = Site_F, 
   grouping.var = Blank.type_F,
@@ -1667,15 +1857,17 @@ Gen.Platform.simpl &lt;- grouped_ggbarstats(
     )))
 Gen.Platform.simpl
 
-ggsave(&quot;Gen.Platform.simpl.tiff&quot;, plot = Gen.Platform.simpl, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;Gen.Platform.simpl.tiff&quot;, plot = Gen.Platform.simpl, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;Gen.Platform.simpl.png&quot;, plot = Gen.Platform.simpl, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+<p>####All</p>
 <pre class="r"><code>library(dplyr)
-
-Blanks_Main_lumped$Platform_F &lt;- factor(Blanks_Main_lumped$Platform, levels= c(&quot;Natural&quot;,&quot;Plain&quot;, &quot;Linear&quot;, &quot;Punctiform&quot; , &quot;Concave&quot;, &quot;Faceted&quot;, &quot;Dihedral&quot;, &quot;Crushed&quot;, &quot;ND&quot;)) #unprepared to prepared
+unique(Blanks_Main_lumped$Platform_lump)
+Blanks_Main_lumped$Platform_lump_F &lt;- factor(Blanks_Main_lumped$Platform_lump, levels= c(&quot;Linear&quot;,&quot;Other&quot; , &quot;Plain&quot; , &quot;Punctiform&quot;, &quot;ND&quot;, &quot;Natural&quot; , &quot;Crushed&quot;, &quot;Faceted&quot;)) #unprepared to prepared
 
 
 library(RColorBrewer)
 # Get unique values in the Platform.Simpl column
-platform_values &lt;- unique(Blanks_Main_lumped$Platform_F)
+platform_values &lt;- unique(Blanks_Main_lumped$Platform_lump_F)
 
 # Use the ColorBrewer Set3 palette
 color_palette &lt;- brewer.pal(n = length(platform_values), name = &quot;Set3&quot;)
@@ -1689,8 +1881,8 @@ library(ggplot2)
 library(ggstatsplot)
 # Create grouped bar plot
 Gen.Platform &lt;- grouped_ggbarstats(
-  data = filter(Blanks_Main_lumped, Preservation !=&quot;Mes+Dist&quot;, Platform %in% c(&quot;Linear&quot;,&quot;Plain&quot;,&quot;Natural&quot;,&quot;Punctiform&quot;,&quot;Dihedral&quot;, &quot;Crushed&quot;,&quot;Concave&quot;,&quot;Faceted&quot;)), 
-  x = Platform_F,  
+  data = filter(Blanks_Main_lumped, Preservation !=&quot;Mes+Dist&quot;, !Platform_lump_F == &quot;ND&quot;), 
+  x = Platform_lump_F,  
   y = Site_F, 
   xlab=&quot;Site&quot;,
   grouping.var = Blank.type_F,
@@ -1708,10 +1900,11 @@ Gen.Platform &lt;- grouped_ggbarstats(
     )))
 Gen.Platform
 
-ggsave(&quot;Gen.Platform.tiff&quot;, plot = Gen.Platform, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;Gen.Platformlump.tiff&quot;, plot = Gen.Platform, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;Gen.Platformlump.png&quot;, plot = Gen.Platform, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <pre class="r"><code>Init.Platform &lt;- grouped_ggbarstats(
-  data = filter(Blanks_Main_lumped, Preservation !=&quot;Mes+Dist&quot;, Platform %in% c(&quot;Linear&quot;,&quot;Plain&quot;,&quot;Natural&quot;,&quot;Punctiform&quot;,&quot;Dihedral&quot;, &quot;Crushed&quot;,&quot;Concave&quot;,&quot;Faceted&quot;), Technology.Phase_F == &quot;Init&quot;), 
-  x = Platform_F,  
+  data = filter(Blanks_Main_lumped, Preservation !=&quot;Mes+Dist&quot;, !Platform_lump_F == &quot;ND&quot;,  Technology.Phase_F == &quot;Init&quot;), 
+  x = Platform_lump_F, 
   y = Site_F, 
   grouping.var = Blank.type_F,
   xlab=&quot;Site&quot;,
@@ -1729,10 +1922,11 @@ ggsave(&quot;Gen.Platform.tiff&quot;, plot = Gen.Platform, width = 27.49021, hei
     )))
 Init.Platform
 
-ggsave(&quot;Init.Platform.tiff&quot;, plot = Init.Platform, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;Init.Platform.tiff&quot;, plot = Init.Platform, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;Init.Platform.png&quot;, plot = Init.Platform, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <pre class="r"><code>MGMT.Platform &lt;- grouped_ggbarstats(
-  data = filter(Blanks_Main_lumped, Preservation !=&quot;Mes+Dist&quot;, Platform %in% c(&quot;Linear&quot;,&quot;Plain&quot;,&quot;Natural&quot;,&quot;Punctiform&quot;,&quot;Dihedral&quot;, &quot;Crushed&quot;,&quot;Concave&quot;,&quot;Faceted&quot;), Technology.Phase_F == &quot;MGMT&quot;), 
-  x = Platform_F,  
+  data = filter(Blanks_Main_lumped, Preservation !=&quot;Mes+Dist&quot;, !Platform_lump_F == &quot;ND&quot;,  Technology.Phase_F == &quot;MGMT&quot;), 
+  x = Platform_lump_F,  
   y = Site_F, 
   xlab=&quot;Site&quot;,
   grouping.var = Blank.type_F,
@@ -1750,10 +1944,11 @@ ggsave(&quot;Init.Platform.tiff&quot;, plot = Init.Platform, width = 27.49021, h
     )))
 MGMT.Platform
 
-ggsave(&quot;MGMT.Platform.tiff&quot;, plot = MGMT.Platform, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;MGMT.Platform.tiff&quot;, plot = MGMT.Platform, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;MGMT.Platform.png&quot;, plot = MGMT.Platform, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <pre class="r"><code>Ordinary.Platform &lt;- grouped_ggbarstats(
-  data = filter(Blanks_Main_lumped, Preservation !=&quot;Mes+Dist&quot;, Platform %in% c(&quot;Linear&quot;,&quot;Plain&quot;,&quot;Natural&quot;,&quot;Punctiform&quot;,&quot;Dihedral&quot;, &quot;Crushed&quot;,&quot;Concave&quot;,&quot;Faceted&quot;), Technology.Phase_F == &quot;Ordinary&quot;), 
-  x = Platform_F,  
+  data = filter(Blanks_Main_lumped, Preservation !=&quot;Mes+Dist&quot;, !Platform_lump_F == &quot;ND&quot;,  Technology.Phase_F == &quot;Ordinary&quot;), 
+  x = Platform_lump_F,   
   y = Site_F, 
   grouping.var = Blank.type_F,
   xlab=&quot;Site&quot;,
@@ -1771,7 +1966,8 @@ ggsave(&quot;MGMT.Platform.tiff&quot;, plot = MGMT.Platform, width = 27.49021, h
     )))
 Ordinary.Platform
 
-ggsave(&quot;ordinary.Platform.tiff&quot;, plot = Ordinary.Platform, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;ordinary.Platform.tiff&quot;, plot = Ordinary.Platform, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;ordinary.Platform.png&quot;, plot = Ordinary.Platform, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <p>Unprepared platforms are the norm in all blank types across sites.
 Les Cottés flakes show a higher platform preparation, but also, in
 general, a higher frequency of Crushed platforms.</p>
@@ -1911,7 +2107,8 @@ Gen.Abrasion &lt;- grouped_ggbarstats(
     )))
 Gen.Abrasion
 
-ggsave(&quot;Gen.Abrasion.tiff&quot;, plot = Gen.Abrasion, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;Gen.Abrasion.tiff&quot;, plot = Gen.Abrasion, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;Gen.Abrasion.png&quot;, plot = Gen.Abrasion, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <pre class="r"><code>Init.Abrasion &lt;- grouped_ggbarstats(
   data = filter(Blanks_Main_lumped, Blank.type_F != &quot;Flake&quot;, Preservation !=&quot;Mes+Dist&quot;, Abrasion.simpl_F != &quot;ND&quot;, Technology.Phase_F == &quot;Init&quot; ), 
   x = Abrasion.simpl_F,  
@@ -1932,7 +2129,8 @@ ggsave(&quot;Gen.Abrasion.tiff&quot;, plot = Gen.Abrasion, width = 27.49021, hei
     )))
 Init.Abrasion
 
-ggsave(&quot;Init.Abrasion.tiff&quot;, plot = Init.Abrasion, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;Init.Abrasion.tiff&quot;, plot = Init.Abrasion, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;Init.Abrasion.png&quot;, plot = Init.Abrasion, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <pre class="r"><code>MGMT.Abrasion &lt;- grouped_ggbarstats(
   data = filter(Blanks_Main_lumped, Blank.type_F != &quot;Flake&quot;, Preservation !=&quot;Mes+Dist&quot;, Abrasion.simpl_F != &quot;ND&quot;,  Technology.Phase_F == &quot;MGMT&quot; ), 
   x = Abrasion.simpl_F,  
@@ -1953,7 +2151,8 @@ ggsave(&quot;Init.Abrasion.tiff&quot;, plot = Init.Abrasion, width = 27.49021, h
     )))
 MGMT.Abrasion
 
-ggsave(&quot;MGMT.Abrasion.tiff&quot;, plot = MGMT.Abrasion, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;MGMT.Abrasion.tiff&quot;, plot = MGMT.Abrasion, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;MGMT.Abrasion.png&quot;, plot = MGMT.Abrasion, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <pre class="r"><code>Ordinary.Abrasion &lt;- grouped_ggbarstats(
   data = filter(Blanks_Main_lumped, Blank.type_F != &quot;Flake&quot;, Preservation !=&quot;Mes+Dist&quot;, Abrasion.simpl_F != &quot;ND&quot;, Technology.Phase_F == &quot;Ordinary&quot; ), 
   x = Abrasion.simpl_F,  
@@ -1974,7 +2173,8 @@ ggsave(&quot;MGMT.Abrasion.tiff&quot;, plot = MGMT.Abrasion, width = 27.49021, h
     )))
 Ordinary.Abrasion
 
-ggsave(&quot;Ordinary.Abrasion.tiff&quot;, plot = Ordinary.Abrasion, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;Ordinary.Abrasion.tiff&quot;, plot = Ordinary.Abrasion, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;Ordinary.Abrasion.png&quot;, plot = Ordinary.Abrasion, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <p>###axiality and outline</p>
 <pre class="r"><code>Blanks_Main_lumped$Axiality.simpl_F &lt;- factor(Blanks_Main_lumped$Axiality.simpl, levels=c(&quot;Off axis&quot;, &quot;On axis&quot;)) 
 library(RColorBrewer)
@@ -2011,7 +2211,8 @@ Gen.Ax &lt;- grouped_ggbarstats(
     )))
 Gen.Ax
 
-ggsave(&quot;Gen.Axiality.tiff&quot;, plot = Gen.Ax, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;Gen.Axiality.tiff&quot;, plot = Gen.Ax, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;Gen.Axiality.png&quot;, plot = Gen.Ax, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <pre class="r"><code>Init.Ax &lt;- grouped_ggbarstats(
   data = filter(Blanks_Main_lumped, Blank.type_F !=&quot;Flake&quot;, Preservation != &quot;Prox+Mes&quot;, Axiality.simpl_F != &quot;ND&quot; &amp; Axiality.simpl_F != &quot;NA&quot;, Technology.Phase_F == &quot;Init&quot;), 
   x = Axiality.simpl_F,  
@@ -2032,7 +2233,8 @@ ggsave(&quot;Gen.Axiality.tiff&quot;, plot = Gen.Ax, width = 27.49021, height = 
     )))
 Init.Ax
 
-ggsave(&quot;Init.Axiality.tiff&quot;, plot = Init.Ax, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;Init.Axiality.tiff&quot;, plot = Init.Ax, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;Init.Axiality.png&quot;, plot = Init.Ax, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <pre class="r"><code>MGMT.Ax &lt;- grouped_ggbarstats(
   data = filter(Blanks_Main_lumped, Blank.type_F !=&quot;Flake&quot;, Preservation != &quot;Prox+Mes&quot;, Axiality.simpl_F != &quot;ND&quot; &amp; Axiality.simpl_F != &quot;NA&quot;, Technology.Phase_F == &quot;MGMT&quot;), 
   x = Axiality.simpl_F,  
@@ -2053,7 +2255,8 @@ ggsave(&quot;Init.Axiality.tiff&quot;, plot = Init.Ax, width = 27.49021, height 
     )))
 MGMT.Ax
 
-ggsave(&quot;MGMT.Axiality.tiff&quot;, plot = MGMT.Ax, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;MGMT.Axiality.tiff&quot;, plot = MGMT.Ax, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;MGMT.Axiality.png&quot;, plot = MGMT.Ax, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <pre class="r"><code>Ordinary.Ax &lt;- grouped_ggbarstats(
   data = filter(Blanks_Main_lumped, Blank.type_F !=&quot;Flake&quot;, Preservation != &quot;Prox+Mes&quot;, Axiality.simpl_F != &quot;ND&quot; &amp; Axiality.simpl_F != &quot;NA&quot;, Technology.Phase_F == &quot;Ordinary&quot;), 
   x = Axiality.simpl_F,  
@@ -2074,8 +2277,9 @@ ggsave(&quot;MGMT.Axiality.tiff&quot;, plot = MGMT.Ax, width = 27.49021, height 
     )))
 Ordinary.Ax
 
-ggsave(&quot;Ordinary.Axiality.tiff&quot;, plot = Ordinary.Ax, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
-<pre class="r"><code>Blanks_Main_lumped$Outline.morphology_F &lt;- factor(Blanks_Main_lumped$Outline.morphology, levels=c(&quot;Subparallel edges&quot;, &quot;Convergent&quot;, &quot;Déjète&quot;, &quot;ND&quot;, &quot;Other&quot;)) 
+ggsave(&quot;Ordinary.Axiality.tiff&quot;, plot = Ordinary.Ax, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;Ordinary.Axiality.png&quot;, plot = Ordinary.Ax, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+<pre class="r"><code>Blanks_Main_lumped$Outline.morphology_F &lt;- factor(Blanks_Main_lumped$Outline.morphology, levels=c(&quot;Subparallel edges&quot;, &quot;Convergent&quot;, &quot;Déjeté&quot;, &quot;ND&quot;, &quot;Other&quot;)) 
 library(RColorBrewer)
 # Get unique values in the Platform.Simpl column
 Out.Morph_values &lt;- unique(Blanks_Main_lumped$Outline.morphology_F)
@@ -2110,7 +2314,8 @@ Gen.Out.Morph &lt;- grouped_ggbarstats(
     )))
 Gen.Out.Morph
 
-ggsave(&quot;Gen.Out.Morph.tiff&quot;, plot = Gen.Out.Morph, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;Gen.Out.Morph.tiff&quot;, plot = Gen.Out.Morph, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;Gen.Out.Morph.png&quot;, plot = Gen.Out.Morph, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <pre class="r"><code>Init.Out.Morph &lt;- grouped_ggbarstats(
   data = filter(Blanks_Main_lumped, Blank.type_F !=&quot;Flake&quot;, Preservation != &quot;Prox+Mes&quot;, Outline.morphology_F != &quot;ND&quot; &amp; Outline.morphology_F != &quot;Other&quot;, Technology.Phase_F == &quot;Init&quot;), 
   x = Outline.morphology_F,  
@@ -2131,7 +2336,8 @@ ggsave(&quot;Gen.Out.Morph.tiff&quot;, plot = Gen.Out.Morph, width = 27.49021, h
     )))
 Init.Out.Morph
 
-ggsave(&quot;Init.Out.Morph.tiff&quot;, plot = Init.Out.Morph, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;Init.Out.Morph.tiff&quot;, plot = Init.Out.Morph, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;Init.Out.Morph.png&quot;, plot = Init.Out.Morph, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <pre class="r"><code>MGMT.Out.Morph &lt;- grouped_ggbarstats(
   data = filter(Blanks_Main_lumped, Blank.type_F !=&quot;Flake&quot;, Preservation != &quot;Prox+Mes&quot;, Outline.morphology_F != &quot;ND&quot; &amp; Outline.morphology_F != &quot;Other&quot;, Technology.Phase_F == &quot;MGMT&quot;), 
   x = Outline.morphology_F,  
@@ -2152,7 +2358,8 @@ ggsave(&quot;Init.Out.Morph.tiff&quot;, plot = Init.Out.Morph, width = 27.49021,
     )))
 MGMT.Out.Morph
 
-ggsave(&quot;MGMT.Out.Morph.tiff&quot;, plot = MGMT.Out.Morph, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;MGMT.Out.Morph.tiff&quot;, plot = MGMT.Out.Morph, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;MGMT.Out.Morph.png&quot;, plot = MGMT.Out.Morph, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <pre class="r"><code>Ordinary.Out.Morph &lt;- grouped_ggbarstats(
   data = filter(Blanks_Main_lumped, Blank.type_F !=&quot;Flake&quot;, Preservation != &quot;Prox+Mes&quot;, Outline.morphology_F != &quot;ND&quot; &amp; Outline.morphology_F != &quot;Other&quot;, Technology.Phase_F == &quot;Ordinary&quot;), 
   x = Outline.morphology_F,  
@@ -2173,7 +2380,8 @@ ggsave(&quot;MGMT.Out.Morph.tiff&quot;, plot = MGMT.Out.Morph, width = 27.49021,
     )))
 Ordinary.Out.Morph
 
-ggsave(&quot;Ordinary.Out.Morph.tiff&quot;, plot = Ordinary.Out.Morph, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;Ordinary.Out.Morph.tiff&quot;, plot = Ordinary.Out.Morph, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;Ordinary.Out.Morph.png&quot;, plot = Ordinary.Out.Morph, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <p>###Symmetry</p>
 <pre class="r"><code>Blanks_Main_lumped$Symmetry_F &lt;- factor(Blanks_Main_lumped$Symmetry, levels=c(&quot;symmetric&quot;, &quot;asymmetric&quot;, &quot;ND&quot;))
 library(RColorBrewer)
@@ -2209,7 +2417,8 @@ Gen.Symmetry &lt;- grouped_ggbarstats(
     )))
 Gen.Symmetry
 
-ggsave(&quot;Gen.Symmetry.tiff&quot;, plot = Gen.Symmetry, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;Gen.Symmetry.tiff&quot;, plot = Gen.Symmetry, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;Gen.Symmetry.png&quot;, plot = Gen.Symmetry, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <pre class="r"><code>Init.Symmetry &lt;- grouped_ggbarstats(
   data = filter(Blanks_Main_lumped, Blank.type_F !=&quot;Flake&quot;, Symmetry_F != &quot;ND&quot;, Technology.Phase_F == &quot;Init&quot;), 
   x = Symmetry_F,  
@@ -2230,7 +2439,8 @@ ggsave(&quot;Gen.Symmetry.tiff&quot;, plot = Gen.Symmetry, width = 27.49021, hei
     )))
 Init.Symmetry
 
-ggsave(&quot;Init.Symmetry.tiff&quot;, plot = Init.Symmetry, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;Init.Symmetry.tiff&quot;, plot = Init.Symmetry, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;Init.Symmetry.png&quot;, plot = Init.Symmetry, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <pre class="r"><code>MGMT.Symmetry &lt;- grouped_ggbarstats(
   data = filter(Blanks_Main_lumped, Blank.type_F !=&quot;Flake&quot;, Symmetry_F != &quot;ND&quot;, Technology.Phase_F == &quot;MGMT&quot;), 
   x = Symmetry_F,  
@@ -2251,7 +2461,8 @@ ggsave(&quot;Init.Symmetry.tiff&quot;, plot = Init.Symmetry, width = 27.49021, h
     )))
 MGMT.Symmetry
 
-ggsave(&quot;MGMT.Symmetry.tiff&quot;, plot = MGMT.Symmetry, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;MGMT.Symmetry.tiff&quot;, plot = MGMT.Symmetry, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;MGMT.Symmetry.png&quot;, plot = MGMT.Symmetry, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <pre class="r"><code>Ordinary.Symmetry &lt;- grouped_ggbarstats(
   data = filter(Blanks_Main_lumped, Blank.type_F !=&quot;Flake&quot;, Symmetry_F != &quot;ND&quot;, Technology.Phase_F == &quot;Ordinary&quot;), 
   x = Symmetry_F,  
@@ -2272,7 +2483,8 @@ ggsave(&quot;MGMT.Symmetry.tiff&quot;, plot = MGMT.Symmetry, width = 27.49021, h
     )))
 Ordinary.Symmetry
 
-ggsave(&quot;Ordinary.Symmetry.tiff&quot;, plot = Ordinary.Symmetry, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;Ordinary.Symmetry.tiff&quot;, plot = Ordinary.Symmetry, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;Ordinary.Symmetry.png&quot;, plot = Ordinary.Symmetry, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <p>###crosssection shape</p>
 <pre class="r"><code>Blanks_Main_lumped$Cross.section_F &lt;- factor(Blanks_Main_lumped$Cross.section, levels=c(&quot;Triangular&quot;, &quot;Polyhedric&quot; ,&quot;Flat&quot;, &quot;ND&quot;))
 
@@ -2310,7 +2522,8 @@ Gen.Cross.Section &lt;- grouped_ggbarstats(
     )))
 Gen.Cross.Section
 
-ggsave(&quot;Gen.Cross.Section.tiff&quot;, plot = Gen.Cross.Section, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;Gen.Cross.Section.tiff&quot;, plot = Gen.Cross.Section, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;Gen.Cross.Section.png&quot;, plot = Gen.Cross.Section, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <pre class="r"><code>Init.Cross.Section &lt;- grouped_ggbarstats(
   data = filter(Blanks_Main_lumped, Blank.type_F !=&quot;Flake&quot;, Cross.section_F !=&quot;ND&quot;, Technology.Phase_F == &quot;Init&quot; ), 
   x = Cross.section_F,  
@@ -2331,7 +2544,8 @@ ggsave(&quot;Gen.Cross.Section.tiff&quot;, plot = Gen.Cross.Section, width = 27.
     )))
 Init.Cross.Section
 
-ggsave(&quot;Init.Cross.Section.tiff&quot;, plot = Init.Cross.Section, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;Init.Cross.Section.tiff&quot;, plot = Init.Cross.Section, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;Init.Cross.Section.png&quot;, plot = Init.Cross.Section, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <pre class="r"><code>MGMT.Cross.Section &lt;- grouped_ggbarstats(
   data = filter(Blanks_Main_lumped, Blank.type_F !=&quot;Flake&quot;, Cross.section_F !=&quot;ND&quot;, Technology.Phase_F == &quot;MGMT&quot; ), 
   x = Cross.section_F,  
@@ -2352,7 +2566,8 @@ ggsave(&quot;Init.Cross.Section.tiff&quot;, plot = Init.Cross.Section, width = 2
     )))
 MGMT.Cross.Section
 
-ggsave(&quot;MGMT.Cross.Section.tiff&quot;, plot = MGMT.Cross.Section, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;MGMT.Cross.Section.tiff&quot;, plot = MGMT.Cross.Section, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;MGMT.Cross.Section.png&quot;, plot = MGMT.Cross.Section, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <pre class="r"><code>Ordinary.Cross.Section &lt;- grouped_ggbarstats(
   data = filter(Blanks_Main_lumped, Blank.type_F !=&quot;Flake&quot;, Cross.section_F !=&quot;ND&quot;, Technology.Phase_F == &quot;Ordinary&quot; ), 
   x = Cross.section_F,  
@@ -2373,7 +2588,8 @@ ggsave(&quot;MGMT.Cross.Section.tiff&quot;, plot = MGMT.Cross.Section, width = 2
     )))
 Ordinary.Cross.Section
 
-ggsave(&quot;Ordinary.Cross.Section.tiff&quot;, plot = Ordinary.Cross.Section, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;Ordinary.Cross.Section.tiff&quot;, plot = Ordinary.Cross.Section, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;Ordinary.Cross.Section.png&quot;, plot = Ordinary.Cross.Section, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <p>###profile</p>
 <pre class="r"><code>Blanks_Main_lumped$Profile_F &lt;- factor(Blanks_Main_lumped$Profile, levels=c(&quot;Straight&quot;, &quot;Slightly Curved&quot;,&quot;Curved&quot;,&quot;Very Curved&quot;,&quot;Twisted&quot;,&quot;ND&quot;))
 library(RColorBrewer)
@@ -2408,7 +2624,8 @@ Gen.Profile &lt;- grouped_ggbarstats(
     )))
 Gen.Profile
 
-ggsave(&quot;Gen.Profile.tiff&quot;, plot = Gen.Profile, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;Gen.Profile.tiff&quot;, plot = Gen.Profile, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;Gen.Profile.png&quot;, plot = Gen.Profile, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <pre class="r"><code>Init.Profile &lt;- grouped_ggbarstats(
   data = filter(Blanks_Main_lumped, Blank.type_F !=&quot;Flake&quot;, Profile_F !=&quot;ND&quot;, Technology.Phase_F == &quot;Init&quot;), 
   x = Profile_F,  
@@ -2428,7 +2645,8 @@ ggsave(&quot;Gen.Profile.tiff&quot;, plot = Gen.Profile, width = 27.49021, heigh
     )))
 Init.Profile
 
-ggsave(&quot;Init.Profile.tiff&quot;, plot = Init.Profile, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;Init.Profile.tiff&quot;, plot = Init.Profile, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;Init.Profile.png&quot;, plot = Init.Profile, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <pre class="r"><code>MGMT.Profile &lt;- grouped_ggbarstats(
   data = filter(Blanks_Main_lumped, Blank.type_F !=&quot;Flake&quot;, Profile_F !=&quot;ND&quot;, Technology.Phase_F == &quot;MGMT&quot;), 
   x = Profile_F,  
@@ -2448,7 +2666,8 @@ ggsave(&quot;Init.Profile.tiff&quot;, plot = Init.Profile, width = 27.49021, hei
     )))
 MGMT.Profile
 
-ggsave(&quot;MGMT.Profile.tiff&quot;, plot = MGMT.Profile, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;MGMT.Profile.tiff&quot;, plot = MGMT.Profile, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;MGMT.Profile.png&quot;, plot = MGMT.Profile, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <pre class="r"><code>Ordinary.Profile &lt;- grouped_ggbarstats(
   data = filter(Blanks_Main_lumped, Blank.type_F !=&quot;Flake&quot;, Profile_F !=&quot;ND&quot;, Technology.Phase_F == &quot;Ordinary&quot;), 
   x = Profile_F,  
@@ -2468,7 +2687,9 @@ ggsave(&quot;MGMT.Profile.tiff&quot;, plot = MGMT.Profile, width = 27.49021, hei
     )))
 Ordinary.Profile
 
-ggsave(&quot;Ordinary.Profile.tiff&quot;, plot = Ordinary.Profile, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+
+ggsave(&quot;Ordinary.Profile.tiff&quot;, plot = Ordinary.Profile, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;Ordinary.Profile.png&quot;, plot = Ordinary.Profile, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <div id="distal-end-morphology" class="section level3">
 <h3>distal end morphology</h3>
 <pre class="r"><code>Blanks_Main_lumped$Distal.end.morpho_F &lt;- factor(Blanks_Main_lumped$Distal.end.morpho, levels=c(&quot;Feathered&quot;,&quot;Stepped&quot;, &quot;Hinged&quot;, &quot;Plunging&quot;, &quot;ND&quot;))
@@ -2505,7 +2726,8 @@ Gen.Distal.end.morpho &lt;- grouped_ggbarstats(
     )))
 Gen.Distal.end.morpho
 
-ggsave(&quot;Gen.Distal.end.morpho.tiff&quot;, plot = Gen.Distal.end.morpho, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;Gen.Distal.end.morpho.tiff&quot;, plot = Gen.Distal.end.morpho, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;Gen.Distal.end.morpho.png&quot;, plot = Gen.Distal.end.morpho, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <pre class="r"><code>Init.Distal.end.morpho &lt;- grouped_ggbarstats(
   data = filter(Blanks_Main_lumped, Blank.type_F !=&quot;Flake&quot;,Distal.end.morpho_F != &quot;ND&quot;, Preservation != &quot;Prox+Mes&quot;, Technology.Phase_F ==&quot;Init&quot;), 
   x = Distal.end.morpho_F,  
@@ -2525,7 +2747,8 @@ ggsave(&quot;Gen.Distal.end.morpho.tiff&quot;, plot = Gen.Distal.end.morpho, wid
     )))
 Init.Distal.end.morpho
 
-ggsave(&quot;Init.Distal.end.morpho.tiff&quot;, plot = Init.Distal.end.morpho, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;Init.Distal.end.morpho.tiff&quot;, plot = Init.Distal.end.morpho, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;Init.Distal.end.morpho.png&quot;, plot = Init.Distal.end.morpho, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <pre class="r"><code>MGMT.Distal.end.morpho &lt;- grouped_ggbarstats(
   data = filter(Blanks_Main_lumped, Blank.type_F !=&quot;Flake&quot;,Distal.end.morpho_F != &quot;ND&quot;, Preservation != &quot;Prox+Mes&quot;, Technology.Phase_F ==&quot;MGMT&quot;), 
   x = Distal.end.morpho_F,  
@@ -2545,7 +2768,8 @@ ggsave(&quot;Init.Distal.end.morpho.tiff&quot;, plot = Init.Distal.end.morpho, w
     )))
 MGMT.Distal.end.morpho
 
-ggsave(&quot;MGMT.Distal.end.morpho.tiff&quot;, plot = MGMT.Distal.end.morpho, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;MGMT.Distal.end.morpho.tiff&quot;, plot = MGMT.Distal.end.morpho, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;MGMT.Distal.end.morpho.png&quot;, plot = MGMT.Distal.end.morpho, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <pre class="r"><code>Ordinary.Distal.end.morpho &lt;- grouped_ggbarstats(
   data = filter(Blanks_Main_lumped, Blank.type_F !=&quot;Flake&quot;,Distal.end.morpho_F != &quot;ND&quot;, Preservation != &quot;Prox+Mes&quot;, Technology.Phase_F ==&quot;Ordinary&quot;), 
   x = Distal.end.morpho_F,  
@@ -2565,7 +2789,8 @@ ggsave(&quot;MGMT.Distal.end.morpho.tiff&quot;, plot = MGMT.Distal.end.morpho, w
     )))
 Ordinary.Distal.end.morpho
 
-ggsave(&quot;Ordinary.Distal.end.morpho.tiff&quot;, plot = Ordinary.Distal.end.morpho, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;Ordinary.Distal.end.morpho.tiff&quot;, plot = Ordinary.Distal.end.morpho, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;Ordinary.Distal.end.morpho.png&quot;, plot = Ordinary.Distal.end.morpho, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <p>###torsion</p>
 <pre class="r"><code>library(RColorBrewer)
 # Get unique values in the Torsion column
@@ -2599,9 +2824,12 @@ Gen.Torsion &lt;- grouped_ggbarstats(
     )))
 Gen.Torsion
 
-ggsave(&quot;Gen.Torsion.tiff&quot;, plot = Gen.Torsion, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;Gen.Torsion.tiff&quot;, plot = Gen.Torsion, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;Gen.Torsion.png&quot;, plot = Gen.Torsion, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <p>###dorsal scar pattern</p>
-<pre class="r"><code>Blanks_Main_lumped$Dorsal.scar.1_F &lt;- factor(Blanks_Main_lumped$Dorsal.scar.1, levels=c( &quot;Unidirectional&quot;, &quot;Crossed&quot;,&quot;Bidirectional&quot;,&quot;Centripetal&quot;,&quot;Other&quot;, &quot;ND&quot;))
+<pre class="r"><code>unique(Blanks_Main_lumped$Dorsal.scar.1)
+
+Blanks_Main_lumped$Dorsal.scar.1_F &lt;- factor(Blanks_Main_lumped$Dorsal.scar.1, levels=c( &quot;Unidirectional&quot;, &quot;Crossed&quot;,&quot;Bidirectional&quot;,&quot;Centripetal&quot;,&quot;Other&quot;, &quot;ND&quot;))
 library(RColorBrewer)
 # Get unique values in the Platform.Simpl column
 Dorsal.scar.1_values &lt;- unique(Blanks_Main_lumped$Dorsal.scar.1_F)
@@ -2616,7 +2844,7 @@ library(ggplot2)
 library(ggstatsplot)
 # Create grouped bar plot
 Gen.Dorsal.scar.1 &lt;- grouped_ggbarstats(
-  data = filter(Blanks_Main_lumped, Dorsal.scar.1_F != &quot;ND&quot;, Dorsal.scar.1_F != &quot;No negatives&quot;, Dorsal.scar.1_F != &quot;Other&quot;), 
+  data = filter(Blanks_Main_lumped, Dorsal.scar.1_F != &quot;ND&quot;, Dorsal.scar.1_F != &quot;No negatives&quot;), 
   x = Dorsal.scar.1_F,  
   y = Site_F, 
   grouping.var = Blank.type_F,
@@ -2634,9 +2862,10 @@ Gen.Dorsal.scar.1 &lt;- grouped_ggbarstats(
     )))
 Gen.Dorsal.scar.1
 
-ggsave(&quot;Gen.Dorsal.scar.1.tiff&quot;, plot = Gen.Dorsal.scar.1, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;Gen.Dorsal.scar.1.tiff&quot;, plot = Gen.Dorsal.scar.1, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;Gen.Dorsal.scar.1.png&quot;, plot = Gen.Dorsal.scar.1, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <pre class="r"><code>Init.Dorsal.scar.1 &lt;- grouped_ggbarstats(
-  data = filter(Blanks_Main_lumped, Dorsal.scar.1_F != &quot;ND&quot;, Dorsal.scar.1_F != &quot;No negatives&quot;, Dorsal.scar.1_F != &quot;Other&quot;, Technology.Phase_F == &quot;Init&quot;),
+  data = filter(Blanks_Main_lumped, Dorsal.scar.1_F != &quot;ND&quot;, Dorsal.scar.1_F != &quot;No negatives&quot;, Technology.Phase_F == &quot;Init&quot;),
   x = Dorsal.scar.1_F,  
   y = Site_F, 
   grouping.var = Blank.type_F,
@@ -2655,9 +2884,10 @@ ggsave(&quot;Gen.Dorsal.scar.1.tiff&quot;, plot = Gen.Dorsal.scar.1, width = 27.
     )))
 Init.Dorsal.scar.1
 
-ggsave(&quot;Init.Dorsal.scar.1.tiff&quot;, plot = Init.Dorsal.scar.1, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;Init.Dorsal.scar.1.tiff&quot;, plot = Init.Dorsal.scar.1, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;Init.Dorsal.scar.1.png&quot;, plot = Init.Dorsal.scar.1, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <pre class="r"><code>MGMT.Dorsal.scar.1 &lt;- grouped_ggbarstats(
-  data = filter(Blanks_Main_lumped, Dorsal.scar.1_F != &quot;ND&quot;, Dorsal.scar.1_F != &quot;No negatives&quot;, Dorsal.scar.1_F != &quot;Other&quot;, Technology.Phase_F == &quot;MGMT&quot;), 
+  data = filter(Blanks_Main_lumped, Dorsal.scar.1_F != &quot;ND&quot;, Dorsal.scar.1_F != &quot;No negatives&quot;,  Technology.Phase_F == &quot;MGMT&quot;), 
   x = Dorsal.scar.1_F,  
   y = Site_F, 
   grouping.var = Blank.type_F,
@@ -2676,9 +2906,10 @@ ggsave(&quot;Init.Dorsal.scar.1.tiff&quot;, plot = Init.Dorsal.scar.1, width = 2
     )))
 MGMT.Dorsal.scar.1
 
-ggsave(&quot;MGMT.Dorsal.scar.1.tiff&quot;, plot = MGMT.Dorsal.scar.1, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;MGMT.Dorsal.scar.1.tiff&quot;, plot = MGMT.Dorsal.scar.1, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;MGMT.Dorsal.scar.1.png&quot;, plot = MGMT.Dorsal.scar.1, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <pre class="r"><code>Ordinary.Dorsal.scar.1 &lt;- grouped_ggbarstats(
-  data = filter(Blanks_Main_lumped, Dorsal.scar.1_F != &quot;ND&quot;, Dorsal.scar.1_F != &quot;No negatives&quot;, Dorsal.scar.1_F != &quot;Other&quot;, Technology.Phase_F == &quot;Ordinary&quot;), 
+  data = filter(Blanks_Main_lumped, Dorsal.scar.1_F != &quot;ND&quot;, Dorsal.scar.1_F != &quot;No negatives&quot;,  Technology.Phase_F == &quot;Ordinary&quot;), 
   x = Dorsal.scar.1_F,  
   y = Site_F, 
   grouping.var = Blank.type_F,
@@ -2697,7 +2928,8 @@ ggsave(&quot;MGMT.Dorsal.scar.1.tiff&quot;, plot = MGMT.Dorsal.scar.1, width = 2
     )))
 Ordinary.Dorsal.scar.1
 
-ggsave(&quot;ordinary.Dorsal.scar.1.tiff&quot;, plot = Ordinary.Dorsal.scar.1, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;ordinary.Dorsal.scar.1.tiff&quot;, plot = Ordinary.Dorsal.scar.1, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;ordinary.Dorsal.scar.1.png&quot;, plot = Ordinary.Dorsal.scar.1, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <p>###retouch position</p>
 <pre class="r"><code>Blanks_Main_lumped$Retouch.Position_F &lt;- factor(Blanks_Main_lumped$Retouch.Position, levels=c( &quot;Direct&quot;, &quot;Inverse&quot;, &quot;Alternate&quot;, &quot;Crossed&quot;))
 library(RColorBrewer)
@@ -2732,20 +2964,34 @@ Retouch.Position &lt;- grouped_ggbarstats(
     )))
 Retouch.Position
 
-ggsave(&quot;Retouch.Position.tiff&quot;, plot = Retouch.Position, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;Retouch.Position.tiff&quot;, plot = Retouch.Position, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;Retouch.Position.png&quot;, plot = Retouch.Position, width = 27.49021, height = 20.13479, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+<pre class="r"><code>library(readxl)
+library(dplyr)
+Blanks_Main_lumped &lt;- read_excel(file.choose()) #get the Ans_Rom_Fum_CTS_Blankslumped.xlsx
+View(Blanks_Main_lumped)
+str(Blanks_Main_lumped)</code></pre>
 </div>
 <div id="plotting-and-analyising-widths" class="section level2">
 <h2>Plotting and analyising widths</h2>
-<pre class="r"><code>Blank_Main_reshaped1$Site_F &lt;- factor(Blank_Main_reshaped1$Site, levels= c(&quot;AN&quot;, &quot;ROM&quot;, &quot;FUM&quot;, &quot;CTS&quot;))
-Blank_Main_reshaped1$Blank.type_F &lt;- factor(Blank_Main_reshaped1$Blank.type, levels= c(&quot;Flake&quot;, &quot;Blade&quot;, &quot;Bladelet&quot;))
-Blank_Main_reshaped1$Technology.Phase_F &lt;- factor(Blank_Main_reshaped1$Technology.Phase, levels= c(&quot;Init&quot;, &quot;MGMT&quot;, &quot;Tablet&quot;, &quot;Ordinary&quot;, &quot;Spall&quot;)) #reorder earlier to later</code></pre>
-<pre class="r"><code>histowidthLaminar &lt;- ggplot(filter(Blank_Main_reshaped1, Blank.type_F %in% c(&quot;Blade&quot;, &quot;Bladelet&quot;)), aes(Width)) +
+<pre class="r"><code>Blanks_Main_lumped$Site_F &lt;- factor(Blanks_Main_lumped$Site, levels= c(&quot;AN&quot;, &quot;ROM&quot;, &quot;FUM&quot;, &quot;CTS&quot;))
+Blanks_Main_lumped$Blank.type_F &lt;- factor(Blanks_Main_lumped$Blank.type, levels= c(&quot;Flake&quot;, &quot;Blade&quot;, &quot;Bladelet&quot;))
+Blanks_Main_lumped$Technology.Phase_F &lt;- factor(Blanks_Main_lumped$Technology.Phase, levels= c(&quot;Init&quot;, &quot;MGMT&quot;, &quot;Tablet&quot;, &quot;Ordinary&quot;, &quot;Spall&quot;)) #reorder earlier to later</code></pre>
+<pre class="r"><code>library(ggplot2)
+Blanks_Main_lumped$Width &lt;- as.numeric(Blanks_Main_lumped$Width)
+Blanks_Main_lumped$Length &lt;- as.numeric(Blanks_Main_lumped$Length)
+
+# Filter the data and remove NAs from the &#39;Width&#39; column
+filtered_data &lt;- filter(Blanks_Main_lumped, Blank.type_F %in% c(&quot;Blade&quot;, &quot;Bladelet&quot;) &amp; !is.na(Width))
+filtered_data$Width &lt;- as.numeric(filtered_data$Width)
+# Create the plot
+histowidthLaminar &lt;- ggplot(filtered_data, aes(x = Width)) +
   geom_histogram(aes(y = ..density..), color = &quot;grey&quot;, fill = &quot;grey&quot;, binwidth = 1) +
   geom_density() +
   facet_wrap(~Site_F, ncol = 2) +
   scale_y_continuous(labels = scales::percent) +
-  geom_vline(aes(xintercept = 12, color = &quot;Blade and Bladelet Threshold&quot;), linetype = &quot;dashed&quot;, size = 1) +
-  scale_x_continuous(breaks = seq(0, max(Blank_Main_reshaped1$Width, na.rm = TRUE), by = 2)) +
+  geom_vline(xintercept = 12, color = &quot;red&quot;, linetype = &quot;dashed&quot;, linewidth = 1) +
+  scale_x_continuous(breaks = seq(0, max(filtered_data$Width, na.rm = TRUE), by = 2)) +
   theme(axis.title.y = element_blank(),
         axis.text.x = element_text(size = 4),
         legend.position = &quot;top&quot;,
@@ -2753,40 +2999,38 @@ Blank_Main_reshaped1$Technology.Phase_F &lt;- factor(Blank_Main_reshaped1$Techno
         legend.text = element_text(size = 4)) +
   labs(x = &quot;Width (mm)&quot;) +
   guides(color = guide_legend(title = &quot;Medians and\nThreshold&quot;)) +
-  scale_color_manual(values = c(&quot;Blade and Bladelet Threshold&quot; = &quot;red&quot;),
-                     name = &quot;Medians and Threshold&quot;,
-                     labels = c(&quot;Blade and Bladelet Threshold&quot;))
+  scale_color_manual(values = &quot;red&quot;, name = &quot;Medians and Threshold&quot;, labels = &quot;Blade and Bladelet Threshold&quot;)
+
 histowidthLaminar
   
 
-histowidthLaminarO &lt;- ggplot(filter(Blank_Main_reshaped1, Blank.type_F %in% c(&quot;Blade&quot;, &quot;Bladelet&quot;), Technology.Phase_F == &quot;Ordinary&quot;), aes(Width)) +
+filtered_data_O &lt;- filter(Blanks_Main_lumped, Blank.type_F %in% c(&quot;Blade&quot;, &quot;Bladelet&quot;) &amp; Technology.Phase_F == &quot;Ordinary&quot; &amp; !is.na(Width))
+filtered_data_O$Width &lt;- as.numeric(filtered_data_O$Width)
+# Create the plot
+histowidthLaminarO &lt;- ggplot(filtered_data_O, aes(x = Width)) +
   geom_histogram(aes(y = ..density..), color = &quot;grey&quot;, fill = &quot;grey&quot;, binwidth = 1) +
   geom_density() +
   facet_wrap(~Site_F, ncol = 2) +
   scale_y_continuous(labels = scales::percent) +
   geom_vline(xintercept = 12, linetype = &quot;dashed&quot;, color = &quot;red&quot;, size = 1) +
-  scale_x_continuous(breaks = seq(0, max(Blank_Main_reshaped1$Width, na.rm = TRUE), by = 2)) +
-  
+  scale_x_continuous(breaks = seq(0, max(filtered_data_O$Width, na.rm = TRUE), by = 2)) +
   theme(axis.title.y = element_blank(),
         axis.text.x = element_text(size = 4),
         legend.position = &quot;top&quot;,
         legend.title = element_text(size = 6, face = &quot;bold&quot;),
         legend.text = element_text(size = 4)) +
-  
   labs(x = &quot;Width (mm)&quot;) +
-  
   guides(color = guide_legend(title = &quot;Medians and\nThreshold&quot;)) +
-  
   scale_color_manual(values = c(&quot;Blade and Bladelet Threshold&quot; = &quot;red&quot;),
                      name = &quot;Medians and Threshold&quot;,
                      labels = c(&quot;Blade and Bladelet Threshold&quot;))
-  
+
 histowidthLaminarO
 
 library(dplyr)
 
-# Assuming your data frame is named Blank_Main_reshaped1
-median_blade &lt;- Blank_Main_reshaped1 %&gt;%
+# Group by site and calculate median width for Blade
+median_blade &lt;- Blanks_Main_lumped %&gt;%
   filter(Blank.type_F == &quot;Blade&quot;) %&gt;%
   group_by(Site_F) %&gt;%
   summarise(median_width = median(Width, na.rm = TRUE))
@@ -2794,7 +3038,7 @@ median_blade &lt;- Blank_Main_reshaped1 %&gt;%
 print(median_blade)
 
 # Group by site and calculate median width for Bladelet
-median_bladelet &lt;- Blank_Main_reshaped1 %&gt;%
+median_bladelet &lt;- Blanks_Main_lumped %&gt;%
   filter(Blank.type_F == &quot;Bladelet&quot;) %&gt;%
   group_by(Site_F) %&gt;%
   summarise(median_width = median(Width, na.rm = TRUE))
@@ -2802,14 +3046,14 @@ median_bladelet &lt;- Blank_Main_reshaped1 %&gt;%
 print(median_bladelet)
 
 # Group by site and calculate median width excluding Blade and Bladelet
-median_laminar&lt;- Blank_Main_reshaped1 %&gt;%
+median_laminar&lt;- filtered_data %&gt;%
   filter(Blank.type_F %in% c(&quot;Blade&quot;, &quot;Bladelet&quot;)) %&gt;%
   group_by(Site_F) %&gt;%
   summarise(median_width = median(Width, na.rm = TRUE))
 
 print(median_laminar)
 
-median_bladeO &lt;- Blank_Main_reshaped1 %&gt;%
+median_bladeO &lt;- filtered_data_O %&gt;%
   filter(Blank.type_F == &quot;Blade&quot;, Technology.Phase_F == &quot;Ordinary&quot;) %&gt;%
   group_by(Site_F) %&gt;%
   summarise(median_width = median(Width, na.rm = TRUE))
@@ -2817,7 +3061,7 @@ median_bladeO &lt;- Blank_Main_reshaped1 %&gt;%
 print(median_bladeO)
 
 # Group by site and calculate median width for Bladelet
-median_bladeletO &lt;- Blank_Main_reshaped1 %&gt;%
+median_bladeletO &lt;- filtered_data_O %&gt;%
   filter(Blank.type_F == &quot;Bladelet&quot;, Technology.Phase_F == &quot;Ordinary&quot;) %&gt;%
   group_by(Site_F) %&gt;%
   summarise(median_width = median(Width, na.rm = TRUE))
@@ -2825,7 +3069,7 @@ median_bladeletO &lt;- Blank_Main_reshaped1 %&gt;%
 print(median_bladeletO)
 
 # Group by site and calculate median width excluding Blade and Bladelet
-median_laminarO &lt;- Blank_Main_reshaped1 %&gt;%
+median_laminarO &lt;- filtered_data_O %&gt;%
   filter(Blank.type_F %in% c(&quot;Blade&quot;, &quot;Bladelet&quot;), Technology.Phase_F == &quot;Ordinary&quot;) %&gt;%
   group_by(Site_F) %&gt;%
   summarise(median_width = median(Width, na.rm = TRUE))
@@ -2872,7 +3116,9 @@ histolaminarwidthO &lt;- histowidthLaminarO +
   guides(color = guide_legend(title = &quot;Medians and\nThreshold&quot;))
 
 ggsave(&quot;histolaminarwidth.tiff&quot;, plot = histolaminarwidth, width = 15, height = 10, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
-ggsave(&quot;histolaminarwidthO.tiff&quot;, plot = histolaminarwidthO, width = 15, height = 10, units = &quot;cm&quot;, dpi = 300) #directory with setwd() </code></pre>
+ggsave(&quot;histolaminarwidth.png&quot;, plot = histolaminarwidth, width = 15, height = 10, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;histolaminarwidthO.png&quot;, plot = histolaminarwidthO, width = 15, height = 10, units = &quot;cm&quot;, dpi = 300) #directory with setwd() 
+ggsave(&quot;histolaminarwidthO.tiff&quot;, plot = histolaminarwidthO, width = 15, height = 10, units = &quot;cm&quot;, dpi = 300) #directory with setwd()</code></pre>
 <p>The Width values distribution is unimodal both for all laminar blanks
 (histolaminarwidth, Blade and Bladelets, all phases) and for the
 Ordinary laminar blanks. Nonetheless, the unimodality of the
@@ -2893,7 +3139,7 @@ refitting is available.</p>
 library(ggstatsplot)
 library(ggplot2)
 Gen.width &lt;- grouped_ggbetweenstats(
-  data = filter(Blank_Main_reshaped1, Blank.type_F %in% c(&quot;Blade&quot;, &quot;Bladelet&quot;), Tool == &quot;No&quot;),
+  data = filter(Blanks_Main_lumped, Blank.type_F %in% c(&quot;Blade&quot;, &quot;Bladelet&quot;), Tool == &quot;No&quot;),
   x = Site_F,
   y = Width,
   grouping.var = Blank.type_F,
@@ -2904,50 +3150,56 @@ Gen.width &lt;- grouped_ggbetweenstats(
 ) 
 Gen.width
 
-ggsave(&quot;Gen.width.tiff&quot;, plot = Gen.width, width = 27.49021 , height =20.29354, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;Gen.width.tiff&quot;, plot = Gen.width, width = 27.49021 , height =20.29354, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;Gen.width.png&quot;, plot = Gen.width, width = 27.49021 , height =20.29354, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <pre class="r"><code>MGMT.width &lt;- grouped_ggbetweenstats(
-  data = filter(Blank_Main_reshaped1, Blank.type_F %in% c(&quot;Blade&quot;, &quot;Bladelet&quot;), Tool == &quot;No&quot;, Technology.Phase_F == &quot;MGMT&quot;),
+  data = filter(Blanks_Main_lumped, Blank.type_F %in% c(&quot;Blade&quot;, &quot;Bladelet&quot;), Tool == &quot;No&quot;, Technology.Phase_F == &quot;MGMT&quot;),
   x = Site_F,
   y = Width,
   grouping.var = Blank.type_F,
   type = &quot;non-parametric&quot;,
   results.subtitle = FALSE,
   combine = TRUE,
-  ggtheme = theme_minimal(),
+  ggtheme = theme_classic(),
 ) 
 MGMT.width
 
-ggsave(&quot;MGMT.width.tiff&quot;, plot = MGMT.width, width = 27.49021 , height =20.29354, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;MGMT.width.tiff&quot;, plot = MGMT.width, width = 27.49021 , height =20.29354, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;MGMT.width.png&quot;, plot = MGMT.width, width = 27.49021 , height =20.29354, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <pre class="r"><code>Ordinary.width &lt;- grouped_ggbetweenstats(
-  data = filter(Blank_Main_reshaped1, Blank.type_F %in% c(&quot;Blade&quot;, &quot;Bladelet&quot;), Tool == &quot;No&quot;, Technology.Phase_F == &quot;Ordinary&quot;),
+  data = filter(Blanks_Main_lumped, Blank.type_F %in% c(&quot;Blade&quot;, &quot;Bladelet&quot;), Tool == &quot;No&quot;, Technology.Phase_F == &quot;Ordinary&quot;),
   x = Site_F,
   y = Width,
   grouping.var = Blank.type_F,
   type = &quot;non-parametric&quot;,
   results.subtitle = TRUE,
   combine = TRUE,
-  ggtheme = theme_minimal(),
+  ggtheme = theme_classic(),
 ) 
 Ordinary.width
 
-ggsave(&quot;Ordinary.width.tiff&quot;, plot = Ordinary.width,width = 27.49021 , height =20.29354, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;Ordinary.width.tiff&quot;, plot = Ordinary.width,width = 27.49021 , height =20.29354, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;Ordinary.width.png&quot;, plot = Ordinary.width,width = 27.49021 , height =20.29354, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <p>the width are statistically significant across sites, but the effect
 size is weak or negligible. ####elongation</p>
-<pre class="r"><code>Gen.elon &lt;- grouped_ggbetweenstats(
-  data = filter(Blank_Main_reshaped1, Preservation == &quot;Complete&quot;, Tool == &quot;No&quot;, Blank.type_F %in% c(&quot;Blade&quot;, &quot;Bladelet&quot;)),
+<pre class="r"><code>Blanks_Main_lumped$Elongation &lt;- as.numeric(Blanks_Main_lumped$Elongation)
+Elongation &lt;- Blanks_Main_lumped %&gt;% filter(!is.na(Elongation))
+Gen.elon &lt;- grouped_ggbetweenstats(
+  data = filter(Elongation, Preservation == &quot;Complete&quot;, Tool == &quot;No&quot;, Blank.type_F %in% c(&quot;Blade&quot;, &quot;Bladelet&quot;)),
   x = Site_F,
   y = Elongation,
   grouping.var = Blank.type_F,
   type = &quot;non-parametric&quot;,
   results.subtitle = FALSE,
   combine = TRUE,
-  ggtheme = theme_minimal(),
+  ggtheme = theme_classic(),
   ) 
 Gen.elon
 
-ggsave(&quot;Gen.elon.tiff&quot;, plot = Gen.elon, width = 27.49021 , height =20.29354, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;Gen.elon.tiff&quot;, plot = Gen.elon, width = 27.49021 , height =20.29354, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;Gen.elon.png&quot;, plot = Gen.elon, width = 27.49021 , height =20.29354, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <pre class="r"><code>MGMT.elon &lt;- grouped_ggbetweenstats(
-  data = filter(Blank_Main_reshaped1, Preservation == &quot;Complete&quot;, Tool == &quot;No&quot;, Blank.type_F %in% c(&quot;Blade&quot;, &quot;Bladelet&quot;), Technology.Phase_F == &quot;MGMT&quot;),
+  data = filter(Elongation, Preservation == &quot;Complete&quot;, Tool == &quot;No&quot;, Blank.type_F %in% c(&quot;Blade&quot;, &quot;Bladelet&quot;), Technology.Phase_F == &quot;MGMT&quot;),
   x = Site_F,
   y = Elongation,
   grouping.var = Blank.type_F,
@@ -2958,9 +3210,10 @@ ggsave(&quot;Gen.elon.tiff&quot;, plot = Gen.elon, width = 27.49021 , height =20
 ) 
 MGMT.elon
 
-ggsave(&quot;MGMT.elon.tiff&quot;, plot = MGMT.elon, width = 27.49021 , height =20.29354, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;MGMT.elon.tiff&quot;, plot = MGMT.elon, width = 27.49021 , height =20.29354, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;MGMT.elon.png&quot;, plot = MGMT.elon, width = 27.49021 , height =20.29354, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <pre class="r"><code>Ordinary.elon &lt;- grouped_ggbetweenstats(
-  data = filter(Blank_Main_reshaped1, Preservation == &quot;Complete&quot;, Tool == &quot;No&quot;, Blank.type_F %in% c(&quot;Blade&quot;, &quot;Bladelet&quot;), Technology.Phase_F == &quot;Ordinary&quot;),
+  data = filter(Elongation, Preservation == &quot;Complete&quot;, Tool == &quot;No&quot;, Blank.type_F %in% c(&quot;Blade&quot;, &quot;Bladelet&quot;), Technology.Phase_F == &quot;Ordinary&quot;),
   x = Site_F,
   y = Elongation,
   grouping.var = Blank.type_F,
@@ -2971,23 +3224,13 @@ ggsave(&quot;MGMT.elon.tiff&quot;, plot = MGMT.elon, width = 27.49021 , height =
 )
 Ordinary.elon
 
-ggsave(&quot;Ordinary.elon.tiff&quot;, plot = Ordinary.elon, width = 27.49021 , height =20.29354, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
+ggsave(&quot;Ordinary.elon.tiff&quot;, plot = Ordinary.elon, width = 27.49021 , height =20.29354, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()
+ggsave(&quot;Ordinary.elon.png&quot;, plot = Ordinary.elon, width = 27.49021 , height =20.29354, units = &quot;cm&quot;, dpi = 300) #set your working directory with setwd()</code></pre>
 <p>the elongation are statistically significant across sites, the effect
 size is moderate.</p>
-<pre class="r"><code>Ordinary.elon &lt;- grouped_ggbetweenstats(
-  data = filter(Blank_Main_reshaped1, Preservation == &quot;Complete&quot;, Tool == &quot;No&quot;, Blank.type_F %in% c(&quot;Blade&quot;, &quot;Bladelet&quot;), Technology.Phase_F == &quot;Ordinary&quot;),
-  x = Blank.type_F,
-  y = Elongation,
-  grouping.var = Site_F,
-  type = &quot;non-parametric&quot;,
-  results.subtitle = TRUE,
-  combine = TRUE,
-  ggtheme = theme_minimal(),
-)
-Ordinary.elon</code></pre>
 <p>##Flaking intensity</p>
 <pre class="r"><code>library(dplyr)
-Flaking.Int &lt;- Blank_Main_reshaped1 %&gt;%
+Flaking.Int &lt;- Blanks_Main_lumped %&gt;%
   mutate(Area = Width * Length) %&gt;%
   select(Site_F, Cortex_F, Number.negatives, Area) %&gt;% 
   group_by(Site_F, Cortex_F) %&gt;% 
@@ -3010,7 +3253,8 @@ Int &lt;- ggplot(filter(Flaking.Int, !is.na(Cortex_F)), aes(x = Cortex_F, y = Me
   scale_color_manual(name = NULL, values = c(&quot;ModeScar&quot; = &quot;#E69F00&quot;)) +
   theme(legend.position = &quot;top&quot;)
 
-ggsave(&quot;Flaking.Int.tiff&quot;, plot = Int, width = 15, height = 10, units = &quot;cm&quot;, dpi = 300)</code></pre>
+ggsave(&quot;Flaking.Int.tiff&quot;, plot = Int, width = 15, height = 10, units = &quot;cm&quot;, dpi = 300)
+ggsave(&quot;Flaking.Int.png&quot;, plot = Int, width = 15, height = 10, units = &quot;cm&quot;, dpi = 300)</code></pre>
 <p>The decreasing trend in blank size along the Cortex axis suggests a
 linear reduction process at Ansab and Romanesti. In Fumane, the
 reduction is still notably linear, even though fully cortical blanks are
@@ -3030,7 +3274,7 @@ profile - The associations between variable categories</p>
 that sums up the Site and the Blank Type, and one that sums up Site,
 Blank Type and Technological Phase (Ordinary or Management)</p>
 <pre class="r"><code>library(dplyr)
-Blank_Main_reshaped2 &lt;- Blank_Main_reshaped1 %&gt;%
+Blanks_Main_lumped1 &lt;- Blanks_Main_lumped %&gt;%
   mutate(SiteBlank.type = Site, .after = Site) %&gt;%
   mutate(SiteBlank.type = case_when(
     Site == &quot;AN&quot; &amp; Blank.type == &quot;Blade&quot; ~ &quot;A.B&quot;,
@@ -3085,14 +3329,70 @@ mutate(SiteBlank.typeTech = case_when(
     Site == &quot;FUM&quot; &amp; Blank.type == &quot;Bladelet&quot; &amp; Technology.Phase == &quot;Init&quot; ~ &quot;F.b.I&quot;,
     Site == &quot;ROM&quot; &amp; Blank.type == &quot;Bladelet&quot; &amp; Technology.Phase == &quot;Init&quot;~ &quot;R.b.I&quot;
     ))
-str(Blank_Main_reshaped2)</code></pre>
-<p>What we want t check is the association of categorical variables in
+str(Blanks_Main_lumped1)
+library(writexl)
+write_xlsx(Blanks_Main_lumped1, &quot;Ans_Rom_Fum_CTS_Blanks_lumped1.xlsx&quot;)</code></pre>
+</div>
+</div>
+<div id="control-group" class="section level2">
+<h2>control group</h2>
+<p>We use Cascalheira et al’s (2019) Soloutrean assemblages as control
+group</p>
+<pre class="r"><code>library(readxl)
+library(dplyr)
+Sol &lt;- read_excel(file.choose()) #get the Cascalheira_blanks.xlsx
+
+#merge it with our DB
+Sol_reshaped &lt;- Sol %&gt;%
+  rename(Site=&quot;Context&quot;, Blank.type=&quot;Class&quot;, Cortex.position.simpl_lump=&quot;CortexLoc&quot;, Cortex.y.n=&quot;CortexPerc&quot;, Distal.end.morpho=&quot;Termination&quot;, Outline.morphology=&quot;EdgeShape&quot;, Profile=&quot;Profile&quot;, Cross.section=&quot;CrossSection&quot;, Number.negatives=&quot;ScarNumber&quot;, Platform_lump=&quot;PlatformType&quot;, Dorsal.scar.1= &quot;DorsalPattern&quot;) %&gt;%
+  mutate(SiteBlank.type = Site, .after = Site) %&gt;%
+  mutate(SiteBlank.type = case_when(
+    Blank.type == &quot;Elongated product&quot; &amp; Width &gt; 12.1 ~ &quot;Control.B&quot;,
+    Blank.type == &quot;Elongated product&quot; &amp; Width &lt; 12.1 ~ &quot;Control.b&quot;,
+    Blank.type == &quot;Flake&quot; ~ &quot;Control.F&quot;
+  )) %&gt;%
+  mutate(Cortex.y.n = case_when(
+    Cortex.y.n == 0 ~ &quot;no&quot;,
+    Cortex.y.n != 0 ~ &quot;yes&quot;
+  )) %&gt;%
+  mutate(Outline.morphology = case_when(
+    Outline.morphology == &quot;Parallel&quot; ~ &quot;Subparallel edges&quot;)) %&gt;%
+  mutate(Distal.end.morpho = case_when(
+    Distal.end.morpho == &quot;Overpassed&quot;~ &quot;Plunging&quot;,
+    Distal.end.morpho == &quot;Pointed&quot;~ &quot;Feathered&quot;)) %&gt;%
+  mutate(Cross.section = case_when(
+    Cross.section == &quot;Trapezoidal&quot;~ &quot;Polyhedric&quot;, 
+   TRUE ~ Cross.section)
+  )
+
+ Blanks_Main_lumped2 &lt;-  Blanks_Main_lumped1%&gt;%
+  select(Site, SiteBlank.type, Cortex.y.n,Length,Width,Thickness,Cortex.position.simpl_lump, Platform_lump,Outline.morphology,Cross.section,Profile,Distal.end.morpho,Blank.type,Number.negatives,Dorsal.scar.1)
+ library(writexl)
+write_xlsx(Blanks_Main_lumped2, &quot;Ans_Rom_Fum_CTS_Blanks_lumped2.xlsx&quot;)
+ 
+ Blank_Main_Control &lt;- rbind(Blanks_Main_lumped2, Sol_reshaped)
+ library(writexl)
+write_xlsx(Blank_Main_Control, &quot;Ans_Rom_Fum_CTS_Blanks_lumped&amp;control.xlsx&quot;)</code></pre>
+<pre class="r"><code>library(readxl)
+library(dplyr)
+Blank_Main_Control &lt;- read_excel(file.choose()) #Ans_Rom_Fum_CTS_Blanks_lumped&amp;control.xlsx
+Blanks_Main_lumped1 &lt;- read_excel(file.choose()) #Ans_Rom_Fum_CTS_Blanks_lumped1.xlsx
+
+Blank_Main_Control_elon &lt;- Blank_Main_Control %&gt;%
+  filter(Blank.type !=&quot;Flake&quot;)
+write_xlsx(Blank_Main_Control_elon, &quot;Ans_Rom_Fum_CTS_Blanks_lumped&amp;control_ELON.xlsx&quot;)</code></pre>
+<p>What we want to check is the association of categorical variables in
 three domains of the knapping process across the site</p>
 <p>-Platform domain -Convexity domain -Reduction domain</p>
 <p>###Platform</p>
-<p>The Platform domain is comprising the Variables Platform,
-Abrasion.simpl, Blank.type and Cortex.y.n to check if there’s variation
-in platform preparation during the knapping sequence. ####Ordinary</p>
+<p>The Platform domain is comprising the Variables Platform and
+Abrasion.simpl to check if there’s variation in platform preparation
+during the knapping sequence.</p>
+<pre class="r"><code>library(ggpubr)
+PlatformDom &lt;- ggarrange(Gen.Platform, Gen.Abrasion, labels = c(&quot;A&quot;, &quot;B&quot;, &quot;C&quot;), ncol = 1, nrow =2)
+# Save the combined plot
+ggsave(&quot;PlatformDom.tiff&quot;, plot = PlatformDom, width = 66.96604, height = 32.75542, units = &quot;cm&quot;, dpi = 300)</code></pre>
+<p>####Ordinary</p>
 <pre class="r"><code>library(FactoMineR)
 library(factoextra)
 library(dplyr)
@@ -3101,22 +3401,22 @@ library(ggplot2)
 
 
 # Select relevant columns and remove missing values
-platform_maintenanceGO &lt;- Blank_Main_reshaped2 %&gt;%
+platform_maintenanceGO &lt;- Blanks_Main_lumped1 %&gt;%
   filter(Blank.type != &quot;Flake&quot;) %&gt;% #check only laminar
   filter(Preservation != &quot;Mes+Dist&quot;) %&gt;% #only blanks with a Proximal part
-  filter(!Platform %in% c(&quot;No butt&quot;, &quot;ND&quot;, &quot;NA&quot;, &quot;Crushed&quot;, &quot;Concave&quot;)) %&gt;% #removing blanks without clear info
+  filter(!Platform_lump %in% c(&quot;No butt&quot;, &quot;No Prox part&quot;, &quot;ND&quot;, &quot;NA&quot;, &quot;Crushed&quot;, &quot;Concave&quot;, &quot;Natural&quot;, &quot;Other&quot;)) %&gt;% #removing blanks without clear info
   filter(!Abrasion.simpl %in% c(&quot;NA&quot;, &quot;ND&quot;)) %&gt;% #removing blanks without clear info
   filter(Technology.Phase %in% c(&quot;Ordinary&quot;)) %&gt;% #getting only Ordinary
-  select(SiteBlank.typeTech, Blank.type, Abrasion.simpl, Platform, Cortex.y.n) %&gt;%
+  select(SiteBlank.type, Abrasion.simpl, Platform_lump) %&gt;%
   na.omit()
   
 summary(platform_maintenanceGO)
 
 # Run MCA
-res.mca_PlatformO &lt;- MCA(platform_maintenanceGO, graph = FALSE, quali.sup =1:2, method = &quot;Burt&quot;) #Site, SiteBlank.type, SiteBlank.typeTech are not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in platform_maintenanceG, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
+res.mca_PlatformO &lt;- MCA(platform_maintenanceGO, graph = FALSE, quali.sup =1, method = &quot;Burt&quot;) #Site, SiteBlank.type, SiteBlank.typeTech are not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in platform_maintenanceG, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
 
 print(res.mca_PlatformO)
-fviz_screeplot(res.mca_PlatformO, addlabels = TRUE, ylim = c(0, 45)) #To visualize the percentages of inertia explained by each MCA dimensions. Dim1 and Dim2 explain 43.162% of the variance
+fviz_screeplot(res.mca_PlatformO, addlabels = TRUE, ylim = c(0, 45)) #To visualize the percentages of inertia explained by each MCA dimensions. Dim1 and Dim2 explain 56.986% of the variance
 summary(res.mca_PlatformO)
 
 
@@ -3133,11 +3433,11 @@ head(var$cos2, 20) #If a variable category is well represented by two dimensions
 
 fviz_cos2(res.mca_PlatformO, choice = &quot;var&quot;, axes = 1:2) #visualising
 
-fviz_contrib(res.mca_PlatformO, choice = &quot;var&quot;, axes = 1, top = 15) #contribution to Dim 1. above the threshold are  Abrasion.simpl_No, Cortex.y.n_Yes, Natural
+fviz_contrib(res.mca_PlatformO, choice = &quot;var&quot;, axes = 1, top = 15) #contribution to Dim 1. above the threshold are No, Other, Punctiform 
 
-fviz_contrib(res.mca_PlatformO, choice = &quot;var&quot;, axes = 2, top = 15) #contribution to Dim 2. above the threshold is only Punctiform
+fviz_contrib(res.mca_PlatformO, choice = &quot;var&quot;, axes = 2, top = 15) #contribution to Dim 2. above the threshold is only Plain, Punctiform, Linear
 
-MCA_PlatformO &lt;- fviz_mca_var(
+MCA_PlatformO_plot &lt;- fviz_mca_var(
   res.mca_PlatformO,
   col.var = &quot;contrib&quot;,
   label = &quot;all&quot;,
@@ -3147,20 +3447,23 @@ MCA_PlatformO &lt;- fviz_mca_var(
   max.overlaps=Inf,
   ggtheme = theme_classic()
 )
-MCA_PlatformO
-ggsave(&quot;MCAPlatformOrdinary.tiff&quot;, plot = MCA_PlatformO, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)
-ggsave(&quot;MCAPlatformOrdinary.png&quot;, plot = MCA_PlatformO, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)    
+MCA_PlatformO_plot
+ggsave(&quot;MCAPlatformOrdinaryNew.tiff&quot;, plot = MCA_PlatformO_plot, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)
+ggsave(&quot;MCAPlatformOrdinaryNew.png&quot;, plot = MCA_PlatformO_plot, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)    
 
 
-fviz_mca_ind(
+MCA_PlatformO_ind &lt;- fviz_mca_ind(
   res.mca_PlatformO, 
   label = &quot;none&quot;,                   # hide individual labels
-  habillage = &quot;SiteBlank.typeTech&quot;, # color by groups
+  habillage = &quot;SiteBlank.type&quot;, # color by groups
   addEllipses = TRUE,               # add confidence ellipses
   ellipse.type = &quot;confidence&quot;,      # type of ellipse
-  ggtheme = theme_minimal(),        # set the ggplot theme
+  ggtheme = theme_classic(),        # set the ggplot theme
   geom = &quot;point&quot;,                   # use points for symbols
-  ) # set custom colors              # use grouping variable for shapes</code></pre>
+  ) # set custom colors              # use grouping variable for shapes
+
+ggsave(&quot;MCAPlatformOrdinaryind.tiff&quot;, plot = MCA_PlatformO_ind, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)
+ggsave(&quot;MCAPlatformOrdinaryind.png&quot;, plot = MCA_PlatformO_ind, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)   </code></pre>
 <p>####Management</p>
 <pre class="r"><code>library(FactoMineR)
 library(factoextra)
@@ -3170,22 +3473,22 @@ library(ggplot2)
 
 
 # Select relevant columns and remove missing values
-platform_maintenanceGM &lt;- Blank_Main_reshaped2 %&gt;%
+platform_maintenanceGM &lt;- Blanks_Main_lumped1 %&gt;%
   filter(Blank.type != &quot;Flake&quot;) %&gt;% #check only laminar
   filter(Preservation != &quot;Mes+Dist&quot;) %&gt;% #only blanks with a Proximal part
-  filter(!Platform %in% c(&quot;No butt&quot;, &quot;ND&quot;, &quot;NA&quot;, &quot;Crushed&quot;, &quot;Concave&quot;)) %&gt;% #removing blanks without clear info
+  filter(!Platform_lump %in% c(&quot;No butt&quot;, &quot;No Prox part&quot;, &quot;ND&quot;, &quot;NA&quot;, &quot;Crushed&quot;, &quot;Concave&quot;, &quot;Natural&quot;, &quot;Other&quot;)) %&gt;% #removing blanks without clear info
   filter(!Abrasion.simpl %in% c(&quot;NA&quot;, &quot;ND&quot;)) %&gt;% #removing blanks without clear info
   filter(Technology.Phase %in% c(&quot;MGMT&quot;)) %&gt;% #getting only Ordinary
-  select(SiteBlank.typeTech, Blank.type, Abrasion.simpl, Platform, Cortex.y.n) %&gt;%
+  select(SiteBlank.type, Abrasion.simpl, Platform_lump) %&gt;%
   na.omit()
   
 summary(platform_maintenanceGM)
 
 # Run MCA
-res.mca_PlatformM &lt;- MCA(platform_maintenanceGM, graph = FALSE, quali.sup =1:2, method = &quot;Burt&quot;) #Site, SiteBlank.type, SiteBlank.typeTech are not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in platform_maintenanceG, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
+res.mca_PlatformM &lt;- MCA(platform_maintenanceGM, graph = FALSE, quali.sup =1, method = &quot;Burt&quot;) #Site, SiteBlank.type, SiteBlank.typeTech are not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in platform_maintenanceG, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
 
 print(res.mca_PlatformM)
-fviz_screeplot(res.mca_PlatformM, addlabels = TRUE, ylim = c(0, 45)) #To visualize the percentages of inertia explained by each MCA dimensions. Dim1 and Dim2 explain 43.310% of the variance
+fviz_screeplot(res.mca_PlatformM, addlabels = TRUE, ylim = c(0, 45)) #To visualize the percentages of inertia explained by each MCA dimensions. Dim1 and Dim2 explain 61.034% of the variance
 summary(res.mca_PlatformM)
 
 
@@ -3202,11 +3505,11 @@ head(var$cos2, 20) #If a variable category is well represented by two dimensions
 
 fviz_cos2(res.mca_PlatformM, choice = &quot;var&quot;, axes = 1:2) #visualising
 
-fviz_contrib(res.mca_PlatformM, choice = &quot;var&quot;, axes = 1, top = 15) #contribution to Dim 1. above the threshold are  Abrasion.simpl_No, Cortex.y.n_Yes, Natural
+fviz_contrib(res.mca_PlatformM, choice = &quot;var&quot;, axes = 1, top = 15) #contribution to Dim 1. above the threshold are  Abrasion.simpl_No, Natural
 
-fviz_contrib(res.mca_PlatformM, choice = &quot;var&quot;, axes = 2, top = 15) #contribution to Dim 2. above the threshold is only Punctiform
+fviz_contrib(res.mca_PlatformM, choice = &quot;var&quot;, axes = 2, top = 15) #contribution to Dim 2. above the threshold is other, Plain
 
-MCA_PlatformM &lt;- fviz_mca_var(
+MCA_PlatformM_plot &lt;- fviz_mca_var(
   res.mca_PlatformM,
   col.var = &quot;contrib&quot;,
   label = &quot;all&quot;,
@@ -3216,41 +3519,181 @@ MCA_PlatformM &lt;- fviz_mca_var(
   max.overlaps=Inf,
   ggtheme = theme_classic()
 )
-MCA_PlatformM
-ggsave(&quot;MCAPlatformMGMT.tiff&quot;, plot = MCA_PlatformM, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)
-ggsave(&quot;MCAPlatformMGMT.png&quot;, plot = MCA_PlatformM, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)    
+MCA_PlatformM_plot
+ggsave(&quot;MCAPlatformMGMTNew.tiff&quot;, plot = MCA_PlatformM_plot, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)
+ggsave(&quot;MCAPlatformMGMTNew.png&quot;, plot = MCA_PlatformM_plot, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)    
 
 
-fviz_mca_ind(
+MCA_PlatformM_ind &lt;- fviz_mca_ind(
   res.mca_PlatformM, 
+  label = &quot;none&quot;,                   # hide individual labels
+  habillage = &quot;SiteBlank.type&quot;, # color by groups
+  addEllipses = TRUE,               # add confidence ellipses
+  ellipse.type = &quot;confidence&quot;,      # type of ellipse
+  ggtheme = theme_classic(),        # set the ggplot theme
+  geom = &quot;point&quot;,                   # use points for symbols
+  )  # set custom colors              # use grouping variable for shapes
+
+ggsave(&quot;MCAPlatformMGMTind.tiff&quot;, plot = MCA_PlatformM_ind, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)
+ggsave(&quot;MCAPlatformMGMTind.png&quot;, plot = MCA_PlatformM_ind, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)   </code></pre>
+<p>####MGMT &amp; ORDINARY</p>
+<pre class="r"><code>library(FactoMineR)
+library(factoextra)
+library(dplyr)
+library(ggplot2)
+
+
+
+# Select relevant columns and remove missing values
+platform_maintenanceG &lt;- Blanks_Main_lumped1 %&gt;%
+  filter(Blank.type != &quot;Flake&quot;) %&gt;% #check only laminar
+  filter(!Platform_lump %in% c(&quot;No butt&quot;, &quot;No Prox part&quot;, &quot;ND&quot;, &quot;NA&quot;, &quot;Crushed&quot;, &quot;Concave&quot;, &quot;Natural&quot;, &quot;Other&quot;)) %&gt;% #removing blanks without clear info
+  filter(!Abrasion.simpl %in% c(&quot;NA&quot;, &quot;ND&quot;)) %&gt;% #removing blanks without clear info
+  filter(Technology.Phase %in% c(&quot;MGMT&quot;, &quot;Ordinary&quot;)) %&gt;% #getting only Ordinary
+  select(SiteBlank.typeTech, Abrasion.simpl, Platform_lump) %&gt;%
+  na.omit()
+  
+summary(platform_maintenanceG)
+
+# Run MCA
+res.mca_Platform &lt;- MCA(platform_maintenanceG, graph = FALSE, quali.sup =1, method = &quot;Burt&quot;) #Site, SiteBlank.type, SiteBlank.typeTech are not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in platform_maintenanceG, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
+
+print(res.mca_Platform)
+fviz_screeplot(res.mca_Platform, addlabels = TRUE, ylim = c(0, 45)) #To visualize the percentages of inertia explained by each MCA dimensions. Dim1 and Dim2 explain 58.136% of the variance
+summary(res.mca_Platform)
+
+
+fviz_mca_var(res.mca_Platform, choice = &quot;mca.cor&quot;, 
+            repel = TRUE, 
+            ggtheme = theme_minimal()) #checking to which dimensions the variable are correlated
+fviz_mca_var(res.mca_Platform, 
+             repel = TRUE, # 
+             ggtheme = theme_minimal()) #Variable categories with a similar profile are grouped together. Negatively correlated variable categories are positioned on opposite sides of the plot origin (opposed quadrants).The distance between category points and the origin measures the quality of the variable category on the factor map. Category points that are away from the origin are well represented on the factor map.
+
+var &lt;- get_mca_var(res.mca_Platform)
+head(var$cos2, 20) #If a variable category is well represented by two dimensions, the sum of the cos2 is closed to one. For some of the row items, more than 2 dimensions are required to perfectly represent the data.
+
+
+fviz_cos2(res.mca_Platform, choice = &quot;var&quot;, axes = 1:2) #visualising
+
+fviz_contrib(res.mca_Platform, choice = &quot;var&quot;, axes = 1, top = 15) #contribution to Dim 1. above the threshold are  Abrasion.simpl_No, Natural
+
+fviz_contrib(res.mca_Platform, choice = &quot;var&quot;, axes = 2, top = 15) #contribution to Dim 2. above the threshold is other, Plain
+
+MCA_Platform_plot &lt;- fviz_mca_var(
+  res.mca_Platform,
+  col.var = &quot;contrib&quot;,
+  label = &quot;all&quot;,
+  invisible = &quot;none&quot;,
+  gradient.cols = c(&quot;#00AFBB&quot;, &quot;#E7B800&quot;, &quot;#FC4E07&quot;),
+  repel = TRUE,
+  max.overlaps=Inf,
+  ggtheme = theme_classic()
+)
+MCA_Platform_plot
+ggsave(&quot;MCAPlatformALL.tiff&quot;, plot = MCA_Platform_plot, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)
+ggsave(&quot;MCAPlatformALL.png&quot;, plot = MCA_Platform_plot, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)    
+
+
+MCA_Platform_ind &lt;- fviz_mca_ind(
+  res.mca_Platform, 
   label = &quot;none&quot;,                   # hide individual labels
   habillage = &quot;SiteBlank.typeTech&quot;, # color by groups
   addEllipses = TRUE,               # add confidence ellipses
   ellipse.type = &quot;confidence&quot;,      # type of ellipse
-  ggtheme = theme_minimal(),        # set the ggplot theme
+  ggtheme = theme_classic(),        # set the ggplot theme
   geom = &quot;point&quot;,                   # use points for symbols
-  )  # set custom colors              # use grouping variable for shapes</code></pre>
+  )  # set custom colors              # use grouping variable for shapes
+
+ggsave(&quot;MCAPlatformALLind.tiff&quot;, plot = MCA_Platform_ind, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)
+ggsave(&quot;MCAPlatformALLind.png&quot;, plot = MCA_Platform_ind, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)   </code></pre>
+<div id="control" class="section level4">
+<h4>Control</h4>
+<pre class="r"><code>library(FactoMineR)
+library(factoextra)
+library(dplyr)
+library(ggplot2)
+
+# Select relevant columns and remove missing values
+platform_maintenanceGC &lt;- Blank_Main_Control_elon %&gt;%
+  filter(!Platform_lump %in% c(&quot;No butt&quot;, &quot;No prox part&quot;, &quot;No Prox part&quot;, &quot;ND&quot;, &quot;NA&quot;, &quot;Other&quot;, &quot;Crushed&quot;, &quot;Concave&quot;, &quot;Cortical&quot;, &quot;Natural&quot;)) %&gt;% #removing blanks without clear info
+  select(SiteBlank.type, Platform_lump) %&gt;%
+  na.omit()
+  
+summary(platform_maintenanceGC)
+
+# Run MCA
+res.mca_PlatformC &lt;- MCA(platform_maintenanceGC, graph = FALSE, quali.sup =1, method = &quot;Burt&quot;) #Site, SiteBlank.type, SiteBlank.typeTech are not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in platform_maintenanceG, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
+
+print(res.mca_PlatformC)
+fviz_screeplot(res.mca_PlatformC, addlabels = TRUE, ylim = c(0, 45)) #To visualize the percentages of inertia explained by each MCA dimensions. Dim1 and Dim2 explain 40.000% of the variance
+summary(res.mca_PlatformC)
+
+
+fviz_mca_var(res.mca_PlatformC, choice = &quot;mca.cor&quot;, 
+            repel = TRUE, 
+            ggtheme = theme_minimal()) #checking to which dimensions the variable are correlated
+fviz_mca_var(res.mca_PlatformC, 
+             repel = TRUE, # 
+             ggtheme = theme_minimal()) #Variable categories with a similar profile are grouped together. Negatively correlated variable categories are positioned on opposite sides of the plot origin (opposed quadrants).The distance between category points and the origin measures the quality of the variable category on the factor map. Category points that are away from the origin are well represented on the factor map.
+
+var &lt;- get_mca_var(res.mca_PlatformC)
+head(var$cos2, 20) #If a variable category is well represented by two dimensions, the sum of the cos2 is closed to one. For some of the row items, more than 2 dimensions are required to perfectly represent the data.
+
+
+fviz_cos2(res.mca_PlatformC, choice = &quot;var&quot;, axes = 1:2) #visualising
+
+fviz_contrib(res.mca_PlatformC, choice = &quot;var&quot;, axes = 1, top = 15) #contribution to Dim 1. above the threshold are  Abrasion.simpl_No, Natural
+
+fviz_contrib(res.mca_PlatformC, choice = &quot;var&quot;, axes = 2, top = 15) #contribution to Dim 2. above the threshold is other, Plain
+
+MCA_PlatformC_plot &lt;- fviz_mca_var(
+  res.mca_PlatformC,
+  col.var = &quot;contrib&quot;,
+  label = &quot;all&quot;,
+  invisible = &quot;none&quot;,
+  gradient.cols = c(&quot;#00AFBB&quot;, &quot;#E7B800&quot;, &quot;#FC4E07&quot;),
+  repel = TRUE,
+  max.overlaps=Inf,
+  ggtheme = theme_classic()
+)
+MCA_PlatformC_plot
+ggsave(&quot;MCAPlatformCONTROL.tiff&quot;, plot = MCA_PlatformC_plot, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)
+ggsave(&quot;MCAPlatformCONTROL.png&quot;, plot = MCA_PlatformC_plot, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)
+
+MCA_PlatformC_ind &lt;- fviz_mca_ind(
+  res.mca_PlatformC, 
+  label = &quot;none&quot;,                   # hide individual labels
+  habillage = &quot;SiteBlank.type&quot;, # color by groups
+  addEllipses = TRUE,               # add confidence ellipses
+  ellipse.type = &quot;confidence&quot;,      # type of ellipse
+  ggtheme = theme_classic(),        # set the ggplot theme
+  geom = &quot;point&quot;,                   # use points for symbols
+  )  # set custom colors              # use grouping variable for shapes
+
+ggsave(&quot;MCAPlatformCONTROLind.tiff&quot;, plot = MCA_PlatformC_ind, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)
+ggsave(&quot;MCAPlatformCONTROLind.png&quot;, plot = MCA_PlatformC_ind, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300) </code></pre>
 <p>###ANOVA testing Platform domain</p>
 <p>#####Ordinary</p>
 <pre class="r"><code>#preparing the data
 library(dplyr)
 MCA_PlatformO &lt;- as.data.frame(res.mca_PlatformO$ind)
-SiteTypeTech &lt;- as.data.frame(platform_maintenanceGO$SiteBlank.typeTech)
+SiteType &lt;- as.data.frame(platform_maintenanceGO$SiteBlank.type)
 
 mca.PlatformO &lt;- MCA_PlatformO %&gt;%
   select(1:2)
 
-Mca.PlatformO &lt;- bind_cols(SiteTypeTech, mca.PlatformO)
+Mca.PlatformO &lt;- bind_cols(SiteType, mca.PlatformO)
 
 Mca.PlatformO &lt;- Mca.PlatformO %&gt;%
-  mutate(SiteTypeTech = platform_maintenanceGO$SiteBlank.typeTech, &quot;dim1&quot; = coord.Dim.1, &quot;dim2&quot; =  coord.Dim.2)%&gt;%
+  mutate(SiteType = platform_maintenanceGO$SiteBlank.type, &quot;dim1&quot; = coord.Dim.1, &quot;dim2&quot; =  coord.Dim.2)%&gt;%
   select(4:6) #creating a dataframe with the Dim1 and Dim2 coordinates obtained with MCA_Reduction of each individual (blank)
 
 ###create unique comparisons
-unique(Mca.PlatformO$SiteTypeTech)
+unique(Mca.PlatformO$SiteType)
 
 #setting the unique comparisons 
-assemblages &lt;- c(&quot;A.b.O&quot;, &quot;A.B.O&quot;, &quot;R.b.O&quot;, &quot;R.B.O&quot;, &quot;C.b.O&quot;, &quot;C.B.O&quot;, &quot;F.B.O&quot;, &quot;F.b.O&quot;)
+assemblages &lt;- c(&quot;A.b&quot;, &quot;A.B&quot;, &quot;R.b&quot;, &quot;R.B&quot;, &quot;C.b&quot;, &quot;C.B&quot;, &quot;F.B&quot;, &quot;F.b&quot;)
 
 # Generate all possible unique combinations of size 2
 all_combinations &lt;- combn(assemblages, 2)
@@ -3262,13 +3705,13 @@ combinations_df &lt;- data.frame(t(all_combinations))
 print(combinations_df)
 
 comparisons_PlatformO &lt;- c(
-  &quot;A.b.O-A.B.O&quot;, &quot;A.b.O-R.b.O&quot;, &quot;A.b.O-R.B.O&quot;,&quot;A.b.O-C.b.O&quot;,
-  &quot;A.b.O-C.B.O&quot;, &quot;A.b.O-F.B.O&quot;, &quot;A.b.O-F.b.O&quot;, &quot;A.B.O-R.b.O&quot;,
-  &quot;A.B.O-R.B.O&quot;, &quot;A.B.O-C.b.O&quot;, &quot;A.B.O-C.B.O&quot;, &quot;A.B.O-F.B.O&quot;,
-  &quot;A.B.O-F.b.O&quot;, &quot;R.b.O-R.B.O&quot;, &quot;R.b.O-C.b.O&quot;, &quot;R.b.O-C.B.O&quot;,
-  &quot;R.b.O-F.B.O&quot;, &quot;R.b.O-F.b.O&quot;, &quot;R.B.O-C.b.O&quot;, &quot;R.B.O-C.B.O&quot;,
-  &quot;R.B.O-F.B.O&quot;, &quot;R.B.O-F.b.O&quot;, &quot;C.b.O-C.B.O&quot;, &quot;C.b.O-F.B.O&quot;,
-  &quot;C.b.O-F.b.O&quot;, &quot;C.B.O-F.B.O&quot;, &quot;C.B.O-F.b.O&quot;, &quot;F.B.O-F.b.O&quot;
+  &quot;A.b-A.B&quot;, &quot;A.b-R.b&quot;, &quot;A.b-R.B&quot;, &quot;A.b-C.b&quot;,
+  &quot;A.b-C.B&quot;, &quot;A.b-F.B&quot;, &quot;A.b-F.b&quot;, &quot;A.B-R.b&quot;,
+  &quot;A.B-R.B&quot;, &quot;A.B-C.b&quot;, &quot;A.B-C.B&quot;, &quot;A.B-F.B&quot;,
+  &quot;A.B-F.b&quot;, &quot;R.b-R.B&quot;, &quot;R.b-C.b&quot;, &quot;R.b-C.B&quot;,
+  &quot;R.b-F.B&quot;, &quot;R.b-F.b&quot;, &quot;R.B-C.b&quot;, &quot;R.B-C.B&quot;,
+  &quot;R.B-F.B&quot;, &quot;R.B-F.b&quot;, &quot;C.b-C.B&quot;, &quot;C.b-F.B&quot;,
+  &quot;C.b-F.b&quot;, &quot;C.B-F.B&quot;, &quot;C.B-F.b&quot;, &quot;F.B-F.b&quot;
 )</code></pre>
 <p>####Bootstrapping</p>
 <pre class="r"><code># Multi-comparison bootstrap
@@ -3277,15 +3720,15 @@ library(WRS2)
 # Multi-comparison bootstrap
 
 
-boot_dim1 &lt;- mcppb20(dim1 ~ SiteTypeTech, data = Mca.PlatformO, nboot = 5000)
-boot_dim2 &lt;- mcppb20(dim2 ~ SiteTypeTech, data = Mca.PlatformO, nboot = 5000)
+boot_dim1 &lt;- mcppb20(dim1 ~ SiteType + SiteType^2, data = Mca.PlatformO, nboot = 5000)
+boot_dim2 &lt;- mcppb20(dim2 ~ SiteType, data = Mca.PlatformO, nboot = 5000)
 
 # Convert results to data frames
 multi_comp_dim1 &lt;- as.data.frame(boot_dim1$comp)
 multi_comp_dim2 &lt;- as.data.frame(boot_dim2$comp)
 
-# Add SiteTypeTech names and transform to column &quot;SiteTypeTech&quot;
-multi_comp_dim1$SiteTypeTech &lt;- comparisons_PlatformO
+# Add SiteType names and transform to column &quot;SiteType&quot;
+multi_comp_dim1$SiteType &lt;- comparisons_PlatformO
 multi_comp_dim1 &lt;- multi_comp_dim1[!duplicated(names(multi_comp_dim1))]
 
 multi_comp_dim2$SiteTypeTech &lt;- comparisons_PlatformO
@@ -3298,8 +3741,8 @@ multi_comp &lt;- full_join(multi_comp_dim1, multi_comp_dim2, by = &quot;SiteType
 multi_comp &lt;- select(multi_comp, SiteTypeTech, `p-valuedim1`, `p-valuedim2`)
 
 # Build a list with pairwise p-values
-labels_dim1 &lt;- setNames(multi_comp$`p-valuedim1`, multi_comp_dim1$SiteTypeTech)
-labels_dim2 &lt;- setNames(multi_comp$`p-valuedim2`, multi_comp_dim2$SiteTypeTech)
+labels_dim1 &lt;- setNames(multi_comp$`p-valuedim1`, multi_comp_dim1$SiteType)
+labels_dim2 &lt;- setNames(multi_comp$`p-valuedim2`, multi_comp_dim2$SiteType)
 
 # Attribute letters to each grouping based on alpha = .05
 install.packages(&quot;multcompView&quot;)
@@ -3357,8 +3800,13 @@ dim2 &lt;- ggplot(mca_summary) +
 
 ANOVAPlatformO &lt;- grid.arrange(dim1, dim2, ncol = 1)
 
-ggsave(&quot;ANOVAPlatformOrdinary.tiff&quot;, plot = ANOVAPlatformO, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300) 
-ggsave(&quot;ANOVAPlatformOrdinary.png&quot;, plot = ANOVAPlatformO, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)</code></pre>
+ggsave(&quot;ANOVAPlatformOrdinaryNew.tiff&quot;, plot = ANOVAPlatformO, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300) 
+ggsave(&quot;ANOVAPlatformOrdinaryNew.png&quot;, plot = ANOVAPlatformO, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)
+
+ANOVAPlatformOMCA &lt;- grid.arrange(ANOVAPlatformO, MCA_PlatformO_plot, ncol = 1)
+
+ggsave(&quot;ANOVAMCAcombinedPlatONew.tiff&quot;, plot = ANOVAPlatformOMCA, width = 66.96604, height = 32.75542, units = &quot;cm&quot;, dpi = 300) 
+ggsave(&quot;ANOVAMCAcombinedPlatONew.png&quot;, plot = ANOVAPlatformOMCA, width = 66.96604, height = 32.75542, units = &quot;cm&quot;, dpi = 300)</code></pre>
 <p>Interpretation ANOVA</p>
 <p>According to the p-values of the single comparison between different
 categories and the resulting letters assigned the following categories
@@ -3509,7 +3957,12 @@ dim2 &lt;- ggplot(mca_summary) +
 ANOVAPlatformM &lt;- grid.arrange(dim1, dim2, ncol = 1)
 
 ggsave(&quot;ANOVAPlatformMGMT.tiff&quot;, plot = ANOVAPlatformM, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300) 
-ggsave(&quot;ANOVAPlatformMGMT.png&quot;, plot = ANOVAPlatformM, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)</code></pre>
+ggsave(&quot;ANOVAPlatformMGMT.png&quot;, plot = ANOVAPlatformM, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)
+
+ANOVAPlatformMMCA &lt;- grid.arrange(ANOVAPlatformM, MCA_PlatformM_plot, ncol = 1)
+
+ggsave(&quot;ANOVAMCAcombinedPlatM.tiff&quot;, plot = ANOVAPlatformMMCA, width = 66.96604, height = 32.75542, units = &quot;cm&quot;, dpi = 300) 
+ggsave(&quot;ANOVAMCAcombinedPlatM.png&quot;, plot = ANOVAPlatformMMCA, width = 66.96604, height = 32.75542, units = &quot;cm&quot;, dpi = 300)</code></pre>
 <p>Interpretation ANOVA</p>
 <p>According to the p-values of the single comparison between different
 categories and the resulting letters assigned the following categories
@@ -3537,13 +3990,160 @@ blades and bladelets, Les Cottés blades and Ansab blades are showing
 negative lodging, meaning they are mostly associated with cortical
 blanks and linear platforms. Romanesti blades and bladelets, Les Cottés
 bladelets and Ansab bladelets positive lodgings, meaning they are
-characterised by punctiform platforms and cortex absence.</p>
+characterised by punctiform platforms and cortex absence. ####MGMT &amp;
+ORDINARY</p>
+<pre class="r"><code>library(dplyr)
+MCA_Platform &lt;- as.data.frame(res.mca_Platform$ind)
+SiteTypeTech &lt;- as.data.frame(platform_maintenanceG$SiteBlank.typeTech)
+
+mca.Platform &lt;- MCA_Platform %&gt;%
+  select(1:2)
+
+Mca.Platform &lt;- bind_cols(SiteTypeTech, mca.Platform)
+
+Mca.Platform &lt;- Mca.Platform %&gt;%
+  mutate(SiteTypeTech = platform_maintenanceG$SiteBlank.typeTech, &quot;dim1&quot; = coord.Dim.1, &quot;dim2&quot; =  coord.Dim.2)%&gt;%
+  select(4:6) #creating a dataframe with the Dim1 and Dim2 coordinates obtained with MCA_Reduction of each individual (blank)
+
+###create unique comparisons
+unique(Mca.Platform$SiteTypeTech)
+
+#setting the unique comparisons 
+assemblages &lt;- c(&quot;A.b.M&quot;, &quot;A.b.O&quot;, &quot;A.B.M&quot;,&quot;A.B.O&quot;, &quot;R.b.M&quot;, &quot;R.b.O&quot;, &quot;R.B.M&quot;, &quot;R.B.O&quot;, &quot;C.b.M&quot;, &quot;C.b.O&quot;, &quot;C.B.M&quot;,&quot;C.B.O&quot;, &quot;F.B.M&quot;, &quot;F.B.O&quot;, &quot;F.b.M&quot;, &quot;F.b.O&quot;)
+
+# Generate all possible unique combinations of size 2
+all_combinations &lt;- combn(assemblages, 2)
+
+# Convert the result to a data frame for better readability
+combinations_df &lt;- data.frame(t(all_combinations))
+
+# Print the result
+print(combinations_df)
+
+comparisons_Platform &lt;- c(
+&quot;A.b.M-A.b.O&quot; ,&quot;A.B.M-A.b.O&quot; ,&quot;R.b.M-A.b.O&quot; ,&quot;R.B.M-A.b.O&quot;, &quot;C.b.M-A.b.O&quot;, &quot;C.B.M-A.b.O&quot; ,&quot;F.B.M-A.b.O&quot; ,&quot;F.b.M-A.b.O&quot;, &quot;A.b.M-A.B.O&quot;,&quot;A.B.M-A.B.O&quot; ,&quot;R.b.M-A.B.O&quot;, &quot;R.B.M-A.B.O&quot;, &quot;C.b.M-A.B.O&quot;, &quot;C.B.M-A.B.O&quot;, &quot;F.B.M-A.B.O&quot;, &quot;F.b.M-A.B.O&quot;, &quot;A.b.M-R.b.O&quot;, &quot;A.B.M-R.b.O&quot;,&quot;R.b.M-R.b.O&quot;, &quot;R.B.M-R.b.O&quot; ,&quot;C.b.M-R.b.O&quot;, &quot;C.B.M-R.b.O&quot; ,&quot;F.B.M-R.b.O&quot;, &quot;F.b.M-R.b.O&quot;, &quot;A.b.M-R.B.O&quot;, &quot;A.B.M-R.B.O&quot; ,&quot;R.b.M-R.B.O&quot;,&quot;R.B.M-R.B.O&quot;, &quot;C.b.M-R.B.O&quot;, &quot;C.B.M-R.B.O&quot;, &quot;F.B.M-R.B.O,&quot;, &quot;F.b.M-R.B.O&quot;, &quot;A.b.M-C.b.O&quot;, &quot;A.B.M-C.b.O&quot; ,&quot;R.b.M-C.b.O&quot; ,&quot;R.B.M-C.b.O&quot;,&quot;C.b.M-C.b.O&quot; ,&quot;C.B.M-C.b.O&quot;, &quot;F.B.M-C.b.O&quot;, &quot;F.b.M-C.b.O&quot;, &quot;A.b.M-C.B.O&quot; ,&quot;A.B.M-C.B.O&quot;, &quot;R.b.M-C.B.O&quot;, &quot;R.B.M-C.B.O&quot;, &quot;C.b.M-C.B.O&quot;,&quot;C.B.M-C.B.O&quot; ,&quot;F.B.M-C.B.O&quot;, &quot;F.b.M-C.B.O&quot;, &quot;A.b.M-F.B.O&quot;, &quot;A.B.M-F.B.O&quot;, &quot;R.b.M-F.B.O&quot; ,&quot;R.B.M-F.B.O&quot;, &quot;C.b.M-F.B.O&quot; ,&quot;C.B.M-F.B.O&quot;,&quot;F.B.M-F.B.O&quot;, &quot;F.b.M-F.B.O&quot;, &quot;A.b.M-F.b.O&quot;, &quot;A.B.M-F.b.O&quot;, &quot;R.b.M-F.b.O&quot;, &quot;R.B.M-F.b.O&quot;, &quot;C.b.M-F.b.O&quot;, &quot;C.B.M-F.b.O&quot; ,&quot;F.B.M-F.b.O&quot;, &quot;F.b.M-F.b.O&quot;
+)</code></pre>
+<p>####Bootstrapping</p>
+<pre class="r"><code># Multi-comparison bootstrap
+install.packages(&quot;WRS2&quot;)
+library(WRS2)
+# Multi-comparison bootstrap
+
+
+boot_dim1 &lt;- mcppb20(dim1 ~ SiteTypeTech, data = Mca.Platform, nboot = 5000)
+boot_dim2 &lt;- mcppb20(dim2 ~ SiteTypeTech, data = Mca.Platform, nboot = 5000)
+
+# Convert results to data frames
+multi_comp_dim1 &lt;- as.data.frame(boot_dim1$comp)
+multi_comp_dim2 &lt;- as.data.frame(boot_dim2$comp)
+
+# Add SiteTypeTech names and transform to column &quot;SiteTypeTech&quot;
+multi_comp_dim1$SiteTypeTech &lt;- comparisons_PlatformM
+multi_comp_dim1 &lt;- multi_comp_dim1[!duplicated(names(multi_comp_dim1))]
+
+multi_comp_dim2$SiteTypeTech &lt;- comparisons_PlatformM
+multi_comp_dim2 &lt;- multi_comp_dim2[!duplicated(names(multi_comp_dim2))]
+
+# Join the results
+multi_comp &lt;- full_join(multi_comp_dim1, multi_comp_dim2, by = &quot;SiteTypeTech&quot;, suffix = c(&quot;dim1&quot;, &quot;dim2&quot;))
+
+# Select relevant columns
+multi_comp &lt;- select(multi_comp, SiteTypeTech, `p-valuedim1`, `p-valuedim2`)
+
+# Build a list with pairwise p-values
+labels_dim1 &lt;- setNames(multi_comp$`p-valuedim1`, multi_comp_dim1$SiteTypeTech)
+labels_dim2 &lt;- setNames(multi_comp$`p-valuedim2`, multi_comp_dim2$SiteTypeTech)
+
+# Attribute letters to each grouping based on alpha = .05
+install.packages(&quot;multcompView&quot;)
+library(multcompView)
+library(tibble)
+grouping_dim1 &lt;- data.frame(multcompLetters(labels_dim1)[&quot;Letters&quot;])
+grouping_dim1 &lt;- rownames_to_column(grouping_dim1, &quot;SiteTypeTech&quot;)
+
+grouping_dim2 &lt;- data.frame(multcompLetters(labels_dim2)[&quot;Letters&quot;])
+grouping_dim2 &lt;- rownames_to_column(grouping_dim2, &quot;SiteTypeTech&quot;)
+
+# Join the grouping results
+grouping &lt;- full_join(grouping_dim1, grouping_dim2, by = &quot;SiteTypeTech&quot;, suffix = c(&quot;dim1&quot;, &quot;dim2&quot;))
+
+
+# Print or use the &#39;grouping&#39; dataframe for further analysis or visualization
+print(grouping)</code></pre>
+<p>####Plotting</p>
+<pre class="r"><code>library(RcmdrMisc)
+library(gridExtra)
+library(DescTools)
+
+mca_summary &lt;- Mca.PlatformM %&gt;% 
+  group_by(SiteTypeTech) %&gt;% 
+  summarise(meandim1 = mean(dim1, trim = 0.2), meandim2 = mean(dim2, trim = 0.2), 
+            LCIdim1 = MeanCI(dim1, trim = 0.2)[2], MCIdim1 = MeanCI(dim1, trim = 0.2)[3],
+            LCIdim2 = MeanCI(dim2, trim = 0.2)[2], MCIdim2 = MeanCI(dim2, trim = 0.2)[3]) 
+
+m1 &lt;- max(mca_summary$MCIdim1)
+m2 &lt;- max(mca_summary$MCIdim2)
+
+dim1 &lt;- ggplot(mca_summary) +
+  geom_point(stat = &quot;identity&quot;, aes(x = SiteTypeTech, y = meandim1), size = 3) +
+  geom_errorbar(stat = &quot;identity&quot;, aes(x = SiteTypeTech, ymin = LCIdim1, ymax = MCIdim1), width = 0) +
+  geom_hline(aes(yintercept = 0), color = &quot;red&quot;, linetype = &quot;dashed&quot;, show.legend = FALSE) +
+  geom_text(data = grouping, aes(x = SiteTypeTech, y = m1 + 0.08, label = Lettersdim1, size = 15), show.legend = FALSE) +
+  xlab(&quot;&quot;) +
+  ylab(&quot;Dimension 1&quot;) +
+  scale_colour_discrete(l = 40) +
+  theme(text = element_text(size = 18)) +
+  coord_flip()
+
+
+dim2 &lt;- ggplot(mca_summary) +
+  geom_point(stat = &quot;identity&quot;, aes(x = SiteTypeTech, y = meandim2), size = 3) +
+  geom_errorbar(stat = &quot;identity&quot;, aes(x = SiteTypeTech, ymin = LCIdim2, ymax = MCIdim2), width = 0) +
+  geom_hline(aes(yintercept = 0), color = &quot;red&quot;, linetype = &quot;dashed&quot;, show.legend = FALSE) +
+  geom_text(data = grouping, aes(x = SiteTypeTech, y = m2 + 0.08, label = Lettersdim2, size = 15), show.legend = FALSE) +
+  xlab(&quot;&quot;) +
+  ylab(&quot;Dimension 2&quot;) +
+  scale_colour_discrete(l = 40) +
+  theme(text = element_text(size = 18)) +
+  coord_flip()
+
+
+ANOVAPlatformM &lt;- grid.arrange(dim1, dim2, ncol = 1)
+
+ggsave(&quot;ANOVAPlatformMGMT.tiff&quot;, plot = ANOVAPlatformM, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300) 
+ggsave(&quot;ANOVAPlatformMGMT.png&quot;, plot = ANOVAPlatformM, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)
+
+ANOVAPlatformMMCA &lt;- grid.arrange(ANOVAPlatformM, MCA_PlatformM_plot, ncol = 1)
+
+ggsave(&quot;ANOVAMCAcombinedPlatM.tiff&quot;, plot = ANOVAPlatformMMCA, width = 66.96604, height = 32.75542, units = &quot;cm&quot;, dpi = 300) 
+ggsave(&quot;ANOVAMCAcombinedPlatM.png&quot;, plot = ANOVAPlatformMMCA, width = 66.96604, height = 32.75542, units = &quot;cm&quot;, dpi = 300)</code></pre>
 <p>###Convexity</p>
 <p>The Convexity domain is comprising the Variables Axiality.simpl,
 Outline.morphology, Symmetry, Cross.section, Profile, Torsion,
-Distal.end.morpho, Cortex.position.simpl, Cortex to check if there’s
-association between morphological attributes attributed to a particular
-position on the core volume.</p>
+Distal.end.morpho to check if there’s association between morphological
+attributes attributed to a particular position on the core volume.</p>
+<pre class="r"><code>library(ggpubr)
+library(ggplot2)
+library(ggpubr)
+
+# Modify the theme settings for each plot
+Gen.Ax &lt;- Gen.Ax + theme(plot.margin = margin(10, 10, 20, 20))
+Gen.Torsion &lt;- Gen.Torsion + theme(plot.margin = margin(10, 10, 20, 20))
+Gen.Profile &lt;- Gen.Profile + theme(plot.margin = margin(10, 10, 20, 20))
+Gen.Out.Morph &lt;- Gen.Out.Morph + theme(plot.margin = margin(10, 10, 20, 20))
+Gen.Symmetry &lt;- Gen.Symmetry + theme(plot.margin = margin(10, 10, 20, 20))
+Gen.Cross.Section &lt;- Gen.Cross.Section + theme(plot.margin = margin(10, 10, 20, 20))
+Gen.Distal.end.morpho &lt;- Gen.Distal.end.morpho + theme(plot.margin = margin(10, 10, 20, 20))
+
+# Arrange the plots with modified theme settings
+ConvexityDom &lt;- ggarrange(
+  Gen.Ax, Gen.Torsion, Gen.Profile, Gen.Out.Morph, 
+  Gen.Symmetry, Gen.Cross.Section, Gen.Distal.end.morpho,  
+  labels = c(&quot;Axiality&quot;,&quot;Profile&quot;, &quot;Outline&quot;, &quot;Torsion&quot;, &quot;Symmetry&quot;, &quot;Cross&quot;, &quot;Distal&quot;), 
+  ncol = 2, nrow = 4
+)
+# Save the combined plot
+ggsave(&quot;ConvexityDom.tiff&quot;, plot = ConvexityDom, width = 66.96604, height = 32.75542, units = &quot;cm&quot;, dpi = 300)</code></pre>
 <p>####Ordinary</p>
 <pre class="r"><code>library(FactoMineR)
 library(factoextra)
@@ -3553,7 +4153,7 @@ library(ggplot2)
 
 
 # Select relevant columns and remove missing values
-convexity_maintenanceGO &lt;- Blank_Main_reshaped2 %&gt;%
+convexity_maintenanceGO &lt;- Blanks_Main_lumped1 %&gt;%
   filter(Blank.type != &quot;Flake&quot;) %&gt;% #check only laminar
   filter(!Axiality.simpl %in% c(&quot;NA&quot;, &quot;ND&quot;)) %&gt;% #removing blanks without clear info
   filter(!Symmetry %in% c(&quot;NA&quot;, &quot;ND&quot;)) %&gt;% #removing blanks without clear info
@@ -3564,7 +4164,7 @@ convexity_maintenanceGO &lt;- Blank_Main_reshaped2 %&gt;%
   filter(!Cortex.position.simpl %in% c(&quot;NA&quot;, &quot;ND&quot;)) %&gt;% #removing blanks without clear info
   filter(Technology.Phase == &quot;Ordinary&quot;) %&gt;% #only ordinary
   filter(!Cortex %in% c(&quot;NA&quot;, &quot;ND&quot;)) %&gt;% #removing blanks without clear info
-  select(SiteBlank.typeTech, Blank.type, Axiality.simpl, Outline.morphology, Symmetry, Cross.section, Profile, Torsion, Distal.end.morpho, Cortex.position.simpl, Cortex) %&gt;%
+  select(SiteBlank.typeTech, Blank.type, Axiality.simpl, Outline.morphology, Symmetry, Cross.section, Profile, Torsion, Distal.end.morpho) %&gt;%
   na.omit()
   
 summary(convexity_maintenanceGO)
@@ -3573,7 +4173,7 @@ summary(convexity_maintenanceGO)
 res.mca_ConvexityO &lt;- MCA(convexity_maintenanceGO, graph = FALSE, quali.sup =1:2, method = &quot;Burt&quot;) #Site, SiteBlank.type, SiteBlank.typeTech are not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in platform_maintenanceG, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
 
 print(res.mca_ConvexityO)
-fviz_screeplot(res.mca_ConvexityO, addlabels = TRUE, ylim = c(0, 45)) #To visualize the percentages of inertia explained by each MCA dimensions. Dim1 and Dim2 explain 33.314% of the variance
+fviz_screeplot(res.mca_ConvexityO, addlabels = TRUE, ylim = c(0, 45)) #To visualize the percentages of inertia explained by each MCA dimensions. Dim1 and Dim2 explain 44.132% of the variance
 summary(res.mca_ConvexityO)
 
 fviz_mca_var(res.mca_ConvexityO, choice = &quot;mca.cor&quot;, 
@@ -3592,24 +4192,27 @@ fviz_contrib(res.mca_ConvexityO, choice = &quot;var&quot;, axes = 1, top = 15) #
 
 fviz_contrib(res.mca_ConvexityO, choice = &quot;var&quot;, axes = 2, top = 15) #contribution to Dim 2. 
 
-MCA_ConvexityO &lt;- fviz_mca_var(res.mca_ConvexityO, col.var = &quot;contrib&quot;,
+MCA_ConvexityO_plot &lt;- fviz_mca_var(res.mca_ConvexityO, col.var = &quot;contrib&quot;,
              gradient.cols = c(&quot;#00AFBB&quot;, &quot;#E7B800&quot;, &quot;#FC4E07&quot;), 
              repel = TRUE, # avoid text overlapping (slow)
              ggtheme = theme_classic()
              )
-MCA_ConvexityO
-ggsave(&quot;MCAConvexityOrdinary.tiff&quot;, plot = MCA_ConvexityO, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)   
-ggsave(&quot;MCAConvexityOrdinary.png&quot;, plot = MCA_ConvexityO, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300) 
+MCA_ConvexityO_plot
+ggsave(&quot;MCAConvexityOrdinaryNew.tiff&quot;, plot = MCA_ConvexityO_plot, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)   
+ggsave(&quot;MCAConvexityOrdinaryNew.png&quot;, plot = MCA_ConvexityO_plot, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300) 
 
 
-fviz_mca_ind(res.mca_ConvexityO, 
+MCA_ConvexityOind &lt;- fviz_mca_ind(res.mca_ConvexityO, 
              label = &quot;none&quot;, # hide individual labels
              habillage = &quot;SiteBlank.typeTech&quot;, # color by groups
              addEllipses = TRUE, 
              ellipse.type = &quot;confidence&quot;,
-             ggtheme = theme_minimal(),
+             ggtheme = theme_classic(),
              geom = &quot;point&quot;,  # set custom colors              
-) #clustering of type of blanks for each site </code></pre>
+) #clustering of type of blanks for each site 
+
+ggsave(&quot;MCA_ConvexityOind.tiff&quot;, plot = MCA_ConvexityOind, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)   
+ggsave(&quot;MCA_ConvexityOind.png&quot;, plot = MCA_ConvexityOind, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300) </code></pre>
 <p>####Management</p>
 <pre class="r"><code>library(FactoMineR)
 library(factoextra)
@@ -3658,24 +4261,219 @@ fviz_contrib(res.mca_ConvexityM, choice = &quot;var&quot;, axes = 1, top = 15) #
 
 fviz_contrib(res.mca_ConvexityM, choice = &quot;var&quot;, axes = 2, top = 15) #contribution to Dim 2. 
 
-MCA_ConvexityM &lt;- fviz_mca_var(res.mca_ConvexityM, col.var = &quot;contrib&quot;,
+MCA_ConvexityM_plot &lt;- fviz_mca_var(res.mca_ConvexityM, col.var = &quot;contrib&quot;,
              gradient.cols = c(&quot;#00AFBB&quot;, &quot;#E7B800&quot;, &quot;#FC4E07&quot;), 
              repel = TRUE, # avoid text overlapping (slow)
              ggtheme = theme_classic()
              )
-MCA_ConvexityM
-ggsave(&quot;MCAConvexityMGMT.tiff&quot;, plot = MCA_ConvexityM, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)   
-ggsave(&quot;MCAConvexityMGMT.png&quot;, plot = MCA_ConvexityM, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300) 
+MCA_ConvexityM_plot
+ggsave(&quot;MCAConvexityMGMT.tiff&quot;, plot = MCA_ConvexityM_plot, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)   
+ggsave(&quot;MCAConvexityMGMT.png&quot;, plot = MCA_ConvexityM_plot, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300) 
 
 
-fviz_mca_ind(res.mca_ConvexityM, 
+MCA_ConvexityMind &lt;- fviz_mca_ind(res.mca_ConvexityM, 
              label = &quot;none&quot;, # hide individual labels
              habillage = &quot;SiteBlank.typeTech&quot;, # color by groups
              addEllipses = TRUE, 
              ellipse.type = &quot;confidence&quot;,
-             ggtheme = theme_minimal(),
+             ggtheme = theme_classic(),
              geom = &quot;point&quot;,  # set custom colors              
-) #clustering of type of blanks for each site </code></pre>
+) #clustering of type of blanks for each site 
+
+
+ggsave(&quot;MCA_ConvexityMind.tiff&quot;, plot = MCA_ConvexityMind, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)   
+ggsave(&quot;MCA_ConvexityMind.png&quot;, plot = MCA_ConvexityMind, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300) </code></pre>
+<p>####ALL</p>
+<pre class="r"><code>library(FactoMineR)
+library(factoextra)
+library(dplyr)
+library(ggplot2)
+
+
+
+# Select relevant columns and remove missing values
+convexity_maintenanceG &lt;- Blanks_Main_lumped1 %&gt;%
+  filter(Blank.type != &quot;Flake&quot;) %&gt;% #check only laminar
+  filter(!Axiality.simpl %in% c(&quot;NA&quot;, &quot;ND&quot;)) %&gt;% #removing blanks without clear info
+  filter(!Symmetry %in% c(&quot;NA&quot;, &quot;ND&quot;)) %&gt;% #removing blanks without clear info
+  filter(!Outline.morphology %in% c(&quot;NA&quot;, &quot;ND&quot;)) %&gt;% #removing blanks without clear info
+  filter(!Profile %in% c(&quot;NA&quot;, &quot;ND&quot;)) %&gt;% #removing blanks without clear info
+  filter(!Torsion %in% c(&quot;NA&quot;, &quot;ND&quot;)) %&gt;% #removing blanks without clear info
+  filter(!Distal.end.morpho %in% c(&quot;NA&quot;, &quot;ND&quot;)) %&gt;% #removing blanks without clear info
+  filter(Technology.Phase %in% c(&quot;Ordinary&quot;, &quot;MGMT&quot;)) %&gt;% #only ordinary
+  select(SiteBlank.typeTech, Blank.type, Axiality.simpl, Outline.morphology, Symmetry, Cross.section, Profile, Torsion, Distal.end.morpho) %&gt;%
+  na.omit()
+  
+summary(convexity_maintenanceG)
+
+# Run MCA
+res.mca_Convexity &lt;- MCA(convexity_maintenanceG, graph = FALSE, quali.sup =1:2, method = &quot;Burt&quot;) #Site, SiteBlank.type, SiteBlank.typeTech are not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in platform_maintenanceG, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
+
+print(res.mca_Convexity)
+fviz_screeplot(res.mca_Convexity, addlabels = TRUE, ylim = c(0, 45)) #To visualize the percentages of inertia explained by each MCA dimensions. Dim1 and Dim2 explain 45.865% of the variance
+summary(res.mca_Convexity)
+
+fviz_mca_var(res.mca_Convexity, choice = &quot;mca.cor&quot;, 
+            repel = TRUE, 
+            ggtheme = theme_minimal()) #checking to which dimensions the variable are correlated
+fviz_mca_var(res.mca_Convexity, 
+             repel = TRUE, # 
+             ggtheme = theme_minimal()) #Variable categories with a similar profile are grouped together. Negatively correlated variable categories are positioned on opposite sides of the plot origin (opposed quadrants).The distance between category points and the origin measures the quality of the variable category on the factor map. Category points that are away from the origin are well represented on the factor map.
+
+var &lt;- get_mca_var(res.mca_Convexity)
+head(var$cos2, 50) #If a variable category is well represented by two dimensions, the sum of the cos2 is closed to one. For some of the row items, more than 2 dimensions are required to perfectly represent the data.
+
+fviz_cos2(res.mca_Convexity, choice = &quot;var&quot;, axes = 1:2) #visualising
+
+fviz_contrib(res.mca_Convexity, choice = &quot;var&quot;, axes = 1, top = 15) #contribution to Dim 1. 
+
+fviz_contrib(res.mca_Convexity, choice = &quot;var&quot;, axes = 2, top = 15) #contribution to Dim 2. 
+
+MCA_Convexity_plot &lt;- fviz_mca_var(res.mca_Convexity, col.var = &quot;contrib&quot;,
+             gradient.cols = c(&quot;#00AFBB&quot;, &quot;#E7B800&quot;, &quot;#FC4E07&quot;), 
+             repel = TRUE, # avoid text overlapping (slow)
+             ggtheme = theme_classic()
+             )
+MCA_Convexity_plot
+ggsave(&quot;MCAConvexityALL.tiff&quot;, plot = MCA_Convexity_plot, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)   
+ggsave(&quot;MCAConvexityALL.png&quot;, plot = MCA_Convexity_plot, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300) 
+
+
+MCA_Convexityind &lt;- fviz_mca_ind(res.mca_Convexity, 
+             label = &quot;none&quot;, # hide individual labels
+             habillage = &quot;SiteBlank.typeTech&quot;, # color by groups
+             addEllipses = TRUE, 
+             ellipse.type = &quot;confidence&quot;,
+             ggtheme = theme_classic(),
+             geom = &quot;point&quot;,  # set custom colors              
+) #clustering of type of blanks for each site 
+
+ggsave(&quot;MCA_ConvexityALLind.tiff&quot;, plot = MCA_Convexityind, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)   
+ggsave(&quot;MCA_ConvexityALLind.png&quot;, plot = MCA_Convexityind, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300) </code></pre>
+<p>###only blade bladelet info</p>
+<pre class="r"><code>library(FactoMineR)
+library(factoextra)
+library(dplyr)
+library(ggplot2)
+
+# Select relevant columns and remove missing values
+convexity_maintenanceG1 &lt;- Blanks_Main_lumped1 %&gt;%
+  filter(Blank.type != &quot;Flake&quot;) %&gt;% #check only laminar
+  filter(!Axiality.simpl %in% c(&quot;NA&quot;, &quot;ND&quot;)) %&gt;% #removing blanks without clear info
+  filter(!Symmetry %in% c(&quot;NA&quot;, &quot;ND&quot;)) %&gt;% #removing blanks without clear info
+  filter(!Outline.morphology %in% c(&quot;NA&quot;, &quot;ND&quot;)) %&gt;% #removing blanks without clear info
+  filter(!Profile %in% c(&quot;NA&quot;, &quot;ND&quot;)) %&gt;% #removing blanks without clear info
+  filter(!Torsion %in% c(&quot;NA&quot;, &quot;ND&quot;)) %&gt;% #removing blanks without clear info
+  filter(!Distal.end.morpho %in% c(&quot;NA&quot;, &quot;ND&quot;)) %&gt;% #removing blanks without clear info
+  filter(Technology.Phase %in% c(&quot;Ordinary&quot;, &quot;MGMT&quot;)) %&gt;% #only ordinary
+  select(Blank.type,SiteBlank.type, Axiality.simpl, Outline.morphology, Symmetry, Cross.section, Profile, Torsion, Distal.end.morpho) %&gt;%
+  na.omit()
+  
+summary(convexity_maintenanceG)
+
+# Run MCA
+res.mca_Convexity1 &lt;- MCA(convexity_maintenanceG1, graph = FALSE, quali.sup =1:2, method = &quot;Burt&quot;) #Site, SiteBlank.type, SiteBlank.typeTech are not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in platform_maintenanceG, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
+
+print(res.mca_Convexity1)
+fviz_screeplot(res.mca_Convexity, addlabels = TRUE, ylim = c(0, 45)) #To visualize the percentages of inertia explained by each MCA dimensions. Dim1 and Dim2 explain 45.865% of the variance
+summary(res.mca_Convexity1)
+
+fviz_mca_var(res.mca_Convexity1, choice = &quot;mca.cor&quot;, 
+            repel = TRUE, 
+            ggtheme = theme_minimal()) #checking to which dimensions the variable are correlated
+fviz_mca_var(res.mca_Convexity1, 
+             repel = TRUE, # 
+             ggtheme = theme_minimal()) #Variable categories with a similar profile are grouped together. Negatively correlated variable categories are positioned on opposite sides of the plot origin (opposed quadrants).The distance between category points and the origin measures the quality of the variable category on the factor map. Category points that are away from the origin are well represented on the factor map.
+
+var &lt;- get_mca_var(res.mca_Convexity1)
+head(var$cos2, 50) #If a variable category is well represented by two dimensions, the sum of the cos2 is closed to one. For some of the row items, more than 2 dimensions are required to perfectly represent the data.
+
+fviz_cos2(res.mca_Convexity1, choice = &quot;var&quot;, axes = 1:2) #visualising
+
+fviz_contrib(res.mca_Convexity1, choice = &quot;var&quot;, axes = 1, top = 15) #contribution to Dim 1. 
+
+fviz_contrib(res.mca_Convexity1, choice = &quot;var&quot;, axes = 2, top = 15) #contribution to Dim 2. 
+
+MCA_Convexity_plot1 &lt;- fviz_mca_var(res.mca_Convexity1, col.var = &quot;contrib&quot;,
+             gradient.cols = c(&quot;#00AFBB&quot;, &quot;#E7B800&quot;, &quot;#FC4E07&quot;), 
+             repel = TRUE, # avoid text overlapping (slow)
+             ggtheme = theme_classic()
+             )
+MCA_Convexity_plot1
+ggsave(&quot;MCAConvexityALLnotech.tiff&quot;, plot = MCA_Convexity_plot1, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)   
+ggsave(&quot;MCAConvexityALLnotech.png&quot;, plot = MCA_Convexity_plot1, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300) 
+
+
+MCA_Convexityind1 &lt;- fviz_mca_ind(res.mca_Convexity1, 
+             label = &quot;none&quot;, # hide individual labels
+             habillage = &quot;SiteBlank.type&quot;, # color by groups
+             addEllipses = TRUE, 
+             ellipse.type = &quot;confidence&quot;,
+             ggtheme = theme_classic(),
+             geom = &quot;point&quot;,  # set custom colors              
+) #clustering of type of blanks for each site 
+
+ggsave(&quot;MCA_ConvexityALLindnotech.tiff&quot;, plot = MCA_Convexityind1, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)   
+ggsave(&quot;MCA_ConvexityALLindnotech.png&quot;, plot = MCA_Convexityind1, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)</code></pre>
+<p>####Control</p>
+<pre class="r"><code>library(FactoMineR)
+library(factoextra)
+library(dplyr)
+library(ggplot2)
+
+convexity_maintenanceC &lt;- Blank_Main_Control_elon %&gt;%
+  filter(!Outline.morphology %in% c(&quot;NA&quot;, &quot;ND&quot;, &quot;Other&quot;, &quot;No Dist Part&quot;)) %&gt;% #removing blanks without clear info
+  filter(!Profile %in% c(&quot;NA&quot;, &quot;ND&quot;, &quot;Other&quot;, &quot;Irregular&quot;)) %&gt;% #removing blanks without clear info
+  filter(!Distal.end.morpho %in% c(&quot;NA&quot;, &quot;ND&quot;, &quot;Other&quot;, &quot;No Dist Part&quot;)) %&gt;% #removing blanks without clear info
+  select(SiteBlank.type, Blank.type, Outline.morphology, Cross.section, Profile, Distal.end.morpho) %&gt;%
+  na.omit()
+  
+summary(convexity_maintenanceC)
+
+# Run MCA
+res.mca_ConvexityC &lt;- MCA(convexity_maintenanceC, graph = FALSE, quali.sup =1:2, method = &quot;Burt&quot;) #Site, SiteBlank.type, SiteBlank.typeTech are not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in platform_maintenanceG, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
+
+print(res.mca_ConvexityC)
+fviz_screeplot(res.mca_ConvexityC, addlabels = TRUE, ylim = c(0, 45)) #To visualize the percentages of inertia explained by each MCA dimensions. Dim1 and Dim2 explain 33.269% of the variance
+summary(res.mca_ConvexityC)
+
+fviz_mca_var(res.mca_ConvexityC, choice = &quot;mca.cor&quot;, 
+            repel = TRUE, 
+            ggtheme = theme_minimal()) #checking to which dimensions the variable are correlated
+fviz_mca_var(res.mca_ConvexityC, 
+             repel = TRUE, # 
+             ggtheme = theme_minimal()) #Variable categories with a similar profile are grouped together. Negatively correlated variable categories are positioned on opposite sides of the plot origin (opposed quadrants).The distance between category points and the origin measures the quality of the variable category on the factor map. Category points that are away from the origin are well represented on the factor map.
+
+var &lt;- get_mca_var(res.mca_ConvexityC)
+head(var$cos2, 50) #If a variable category is well represented by two dimensions, the sum of the cos2 is closed to one. For some of the row items, more than 2 dimensions are required to perfectly represent the data.
+
+fviz_cos2(res.mca_ConvexityC, choice = &quot;var&quot;, axes = 1:2) #visualising
+
+fviz_contrib(res.mca_ConvexityC, choice = &quot;var&quot;, axes = 1, top = 15) #contribution to Dim 1. 
+
+fviz_contrib(res.mca_ConvexityC, choice = &quot;var&quot;, axes = 2, top = 15) #contribution to Dim 2. 
+
+MCA_ConvexityC_plot &lt;- fviz_mca_var(res.mca_ConvexityC, col.var = &quot;contrib&quot;,
+             gradient.cols = c(&quot;#00AFBB&quot;, &quot;#E7B800&quot;, &quot;#FC4E07&quot;), 
+             repel = TRUE, # avoid text overlapping (slow)
+             ggtheme = theme_classic()
+             )
+MCA_ConvexityC_plot
+ggsave(&quot;MCAConvexityCONTROL.tiff&quot;, plot = MCA_ConvexityC_plot, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)   
+ggsave(&quot;MCAConvexityCONTROL.png&quot;, plot = MCA_ConvexityC_plot, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300) 
+
+
+MCA_ConvexityCind &lt;- fviz_mca_ind(res.mca_ConvexityC, 
+             label = &quot;none&quot;, # hide individual labels
+             habillage = &quot;SiteBlank.type&quot;, # color by groups
+             addEllipses = TRUE, 
+             ellipse.type = &quot;confidence&quot;,
+             ggtheme = theme_classic(),
+             geom = &quot;point&quot;,  # set custom colors              
+) #clustering of type of blanks for each site 
+
+ggsave(&quot;MCA_ConvexityCONTROLind.tiff&quot;, plot = MCA_ConvexityCind, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)   
+ggsave(&quot;MCA_ConvexityCONTROLind.png&quot;, plot = MCA_ConvexityCind, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300) </code></pre>
 <p>###ANOVA testing Convexity domain</p>
 <p>#####Ordinary</p>
 <pre class="r"><code>#preparing the data
@@ -3804,7 +4602,12 @@ dim2 &lt;- ggplot(mca_summary) +
 ANOVAConvexityO &lt;- grid.arrange(dim1, dim2, ncol = 1)
 
 ggsave(&quot;ANOVAConvexityOrdinary.tiff&quot;, plot = ANOVAConvexityO, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300) 
-ggsave(&quot;ANOVAConvexityOrdinary.png&quot;, plot = ANOVAConvexityO, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)</code></pre>
+ggsave(&quot;ANOVAConvexityOrdinary.png&quot;, plot = ANOVAConvexityO, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)
+
+ANOVAConvexityOMCA &lt;- grid.arrange(ANOVAConvexityO, MCA_ConvexityO, ncol = 1)
+
+ggsave(&quot;ANOVAMCAcombinedConvO.tiff&quot;, plot = ANOVAConvexityOMCA, width = 66.96604, height = 32.75542, units = &quot;cm&quot;, dpi = 300) 
+ggsave(&quot;ANOVAMCAcombinedConvO.png&quot;, plot = ANOVAConvexityOMCA, width = 66.96604, height = 32.75542, units = &quot;cm&quot;, dpi = 300)</code></pre>
 <p>Interpretation ANOVA</p>
 <p>According to the p-values of the single comparison between different
 categories and the resulting letters assigned the following categories
@@ -3956,7 +4759,12 @@ dim2 &lt;- ggplot(mca_summary) +
 ANOVAConvexityM &lt;- grid.arrange(dim1, dim2, ncol = 1)
 
 ggsave(&quot;ANOVAConvexityMGMT.tiff&quot;, plot = ANOVAConvexityM, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300) 
-ggsave(&quot;ANOVAConvexityMGMT.png&quot;, plot = ANOVAConvexityM, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)</code></pre>
+ggsave(&quot;ANOVAConvexityMGMT.png&quot;, plot = ANOVAConvexityM, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)
+
+ANOVAConvexityMMCA &lt;- grid.arrange(ANOVAConvexityM, MCA_ConvexityM_plot, ncol = 1)
+
+ggsave(&quot;ANOVAMCAcombinedConvM.tiff&quot;, plot = ANOVAConvexityMMCA, width = 66.96604, height = 32.75542, units = &quot;cm&quot;, dpi = 300) 
+ggsave(&quot;ANOVAMCAcombinedConvM.png&quot;, plot = ANOVAConvexityMMCA, width = 66.96604, height = 32.75542, units = &quot;cm&quot;, dpi = 300)</code></pre>
 <p>Interpretation ANOVA</p>
 <p>According to the p-values of the single comparison between different
 categories and the resulting letters assigned the following categories
@@ -4032,27 +4840,33 @@ fviz_cos2(res.mca_ReductionO, choice = &quot;var&quot;, axes = 1:2) #visualising
 fviz_contrib(res.mca_ReductionO, choice = &quot;var&quot;, axes = 1, top = 15) #contribution to Dim 1. 
 
 fviz_contrib(res.mca_ReductionO, choice = &quot;var&quot;, axes = 2, top = 15) #contribution to Dim 2.
-MCA_ReductionO &lt;- fviz_mca_var(res.mca_ReductionO, col.var = &quot;contrib&quot;,
+MCA_ReductionO_plot &lt;- fviz_mca_var(res.mca_ReductionO, col.var = &quot;contrib&quot;,
              gradient.cols = c(&quot;#00AFBB&quot;, &quot;#E7B800&quot;, &quot;#FC4E07&quot;), 
              repel = TRUE, # avoid text overlapping (slow)
              ggtheme = theme_classic()
              )#
-MCA_ReductionO
-ggsave(&quot;MCAReductionOrdinary.tiff&quot;, plot = MCA_ReductionO, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300) 
-ggsave(&quot;MCAReductionOrdinary.png&quot;, plot = MCA_ReductionO, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)
+MCA_ReductionO_plot
+ggsave(&quot;MCAReductionOrdinary.tiff&quot;, plot = MCA_ReductionO_plot, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300) 
+ggsave(&quot;MCAReductionOrdinary.png&quot;, plot = MCA_ReductionO_plot, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)
 
 
-fviz_mca_ind(res.mca_ReductionO, 
+MCA_ReductionOind &lt;- fviz_mca_ind(res.mca_ReductionO, 
              label = &quot;none&quot;, # hide individual labels
              habillage = &quot;SiteBlank.typeTech&quot;, # color by groups
              addEllipses = TRUE, ellipse.type = &quot;confidence&quot;,
-             ggtheme = theme_minimal(),
+             ggtheme = theme_classic(),
              geom = &quot;point&quot;,  # set custom colors              
-) #clustering of type of blanks for each site </code></pre>
-<p>library(FactoMineR) library(factoextra) library(dplyr)
-library(ggplot2)</p>
+) #clustering of type of blanks for each site 
+
+ggsave(&quot;MCAReductionOrdinaryind.tiff&quot;, plot = MCA_ReductionOind, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300) 
+ggsave(&quot;MCAReductionOrdinaryind.png&quot;, plot = MCA_ReductionOind, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)</code></pre>
 <p>####MGMT</p>
-<pre class="r"><code># Select relevant columns and remove missing values
+<pre class="r"><code>library(FactoMineR)
+library(factoextra)
+library(dplyr)
+library(ggplot2)
+
+# Select relevant columns and remove missing values
 ReductionM &lt;- Blank_Main_reshaped2 %&gt;%
   filter(Blank.type != &quot;Flake&quot;) %&gt;% #check only laminar
   filter(Technology.Phase == &quot;MGMT&quot;) %&gt;% #check only MGMT
@@ -4088,23 +4902,26 @@ fviz_cos2(res.mca_ReductionM, choice = &quot;var&quot;, axes = 1:2) #visualising
 fviz_contrib(res.mca_ReductionM, choice = &quot;var&quot;, axes = 1, top = 15) #contribution to Dim 1. 
 
 fviz_contrib(res.mca_ReductionM, choice = &quot;var&quot;, axes = 2, top = 15) #contribution to Dim 2.
-MCA_ReductionM &lt;- fviz_mca_var(res.mca_ReductionM, col.var = &quot;contrib&quot;,
+
+MCA_ReductionM_plot &lt;- fviz_mca_var(res.mca_ReductionM, col.var = &quot;contrib&quot;,
              gradient.cols = c(&quot;#00AFBB&quot;, &quot;#E7B800&quot;, &quot;#FC4E07&quot;), 
              repel = TRUE, # avoid text overlapping (slow)
              ggtheme = theme_classic()
              )#
-MCA_ReductionM
-ggsave(&quot;MCAReductionMGMT.tiff&quot;, plot = MCA_ReductionM, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300) 
-ggsave(&quot;MCAReductionMGMT.png&quot;, plot = MCA_ReductionM, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)
+MCA_ReductionM_plot
+ggsave(&quot;MCAReductionMGMT.tiff&quot;, plot = MCA_ReductionM_plot, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300) 
+ggsave(&quot;MCAReductionMGMT.png&quot;, plot = MCA_ReductionM_plot, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)
 
-
-fviz_mca_ind(res.mca_ReductionM, 
+MCA_ReductionMind &lt;- fviz_mca_ind(res.mca_ReductionM, 
              label = &quot;none&quot;, # hide individual labels
              habillage = &quot;SiteBlank.typeTech&quot;, # color by groups
              addEllipses = TRUE, ellipse.type = &quot;confidence&quot;,
-             ggtheme = theme_minimal(),
+             ggtheme = theme_classic(),
              geom = &quot;point&quot;,  # set custom colors              
-) #clustering of type of blanks for each site </code></pre>
+) #clustering of type of blanks for each site 
+
+ggsave(&quot;MCAReductionMGMTind.tiff&quot;, plot = MCA_ReductionMind, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300) 
+ggsave(&quot;MCAReductionMGMTind.png&quot;, plot = MCA_ReductionMind, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)</code></pre>
 <p>###ANOVA testing Reduction domain</p>
 <p>#####Ordinary</p>
 <pre class="r"><code>#preparing the data
@@ -4233,7 +5050,12 @@ dim2 &lt;- ggplot(mca_summary) +
 ANOVAReductionO &lt;- grid.arrange(dim1, dim2, ncol = 1)
 
 ggsave(&quot;ANOVAReductionOrdinary.tiff&quot;, plot = ANOVAReductionO, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300) 
-ggsave(&quot;ANOVAReductionOrdinary.png&quot;, plot = ANOVAReductionO, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)</code></pre>
+ggsave(&quot;ANOVAReductionOrdinary.png&quot;, plot = ANOVAReductionO, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)
+
+ANOVAReductionOMCA &lt;- grid.arrange(ANOVAReductionO, MCA_ReductionO_plot, ncol = 1)
+
+ggsave(&quot;ANOVAMCAcombinedRedO.tiff&quot;, plot = ANOVAReductionOMCA, width = 66.96604, height = 32.75542, units = &quot;cm&quot;, dpi = 300) 
+ggsave(&quot;ANOVAMCAcombinedRedO.png&quot;, plot = ANOVAReductionOMCA, width = 66.96604, height = 32.75542, units = &quot;cm&quot;, dpi = 300)</code></pre>
 <p>Interpretation ANOVA</p>
 <p>According to the p-values of the single comparison between different
 categories and the resulting letters assigned the following categories
@@ -4382,7 +5204,12 @@ dim2 &lt;- ggplot(mca_summary) +
 ANOVAReductionM &lt;- grid.arrange(dim1, dim2, ncol = 1)
 
 ggsave(&quot;ANOVAReductionMGMT.tiff&quot;, plot = ANOVAReductionM, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300) 
-ggsave(&quot;ANOVAReductionMGMT.png&quot;, plot = ANOVAReductionM, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)</code></pre>
+ggsave(&quot;ANOVAReductionMGMT.png&quot;, plot = ANOVAReductionM, width = 43.656255, height = 20.29354, units = &quot;cm&quot;, dpi = 300)
+
+ANOVAReductionMMCA &lt;- grid.arrange(ANOVAReductionM, MCA_ReductionM_plot, ncol = 1)
+
+ggsave(&quot;ANOVAMCAcombinedRedM.tiff&quot;, plot = ANOVAReductionMMCA, width = 66.96604, height = 32.75542, units = &quot;cm&quot;, dpi = 300) 
+ggsave(&quot;ANOVAMCAcombinedRedM.png&quot;, plot = ANOVAReductionMMCA, width = 66.96604, height = 32.75542, units = &quot;cm&quot;, dpi = 300)</code></pre>
 <p>Interpretation ANOVA</p>
 <p>According to the p-values of the single comparison between different
 categories and the resulting letters assigned the following categories
