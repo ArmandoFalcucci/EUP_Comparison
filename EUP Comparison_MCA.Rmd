@@ -1,0 +1,1001 @@
+---
+title: "Comparison EUP_MCA"
+author: "Jacopo Gennai"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(eval = FALSE)
+```
+#Introduction
+
+This is an R Markdown document containing the Rcode and workflow for the "reference_article". This section is dedicated to Multiple Correspondance Analysis
+
+#Datasets
+
+the datasets contain raw data about technological analysis of four Early Upper Palaeolithic assemblages:
+
+-   Ansab AH1 (Jordan)
+-   Romanesti-Dumbravita GH3 (Romania)
+-   Fumane A1-A2 (Italy)
+-   Les Cottés 04inf (France)
+
+the assemblages are stratified and radiometrically dated to the period 41-38 ka cal BP.
+
+Datasets are available singularly at the Zenodo repository "insert link or reference". Datasets are divided in "Blanks", debitage products, and "Cores", exhausted blocks of raw material from which debitage products have been struck. The division is due to the different attributes recorded for the two categories.
+
+#Getting the merged datasets and adding two new specifications
+first of all we create two Supplementary qualitative variables one that sums up the Site and the Blank.type2 info, and one that sums up Site and the Blank.type1 info 
+```{r}
+library(readxl)
+library(dplyr)
+Blanks_Main_merged <- read_excel(file.choose()) #get the Ans_Rom_Fum_CTS_Blanks_merged.xlsx
+
+Blanks_Main_merged_MCA <- Blanks_Main_merged %>%
+  mutate(SiteBlank.type2 = Site, .after = Site) %>%
+  mutate(SiteBlank.type2 = case_when(
+    Site == "AN" & Blank.type2 == "Blade" ~ "AN.Blade",
+    Site == "CTS" & Blank.type2 == "Blade" ~ "CTS.Blade",
+    Site == "FUM" & Blank.type2 == "Blade" ~ "FUM.Blade",
+    Site == "ROM" & Blank.type2 == "Blade" ~ "ROM.Blade",
+    Site == "AN" & Blank.type2 == "Bladelet" ~ "AN.bladlt",
+    Site == "CTS" & Blank.type2 == "Bladelet" ~ "CTS.bladlt",
+    Site == "FUM" & Blank.type2 == "Bladelet" ~ "FUM.bladlt",
+    Site == "ROM" & Blank.type2 == "Bladelet" ~ "ROM.bladlt",
+    Site == "AN" & Blank.type2 == "Flake" ~ "AN.Flake",
+    Site == "CTS" & Blank.type2 == "Flake" ~ "CTS.Flake",
+    Site == "FUM" & Blank.type2 == "Flake" ~ "FUM.Flake",
+    Site == "ROM" & Blank.type2 == "Flake" ~ "ROM.Flake"
+  )) %>%
+mutate(SiteLaminar = SiteBlank.type2, .after = SiteBlank.type2) %>%
+mutate(SiteLaminar = case_when(
+    Site == "AN" & Blank.type1 == "Laminar"  ~ "AN",
+    Site == "CTS" & Blank.type1 == "Laminar"  ~ "CTS",
+    Site == "FUM" & Blank.type1 == "Laminar" ~ "FUM",
+    Site == "ROM" & Blank.type1 == "Laminar" ~ "ROM"))
+    
+str(Blanks_Main_merged_MCA)
+library(writexl)
+write_xlsx(Blanks_Main_merged_MCA, "Ans_Rom_Fum_CTS_Blanks_mergedMCA.xlsx")
+```
+#MCA
+
+first of all we are checking internal variablity within sites
+#Platform
+
+##AN
+```{r}
+install.packages("FactoInvestigate")
+library(FactoMineR)
+library(factoextra)
+library(dplyr)
+library(ggplot2)
+
+
+
+# Select relevant columns and remove missing values
+platform_maintenanceAN <- Blanks_Main_merged_MCA %>%
+  filter(Blank.type1 != "Flake") %>% #check only laminar
+  filter(Preservation != "Mesiodistal") %>% #only blanks with a Proximal part
+  filter(!Platform %in% c("ND", NA, "Cortical")) %>% #removing blanks without clear info
+  filter(!Abrasion %in% c(NA, "ND")) %>% #removing blanks without clear info
+  filter(Site == "AN") %>% #getting only Ansab
+  select(SiteBlank.type2, Abrasion, Platform) %>%
+  na.omit()
+  
+summary(platform_maintenanceAN)
+
+# Run MCA
+res.mca_PlatformAN <- MCA(platform_maintenanceAN, graph = FALSE, quali.sup =1, method = "Burt") # SiteBlank.type1 is not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in platform_maintenanceAN, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
+
+print(res.mca_PlatformAN)
+fviz_screeplot(res.mca_PlatformAN, addlabels = TRUE, ylim = c(0, 45)) #To visualize the percentages of inertia explained by each MCA dimensions. Dim1 and Dim2 explain 56.986% of the variance
+summary(res.mca_PlatformAN)
+
+
+fviz_mca_var(res.mca_PlatformAN, choice = "mca.cor", 
+            repel = TRUE, 
+            ggtheme = theme_minimal()) #checking to which dimensions the variable are correlated
+fviz_mca_var(res.mca_PlatformAN, 
+             repel = TRUE, # 
+             ggtheme = theme_minimal()) #Variable categories with a similar profile are grouped together. Negatively correlated variable categories are positioned on opposite sides of the plot origin (opposed quadrants).The distance between category points and the origin measures the quality of the variable category on the factor map. Category points that are away from the origin are well represented on the factor map.
+
+var <- get_mca_var(res.mca_PlatformAN)
+head(var$cos2, 20) #If a variable category is well represented by two dimensions, the sum of the cos2 is closed to one. For some of the row items, more than 2 dimensions are required to perfectly represent the data.
+
+
+fviz_cos2(res.mca_PlatformAN, choice = "var", axes = 1:2) #visualising
+
+fviz_contrib(res.mca_PlatformAN, choice = "var", axes = 1, top = 15) #contribution to Dim 1. above the threshold are No, Other, Punctiform 
+
+fviz_contrib(res.mca_PlatformAN, choice = "var", axes = 2, top = 15) #contribution to Dim 2. above the threshold is only Plain, Punctiform, Linear
+
+MCA_PlatformAN_plot <- fviz_mca_var(
+  res.mca_PlatformAN,
+  col.var = "contrib",
+  label = "all",
+  invisible = "none",
+  gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+  repel = TRUE,
+  max.overlaps=Inf,
+  ggtheme = theme_classic()
+)
+MCA_PlatformAN_plot
+
+fviz_mca_ind(res.mca_PlatformAN, 
+             label = "none", # hide individual labels
+             habillage = "SiteBlank.type2", # color by groups 
+             palette = c("#00AFBB", "#E7B800"),
+             addEllipses = TRUE, ellipse.type = "confidence",
+             ggtheme = theme_minimal()) 
+
+library(FactoInvestigate)
+Investigate(res.mca_PlatformAN, file = "PlatformAN_MCA_explained.Rmd", c("pdf_document"), parallel = TRUE)
+
+ggsave("MCAPlatformAN.tiff", plot = MCA_PlatformAN_plot, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
+ggsave("MCAPlatformAN.png", plot = MCA_PlatformAN_plot, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)    
+```
+##ROM
+```{r}
+library(FactoMineR)
+library(factoextra)
+library(dplyr)
+library(ggplot2)
+
+
+
+# Select relevant columns and remove missing values
+platform_maintenanceROM <- Blanks_Main_merged_MCA %>%
+  filter(Blank.type1 != "Flake") %>% #check only laminar
+  filter(Preservation != "Mesiodistal") %>% #only blanks with a Proximal part
+  filter(!Platform %in% c("ND", NA, "Cortical")) %>% #removing blanks without clear info
+  filter(!Abrasion %in% c(NA, "ND")) %>% #removing blanks without clear info
+  filter(Site == "ROM") %>% #getting only Les Cottès
+  select(SiteBlank.type2, Abrasion, Platform) %>%
+  na.omit()
+  
+summary(platform_maintenanceROM)
+
+# Run MCA
+res.mca_PlatformROM <- MCA(platform_maintenanceROM, graph = FALSE, quali.sup =1, method = "Burt") # SiteBlank.type1 is not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in platform_maintenanceROM, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
+
+
+print(res.mca_PlatformROM)
+fviz_screeplot(res.mca_PlatformROM, addlabels = TRUE, ylim = c(0, 45)) #To visualize the percentages of inertia explained by each MCA dimensions. Dim1 and Dim2 explain 56.986% of the variance
+summary(res.mca_PlatformROM)
+
+
+fviz_mca_var(res.mca_PlatformROM, choice = "mca.cor", 
+            repel = TRUE, 
+            ggtheme = theme_minimal()) #checking to which dimensions the variable are correlated
+fviz_mca_var(res.mca_PlatformROM, 
+             repel = TRUE, # 
+             ggtheme = theme_minimal()) #Variable categories with a similar profile are grouped together. Negatively correlated variable categories are positioned on opposite sides of the plot origin (opposed quadrants).The distance between category points and the origin measures the quality of the variable category on the factor map. Category points that are away from the origin are well represented on the factor map.
+
+var <- get_mca_var(res.mca_PlatformROM)
+head(var$cos2, 20) #If a variable category is well represented by two dimensions, the sum of the cos2 is closed to one. For some of the row items, more than 2 dimensions are required to perfectly represent the data.
+
+
+fviz_cos2(res.mca_PlatformROM, choice = "var", axes = 1:2) #visualising
+
+fviz_contrib(res.mca_PlatformROM, choice = "var", axes = 1, top = 15) #contribution to Dim 1. above the threshold are No, Other, Punctiform 
+
+fviz_contrib(res.mca_PlatformROM, choice = "var", axes = 2, top = 15) #contribution to Dim 2. above the threshold is only Plain, Punctiform, Linear
+
+MCA_PlatformROM_plot <- fviz_mca_var(
+  res.mca_PlatformROM,
+  col.var = "contrib",
+  label = "all",
+  invisible = "none",
+  gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+  repel = TRUE,
+  max.overlaps=Inf,
+  ggtheme = theme_classic()
+)
+MCA_PlatformROM_plot
+
+library(FactoInvestigate)
+Investigate(res.mca_PlatformROM, file = "PlatformROM_MCA_explained.Rmd", document = "pdf_document", parallel = FALSE)
+
+ggsave("MCAPlatformROM.tiff", plot = MCA_PlatformROM_plot, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
+ggsave("MCAPlatformROM.png", plot = MCA_PlatformROM_plot, width = 43.656255, height = 20.29354, units = "cm", dpi = 300) 
+```
+
+##FUM
+```{r}
+library(FactoMineR)
+library(factoextra)
+library(dplyr)
+library(ggplot2)
+
+
+
+# Select relevant columns and remove missing values
+platform_maintenanceFUM <- Blanks_Main_merged_MCA %>%
+  filter(Blank.type1 != "Flake") %>% #check only laminar
+  filter(Preservation != "Mesiodistal") %>% #only blanks with a Proximal part
+  filter(!Platform %in% c("ND", NA, "Cortical")) %>% #removing blanks without clear info
+  filter(!Abrasion %in% c(NA, "ND")) %>% #removing blanks without clear info
+  filter(Site == "FUM") %>% #getting only Fumane
+  select(SiteBlank.type2, Abrasion, Platform) %>%
+  na.omit()
+  
+summary(platform_maintenanceFUM)
+
+# Run MCA
+res.mca_PlatformFUM <- MCA(platform_maintenanceFUM, graph = FALSE, method = "Burt", quali.sup =1) # SiteBlank.type1 is not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in platform_maintenanceFUM, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
+
+
+print(res.mca_PlatformFUM)
+fviz_screeplot(res.mca_PlatformFUM, addlabels = TRUE, ylim = c(0, 45)) #To visualize the percentages of inertia explained by each MCA dimensions. Dim1 and Dim2 explain 56.986% of the variance
+summary(res.mca_PlatformFUM)
+
+
+fviz_mca_var(res.mca_PlatformFUM, choice = "mca.cor", 
+            repel = TRUE, 
+            ggtheme = theme_minimal()) #checking to which dimensions the variable are correlated
+fviz_mca_var(res.mca_PlatformFUM, 
+             repel = TRUE, # 
+             ggtheme = theme_minimal()) #Variable categories with a similar profile are grouped together. Negatively correlated variable categories are positioned on opposite sides of the plot origin (opposed quadrants).The distance between category points and the origin measures the quality of the variable category on the factor map. Category points that are away from the origin are well represented on the factor map.
+
+var <- get_mca_var(res.mca_PlatformFUM)
+head(var$cos2, 20) #If a variable category is well represented by two dimensions, the sum of the cos2 is closed to one. For some of the row items, more than 2 dimensions are required to perfectly represent the data.
+
+
+fviz_cos2(res.mca_PlatformFUM, choice = "var", axes = 1:2) #visualising
+
+fviz_contrib(res.mca_PlatformFUM, choice = "var", axes = 1, top = 15) #contribution to Dim 1. above the threshold are No, Other, Punctiform 
+
+fviz_contrib(res.mca_PlatformFUM, choice = "var", axes = 2, top = 15) #contribution to Dim 2. above the threshold is only Plain, Punctiform, Linear
+
+MCA_PlatformFUM_plot <- fviz_mca_var(
+  res.mca_PlatformFUM,
+  col.var = "contrib",
+  label = "all",
+  invisible = "none",
+  gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+  repel = TRUE,
+  max.overlaps=Inf,
+  ggtheme = theme_classic()
+)
+MCA_PlatformFUM_plot
+
+library(FactoInvestigate)
+Investigate(res.mca_PlatformFUM, file = "PlatformFUM_MCA_explained.Rmd", document = "pdf_document", parallel = FALSE) #ERROR
+
+ggsave("MCAPlatformFUM.tiff", plot = MCA_PlatformFUM_plot, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
+ggsave("MCAPlatformFUM.png", plot = MCA_PlatformFUM_plot, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
+```
+
+
+##CTS
+```{r}
+library(FactoMineR)
+library(factoextra)
+library(dplyr)
+library(ggplot2)
+
+
+
+# Select relevant columns and remove missing values
+platform_maintenanceCTS <- Blanks_Main_merged_MCA %>%
+  filter(Blank.type1 != "Flake") %>% #check only laminar
+  filter(Preservation != "Mesiodistal") %>% #only blanks with a Proximal part
+  filter(!Platform %in% c("ND", NA, "Cortical")) %>% #removing blanks without clear info
+  filter(!Abrasion %in% c(NA, "ND")) %>% #removing blanks without clear info
+  filter(Site == "CTS") %>% #getting only Les Cottès
+  select(SiteBlank.type2, Abrasion, Platform) %>%
+  na.omit()
+  
+summary(platform_maintenanceCTS)
+
+# Run MCA
+res.mca_PlatformCTS <- MCA(platform_maintenanceCTS, graph = FALSE, quali.sup =1, method = "Burt") # SiteBlank.type1 is not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in platform_maintenanceCTS, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
+
+
+print(res.mca_PlatformCTS)
+fviz_screeplot(res.mca_PlatformCTS, addlabels = TRUE, ylim = c(0, 45)) #To visualize the percentages of inertia explained by each MCA dimensions. Dim1 and Dim2 explain 56.986% of the variance
+summary(res.mca_PlatformCTS)
+
+
+fviz_mca_var(res.mca_PlatformCTS, choice = "mca.cor", 
+            repel = TRUE, 
+            ggtheme = theme_minimal()) #checking to which dimensions the variable are correlated
+fviz_mca_var(res.mca_PlatformCTS, 
+             repel = TRUE, # 
+             ggtheme = theme_minimal()) #Variable categories with a similar profile are grouped together. Negatively correlated variable categories are positioned on opposite sides of the plot origin (opposed quadrants).The distance between category points and the origin measures the quality of the variable category on the factor map. Category points that are away from the origin are well represented on the factor map.
+
+var <- get_mca_var(res.mca_PlatformCTS)
+head(var$cos2, 20) #If a variable category is well represented by two dimensions, the sum of the cos2 is closed to one. For some of the row items, more than 2 dimensions are required to perfectly represent the data.
+
+
+fviz_cos2(res.mca_PlatformCTS, choice = "var", axes = 1:2) #visualising
+
+fviz_contrib(res.mca_PlatformCTS, choice = "var", axes = 1, top = 15) #contribution to Dim 1. above the threshold are No, Other, Punctiform 
+
+fviz_contrib(res.mca_PlatformCTS, choice = "var", axes = 2, top = 15) #contribution to Dim 2. above the threshold is only Plain, Punctiform, Linear
+
+MCA_PlatformCTS_plot <- fviz_mca_var(
+  res.mca_PlatformCTS,
+  col.var = "contrib",
+  label = "all",
+  invisible = "none",
+  gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+  repel = TRUE,
+  max.overlaps=Inf,
+  ggtheme = theme_classic()
+)
+MCA_PlatformCTS_plot
+
+library(FactoInvestigate)
+Investigate(res.mca_PlatformCTS, file = "PlatformCTS_MCA_explained.Rmd", document = "pdf_document", parallel = TRUE) #ERROR
+
+ggsave("MCAPlatformCTS.tiff", plot = MCA_PlatformCTS_plot, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
+ggsave("MCAPlatformCTS.png", plot = MCA_PlatformCTS_plot, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)    
+```
+##ALL SITES
+###Laminar together
+```{r}
+library(FactoMineR)
+library(factoextra)
+library(dplyr)
+library(ggplot2)
+
+
+
+# Select relevant columns and remove missing values
+platform_maintenanceALL <- Blanks_Main_merged_MCA %>%
+  filter(Blank.type1 != "Flake") %>% #check only laminar
+  filter(Preservation != "Mesiodistal") %>% #only blanks with a Proximal part
+  filter(!Platform %in% c("ND", NA, "Cortical")) %>% #removing blanks without clear info
+  filter(!Abrasion %in% c(NA, "ND")) %>% #removing blanks without clear info
+  select(SiteLaminar, Abrasion, Platform) %>%
+  na.omit()
+  
+summary(platform_maintenanceALL)
+
+# Run MCA
+res.mca_PlatformALL <- MCA(platform_maintenanceALL, graph = FALSE, quali.sup =1, method = "Burt") # SiteBlank.type1 is not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in platform_maintenanceALL, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
+
+
+print(res.mca_PlatformALL)
+fviz_screeplot(res.mca_PlatformALL, addlabels = TRUE, ylim = c(0, 45)) #To visualize the percentages of inertia explained by each MCA dimensions. Dim1 and Dim2 explain 56.986% of the variance
+summary(res.mca_PlatformALL)
+
+
+fviz_mca_var(res.mca_PlatformALL, choice = "mca.cor", 
+            repel = TRUE, 
+            ggtheme = theme_minimal()) #checking to which dimensions the variable are correlated
+fviz_mca_var(res.mca_PlatformALL, 
+             repel = TRUE, # 
+             ggtheme = theme_minimal()) #Variable categories with a similar profile are grouped together. Negatively correlated variable categories are positioned on opposite sides of the plot origin (opposed quadrants).The distance between category points and the origin measures the quality of the variable category on the factor map. Category points that are away from the origin are well represented on the factor map.
+
+var <- get_mca_var(res.mca_PlatformALL)
+head(var$cos2, 20) #If a variable category is well represented by two dimensions, the sum of the cos2 is closed to one. For some of the row items, more than 2 dimensions are required to perfectly represent the data.
+
+
+fviz_cos2(res.mca_PlatformALL, choice = "var", axes = 1:2) #visualising
+
+fviz_contrib(res.mca_PlatformALL, choice = "var", axes = 1, top = 15) #contribution to Dim 1. above the threshold are No, Other, Punctiform 
+
+fviz_contrib(res.mca_PlatformALL, choice = "var", axes = 2, top = 15) #contribution to Dim 2. above the threshold is only Plain, Punctiform, Linear
+
+MCA_PlatformALL_plot <- fviz_mca_var(
+  res.mca_PlatformALL,
+  col.var = "contrib",
+  label = "all",
+  invisible = "none",
+  gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+  repel = TRUE,
+  max.overlaps=Inf,
+  ggtheme = theme_classic()
+)
+MCA_PlatformALL_plot
+
+library(FactoInvestigate)
+Investigate(res.mca_PlatformALL, file = "PlatformALL_MCA_explained.Rmd", document = "pdf_document", parallel = TRUE) 
+
+
+ggsave("MCAPlatformALL.tiff", plot = MCA_PlatformALL_plot, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
+ggsave("MCAPlatformALL.png", plot = MCA_PlatformALL_plot, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)    
+```
+###blades and bladelets distinct
+```{r}
+library(FactoMineR)
+library(factoextra)
+library(dplyr)
+library(ggplot2)
+
+
+
+# Select relevant columns and remove missing values
+platform_maintenanceALL2 <- Blanks_Main_merged_MCA %>%
+  filter(Blank.type1 != "Flake") %>% #check only laminar
+  filter(Preservation != "Mesiodistal") %>% #only blanks with a Proximal part
+  filter(!Platform %in% c("ND", NA, "Cortical")) %>% #removing blanks without clear info
+  filter(!Abrasion %in% c(NA, "ND")) %>% #removing blanks without clear info
+  select(SiteBlank.type2, SiteLaminar, Abrasion, Platform) %>%
+  na.omit()
+  
+summary(platform_maintenanceALL2)
+
+# Run MCA
+res.mca_PlatformALL2 <- MCA(platform_maintenanceALL2, graph = FALSE, quali.sup =1:2, method = "Burt") # SiteBlank.type1 is not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in platform_maintenanceALL2, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
+
+
+print(res.mca_PlatformALL2)
+fviz_screeplot(res.mca_PlatformALL2, addlabels = TRUE, ylim = c(0, 45)) #To visualize the percentages of inertia explained by each MCA dimensions. Dim1 and Dim2 explain 56.986% of the variance
+summary(res.mca_PlatformALL2)
+
+
+fviz_mca_var(res.mca_PlatformALL2, choice = "mca.cor", 
+            repel = TRUE, 
+            ggtheme = theme_minimal()) #checking to which dimensions the variable are correlated
+fviz_mca_var(res.mca_PlatformALL2, 
+             repel = TRUE, # 
+             ggtheme = theme_minimal()) #Variable categories with a similar profile are grouped together. Negatively correlated variable categories are positioned on opposite sides of the plot origin (opposed quadrants).The distance between category points and the origin measures the quality of the variable category on the factor map. Category points that are away from the origin are well represented on the factor map.
+
+var <- get_mca_var(res.mca_PlatformALL2)
+head(var$cos2, 20) #If a variable category is well represented by two dimensions, the sum of the cos2 is closed to one. For some of the row items, more than 2 dimensions are required to perfectly represent the data.
+
+
+fviz_cos2(res.mca_PlatformALL2, choice = "var", axes = 1:2) #visualising
+
+fviz_contrib(res.mca_PlatformALL2, choice = "var", axes = 1, top = 15) #contribution to Dim 1. above the threshold are No, Other, Punctiform 
+
+fviz_contrib(res.mca_PlatformALL2, choice = "var", axes = 2, top = 15) #contribution to Dim 2. above the threshold is only Plain, Punctiform, Linear
+
+MCA_PlatformALL2_plot <- fviz_mca_var(
+  res.mca_PlatformALL2,
+  col.var = "contrib",
+  label = "all",
+  invisible = "none",
+  gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+  repel = TRUE,
+  max.overlaps=Inf,
+  ggtheme = theme_classic()
+)
+MCA_PlatformALL2_plot
+
+library(FactoInvestigate)
+Investigate(res.mca_PlatformALL2, file = "PlatformALL2_MCA_explained.Rmd", document = "pdf_document", parallel = TRUE) 
+
+
+ggsave("MCAPlatformALL2.tiff", plot = MCA_PlatformALL2_plot, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
+ggsave("MCAPlatformALL2.png", plot = MCA_PlatformALL2_plot, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)    
+```
+
+#Convexity shaping
+##AN
+```{r}
+library(FactoMineR)
+library(factoextra)
+library(dplyr)
+library(ggplot2)
+
+
+
+# Select relevant columns and remove missing values
+convexity_maintenanceAN <- Blanks_Main_merged_MCA %>%
+  filter(Blank.type1 != "Flake") %>% #check only laminar
+  filter(!Axiality %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Symmetry %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Outline.morphology %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Profile %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Cross.section %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Torsion %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Distal.end.morpho %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(Site == "AN") %>% #only Ansab
+  select(SiteBlank.type2, Axiality, Outline.morphology, Symmetry, Cross.section, Profile, Torsion, Distal.end.morpho) %>%
+  na.omit()
+
+summary(convexity_maintenanceAN)
+# Run MCA
+res.mca_ConvexityAN <- MCA(convexity_maintenanceAN, graph = FALSE, quali.sup =1, method = "Burt") # SiteBlank.type1 is not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in convexity_maintenanceAN, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
+
+print(res.mca_ConvexityAN)
+fviz_screeplot(res.mca_ConvexityAN, addlabels = TRUE, ylim = c(0, 45)) #To visualize the percentages of inertia explained by each MCA dimensions. Dim1 and Dim2 explain 56.986% of the variance
+summary(res.mca_ConvexityAN)
+
+
+fviz_mca_var(res.mca_ConvexityAN, choice = "mca.cor", 
+            repel = TRUE, 
+            ggtheme = theme_minimal()) #checking to which dimensions the variable are correlated
+fviz_mca_var(res.mca_ConvexityAN, 
+             repel = TRUE, # 
+             ggtheme = theme_minimal()) #Variable categories with a similar profile are grouped together. Negatively correlated variable categories are positioned on opposite sides of the plot origin (opposed quadrants).The distance between category points and the origin measures the quality of the variable category on the factor map. Category points that are away from the origin are well represented on the factor map.
+
+var <- get_mca_var(res.mca_ConvexityAN)
+head(var$cos2, 20) #If a variable category is well represented by two dimensions, the sum of the cos2 is closed to one. For some of the row items, more than 2 dimensions are required to perfectly represent the data.
+
+
+fviz_cos2(res.mca_ConvexityAN, choice = "var", axes = 1:2) #visualising
+
+fviz_contrib(res.mca_ConvexityAN, choice = "var", axes = 1, top = 15) #contribution to Dim 1. above the threshold are No, Other, Punctiform 
+
+fviz_contrib(res.mca_ConvexityAN, choice = "var", axes = 2, top = 15) #contribution to Dim 2. above the threshold is only Plain, Punctiform, Linear
+
+MCA_ConvexityAN_plot <- fviz_mca_var(
+  res.mca_ConvexityAN,
+  col.var = "contrib",
+  label = "all",
+  invisible = "none",
+  gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+  repel = TRUE,
+  max.overlaps=Inf,
+  ggtheme = theme_classic()
+)
+MCA_ConvexityAN_plot
+
+library(FactoInvestigate)
+Investigate(res.mca_ConvexityAN, file = "ConvexityAN_MCA_explained.Rmd", document = "pdf_document", 
+            parallel = TRUE)
+
+ggsave("MCAConvexityAN.tiff", plot = MCA_ConvexityAN_plot, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
+ggsave("MCAConvexityAN.png", plot = MCA_ConvexityAN_plot, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)    
+```
+##ROM
+```{r}
+library(FactoMineR)
+library(factoextra)
+library(dplyr)
+library(ggplot2)
+
+
+
+# Select relevant columns and remove missing values
+convexity_maintenanceROM <- Blanks_Main_merged_MCA %>%
+  filter(Blank.type1 != "Flake") %>% #check only laminar
+  filter(!Axiality %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Symmetry %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Outline.morphology %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Profile %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Cross.section %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Torsion %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Distal.end.morpho %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(Site == "ROM") %>% #only Ansab
+  select(SiteBlank.type2, Axiality, Outline.morphology, Symmetry, Cross.section, Profile, Torsion, Distal.end.morpho) %>%
+  na.omit()
+
+summary(convexity_maintenanceROM)
+# Run MCA
+res.mca_ConvexityROM <- MCA(convexity_maintenanceROM, graph = FALSE, quali.sup =1, method = "Burt") # SiteBlank.type1 is not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in convexity_maintenanceROM, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
+
+print(res.mca_ConvexityROM)
+fviz_screeplot(res.mca_ConvexityROM, addlabels = TRUE, ylim = c(0, 45)) #To visualize the percentages of inertia explained by each MCA dimensions. Dim1 and Dim2 explain 56.986% of the variance
+summary(res.mca_ConvexityROM)
+
+
+fviz_mca_var(res.mca_ConvexityROM, choice = "mca.cor", 
+            repel = TRUE, 
+            ggtheme = theme_minimal()) #checking to which dimensions the variable are correlated
+fviz_mca_var(res.mca_ConvexityROM, 
+             repel = TRUE, # 
+             ggtheme = theme_minimal()) #Variable categories with a similar profile are grouped together. Negatively correlated variable categories are positioned on opposite sides of the plot origin (opposed quadrants).The distance between category points and the origin measures the quality of the variable category on the factor map. Category points that are away from the origin are well represented on the factor map.
+
+var <- get_mca_var(res.mca_ConvexityROM)
+head(var$cos2, 20) #If a variable category is well represented by two dimensions, the sum of the cos2 is closed to one. For some of the row items, more than 2 dimensions are required to perfectly represent the data.
+
+
+fviz_cos2(res.mca_ConvexityROM, choice = "var", axes = 1:2) #visualising
+
+fviz_contrib(res.mca_ConvexityROM, choice = "var", axes = 1, top = 15) #contribution to Dim 1. above the threshold are No, Other, Punctiform 
+
+fviz_contrib(res.mca_ConvexityROM, choice = "var", axes = 2, top = 15) #contribution to Dim 2. above the threshold is only Plain, Punctiform, Linear
+
+MCA_ConvexityROM_plot <- fviz_mca_var(
+  res.mca_ConvexityROM,
+  col.var = "contrib",
+  label = "all",
+  invisible = "none",
+  gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+  repel = TRUE,
+  max.overlaps=Inf,
+  ggtheme = theme_classic()
+)
+MCA_ConvexityROM_plot
+
+library(FactoInvestigate)
+Investigate(res.mca_ConvexityROM, file = "ConvexityROM_MCA_explained.Rmd", document = "pdf_document", 
+            parallel = TRUE)
+
+ggsave("MCAConvexityROM.tiff", plot = MCA_ConvexityROM_plot, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
+ggsave("MCAConvexityROM.png", plot = MCA_ConvexityROM_plot, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)    
+```
+##FUM
+```{r}
+library(FactoMineR)
+library(factoextra)
+library(dplyr)
+library(ggplot2)
+
+
+
+# Select relevant columns and remove missing values
+convexity_maintenanceFUM <- Blanks_Main_merged_MCA %>%
+  filter(Blank.type1 != "Flake") %>% #check only laminar
+  filter(!Axiality %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Symmetry %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Outline.morphology %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Profile %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Cross.section %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Torsion %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Distal.end.morpho %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(Site == "FUM") %>% #only Ansab
+  select(SiteBlank.type2, Axiality, Outline.morphology, Symmetry, Cross.section, Profile, Torsion, Distal.end.morpho) %>%
+  na.omit()
+
+summary(convexity_maintenanceFUM)
+# Run MCA
+res.mca_ConvexityFUM <- MCA(convexity_maintenanceFUM, graph = FALSE, quali.sup =1, method = "Burt") # SiteBlank.type1 is not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in convexity_maintenanceFUM, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
+
+print(res.mca_ConvexityFUM)
+fviz_screeplot(res.mca_ConvexityFUM, addlabels = TRUE, ylim = c(0, 45)) #To visualize the percentages of inertia explained by each MCA dimensions. Dim1 and Dim2 explain 56.986% of the variance
+summary(res.mca_ConvexityFUM)
+
+
+fviz_mca_var(res.mca_ConvexityFUM, choice = "mca.cor", 
+            repel = TRUE, 
+            ggtheme = theme_minimal()) #checking to which dimensions the variable are correlated
+fviz_mca_var(res.mca_ConvexityFUM, 
+             repel = TRUE, # 
+             ggtheme = theme_minimal()) #Variable categories with a similar profile are grouped together. Negatively correlated variable categories are positioned on opposite sides of the plot origin (opposed quadrants).The distance between category points and the origin measures the quality of the variable category on the factor map. Category points that are away from the origin are well represented on the factor map.
+
+var <- get_mca_var(res.mca_ConvexityFUM)
+head(var$cos2, 20) #If a variable category is well represented by two dimensions, the sum of the cos2 is closed to one. For some of the row items, more than 2 dimensions are required to perfectly represent the data.
+
+
+fviz_cos2(res.mca_ConvexityFUM, choice = "var", axes = 1:2) #visualising
+
+fviz_contrib(res.mca_ConvexityFUM, choice = "var", axes = 1, top = 15) #contribution to Dim 1. above the threshold are No, Other, Punctiform 
+
+fviz_contrib(res.mca_ConvexityFUM, choice = "var", axes = 2, top = 15) #contribution to Dim 2. above the threshold is only Plain, Punctiform, Linear
+
+MCA_ConvexityFUM_plot <- fviz_mca_var(
+  res.mca_ConvexityFUM,
+  col.var = "contrib",
+  label = "all",
+  invisible = "none",
+  gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+  repel = TRUE,
+  max.overlaps=Inf,
+  ggtheme = theme_classic()
+)
+MCA_ConvexityFUM_plot
+
+library(FactoInvestigate)
+Investigate(res.mca_ConvexityFUM, file = "ConvexityFUM_MCA_explained.Rmd", document = "pdf_document", 
+            parallel = TRUE)
+
+ggsave("MCAConvexityFUM.tiff", plot = MCA_ConvexityFUM_plot, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
+ggsave("MCAConvexityFUM.png", plot = MCA_ConvexityFUM_plot, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)    
+```
+
+##CTS
+```{r}
+library(FactoMineR)
+library(factoextra)
+library(dplyr)
+library(ggplot2)
+
+
+
+# Select relevant columns and remove missing values
+convexity_maintenanceCTS <- Blanks_Main_merged_MCA %>%
+  filter(Blank.type1 != "Flake") %>% #check only laminar
+  filter(!Axiality %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Symmetry %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Outline.morphology %in% c("NA", "ND", "Other")) %>% #removing blanks without clear info
+  filter(!Profile %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Cross.section %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Torsion %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Distal.end.morpho %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(Site == "CTS") %>% #only Ansab
+  select(SiteBlank.type2, Axiality, Outline.morphology, Symmetry, Cross.section, Profile, Torsion, Distal.end.morpho) %>%
+  na.omit()
+
+summary(convexity_maintenanceCTS)
+# Run MCA
+res.mca_ConvexityCTS <- MCA(convexity_maintenanceCTS, graph = FALSE, quali.sup =1, method = "Burt") # SiteBlank.type1 is not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in convexity_maintenanceCTS, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
+
+print(res.mca_ConvexityCTS)
+fviz_screeplot(res.mca_ConvexityCTS, addlabels = TRUE, ylim = c(0, 45)) #To visualize the percentages of inertia explained by each MCA dimensions. Dim1 and Dim2 explain 56.986% of the variance
+summary(res.mca_ConvexityCTS)
+
+
+fviz_mca_var(res.mca_ConvexityCTS, choice = "mca.cor", 
+            repel = TRUE, 
+            ggtheme = theme_minimal()) #checking to which dimensions the variable are correlated
+fviz_mca_var(res.mca_ConvexityCTS, 
+             repel = TRUE, # 
+             ggtheme = theme_minimal()) #Variable categories with a similar profile are grouped together. Negatively correlated variable categories are positioned on opposite sides of the plot origin (opposed quadrants).The distance between category points and the origin measures the quality of the variable category on the factor map. Category points that are away from the origin are well represented on the factor map.
+
+var <- get_mca_var(res.mca_ConvexityCTS)
+head(var$cos2, 20) #If a variable category is well represented by two dimensions, the sum of the cos2 is closed to one. For some of the row items, more than 2 dimensions are required to perfectly represent the data.
+
+
+fviz_cos2(res.mca_ConvexityCTS, choice = "var", axes = 1:2) #visualising
+
+fviz_contrib(res.mca_ConvexityCTS, choice = "var", axes = 1, top = 15) #contribution to Dim 1. above the threshold are No, Other, Punctiform 
+
+fviz_contrib(res.mca_ConvexityCTS, choice = "var", axes = 2, top = 15) #contribution to Dim 2. above the threshold is only Plain, Punctiform, Linear
+
+MCA_ConvexityCTS_plot <- fviz_mca_var(
+  res.mca_ConvexityCTS,
+  col.var = "contrib",
+  label = "all",
+  invisible = "none",
+  gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+  repel = TRUE,
+  max.overlaps=Inf,
+  ggtheme = theme_classic()
+)
+MCA_ConvexityCTS_plot
+
+library(FactoInvestigate)
+Investigate(res.mca_ConvexityCTS, file = "ConvexityCTS_MCA_explained.Rmd", document = "pdf_document", 
+            parallel = TRUE)
+
+ggsave("MCAConvexityCTS.tiff", plot = MCA_ConvexityCTS_plot, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
+ggsave("MCAConvexityCTS.png", plot = MCA_ConvexityCTS_plot, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)    
+```
+
+##ALL SITES
+###Laminar together
+```{r}
+library(FactoMineR)
+library(factoextra)
+library(dplyr)
+library(ggplot2)
+
+
+
+convexity_maintenance_ALL <- Blanks_Main_merged_MCA %>%
+  filter(Blank.type1 != "Flake") %>% #check only laminar
+  filter(!Axiality %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Symmetry %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Outline.morphology %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Profile %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Cross.section %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Torsion %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Distal.end.morpho %in% c("NA", "ND")) %>% #removing blanks without clear info
+  select(SiteLaminar, Axiality, Outline.morphology, Symmetry, Cross.section, Profile, Torsion, Distal.end.morpho) %>%
+  na.omit()
+  
+summary(convexity_maintenance_ALL)
+
+# Run MCA
+res.mca_convexityALL <- MCA(convexity_maintenance_ALL, graph = FALSE, quali.sup =1, method = "Burt") # SiteBlank.type1 is not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in retouching_ALL, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
+
+
+print(res.mca_convexityALL)
+fviz_screeplot(res.mca_convexityALL, addlabels = TRUE, ylim = c(0, 45)) #To visualize the percentages of inertia explained by each MCA dimensions. Dim1 and Dim2 explain 56.986% of the variance
+summary(res.mca_convexityALL)
+
+
+fviz_mca_var(res.mca_convexityALL, choice = "mca.cor", 
+            repel = TRUE, 
+            ggtheme = theme_minimal()) #checking to which dimensions the variable are correlated
+fviz_mca_var(res.mca_convexityALL, 
+             repel = TRUE, # 
+             ggtheme = theme_minimal()) #Variable categories with a similar profile are grouped together. Negatively correlated variable categories are positioned on opposite sides of the plot origin (opposed quadrants).The distance between category points and the origin measures the quality of the variable category on the factor map. Category points that are away from the origin are well represented on the factor map.
+
+var <- get_mca_var(res.mca_convexityALL)
+head(var$cos2, 20) #If a variable category is well represented by two dimensions, the sum of the cos2 is closed to one. For some of the row items, more than 2 dimensions are required to perfectly represent the data.
+
+
+fviz_cos2(res.mca_convexityALL, choice = "var", axes = 1:2) #visualising
+
+fviz_contrib(res.mca_convexityALL, choice = "var", axes = 1, top = 15) #contribution to Dim 1. above the threshold are No, Other, Punctiform 
+
+fviz_contrib(res.mca_convexityALL, choice = "var", axes = 2, top = 15) #contribution to Dim 2. above the threshold is only Plain, Punctiform, Linear
+
+MCA_convexityALL_plot <- fviz_mca_var(
+  res.mca_convexityALL,
+  col.var = "contrib",
+  label = "all",
+  invisible = "none",
+  gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+  repel = TRUE,
+  max.overlaps=Inf,
+  ggtheme = theme_classic()
+)
+MCA_convexityALL_plot
+
+library(FactoInvestigate)
+Investigate(res.mca_convexityALL, file = "convexityALL_MCA_explained.Rmd", document = "pdf_document", parallel = TRUE) 
+
+ggsave("MCAconvexityALL.tiff", plot = MCA_convexityALL_plot, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
+ggsave("MCAconvexityALL.png", plot = MCA_convexityALL_plot, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)    
+```
+###blades and bladelets distinct
+```{r}
+library(FactoMineR)
+library(factoextra)
+library(dplyr)
+library(ggplot2)
+
+
+
+# Select relevant columns and remove missing values
+convexity_maintenance_ALL2 <- Blanks_Main_merged_MCA %>%
+  filter(Blank.type1 != "Flake") %>% #check only laminar
+  filter(!Axiality %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Symmetry %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Outline.morphology %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Profile %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Cross.section %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Torsion %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Distal.end.morpho %in% c("NA", "ND")) %>% #removing blanks without clear info
+  select(SiteBlank.type2, SiteLaminar, Axiality, Outline.morphology, Symmetry, Cross.section, Profile, Torsion, Distal.end.morpho) %>%
+  na.omit()
+  
+summary(convexity_maintenance_ALL2)
+
+# Run MCA
+res.mca_convexityALL2 <- MCA(convexity_maintenance_ALL2, graph = FALSE, quali.sup =1:2, method = "Burt") # SiteBlank.type1 is not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in retouching_ALL2, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
+
+
+print(res.mca_convexityALL2)
+fviz_screeplot(res.mca_convexityALL2, addlabels = TRUE, ylim = c(0, 45)) #To visualize the percentages of inertia explained by each MCA dimensions. Dim1 and Dim2 explain 56.986% of the variance
+summary(res.mca_convexityALL2)
+
+
+fviz_mca_var(res.mca_convexityALL2, choice = "mca.cor", 
+            repel = TRUE, 
+            ggtheme = theme_minimal()) #checking to which dimensions the variable are correlated
+fviz_mca_var(res.mca_convexityALL2, 
+             repel = TRUE, # 
+             ggtheme = theme_minimal()) #Variable categories with a similar profile are grouped together. Negatively correlated variable categories are positioned on opposite sides of the plot origin (opposed quadrants).The distance between category points and the origin measures the quality of the variable category on the factor map. Category points that are away from the origin are well represented on the factor map.
+
+var <- get_mca_var(res.mca_convexityALL2)
+head(var$cos2, 20) #If a variable category is well represented by two dimensions, the sum of the cos2 is closed to one. For some of the row items, more than 2 dimensions are required to perfectly represent the data.
+
+
+fviz_cos2(res.mca_convexityALL2, choice = "var", axes = 1:2) #visualising
+
+fviz_contrib(res.mca_convexityALL2, choice = "var", axes = 1, top = 15) #contribution to Dim 1. above the threshold are No, Other, Punctiform 
+
+fviz_contrib(res.mca_convexityALL2, choice = "var", axes = 2, top = 15) #contribution to Dim 2. above the threshold is only Plain, Punctiform, Linear
+
+MCA_convexityALL2_plot <- fviz_mca_var(
+  res.mca_convexityALL2,
+  col.var = "contrib",
+  label = "all",
+  invisible = "none",
+  gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+  repel = TRUE,
+  max.overlaps=Inf,
+  ggtheme = theme_classic()
+)
+MCA_convexityALL2_plot
+
+library(FactoInvestigate)
+Investigate(res.mca_convexityALL2, file = "convexityALL2_MCA_explained.Rmd", document = "pdf_document", parallel = TRUE) 
+
+ggsave("MCAconvexityALL2.tiff", plot = MCA_convexityALL2_plot, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
+ggsave("MCAconvexityALL2.png", plot = MCA_convexityALL2_plot, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)    
+```
+#Retouching
+##ALL SITES
+###Laminar together
+```{r}
+library(FactoMineR)
+library(factoextra)
+library(dplyr)
+library(ggplot2)
+
+
+
+retouching_ALL <- Blanks_Main_merged_MCA %>%
+  filter(Blank.type1 != "Flake", Tool == "Yes" ) %>% #check only laminar
+  select(SiteLaminar, Retouch.Position) %>%
+  na.omit()
+  
+summary(retouching_ALL)
+
+# Run MCA
+res.mca_retouchingALL <- MCA(retouching_ALL, graph = FALSE, quali.sup =1, method = "Burt") # SiteBlank.type1 is not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in retouching_ALL, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
+
+
+print(res.mca_retouchingALL)
+fviz_screeplot(res.mca_retouchingALL, addlabels = TRUE, ylim = c(0, 45)) #To visualize the percentages of inertia explained by each MCA dimensions. Dim1 and Dim2 explain 56.986% of the variance
+summary(res.mca_retouchingALL)
+
+
+fviz_mca_var(res.mca_retouchingALL, choice = "mca.cor", 
+            repel = TRUE, 
+            ggtheme = theme_minimal()) #checking to which dimensions the variable are correlated
+fviz_mca_var(res.mca_retouchingALL, 
+             repel = TRUE, # 
+             ggtheme = theme_minimal()) #Variable categories with a similar profile are grouped together. Negatively correlated variable categories are positioned on opposite sides of the plot origin (opposed quadrants).The distance between category points and the origin measures the quality of the variable category on the factor map. Category points that are away from the origin are well represented on the factor map.
+
+var <- get_mca_var(res.mca_retouchingALL)
+head(var$cos2, 20) #If a variable category is well represented by two dimensions, the sum of the cos2 is closed to one. For some of the row items, more than 2 dimensions are required to perfectly represent the data.
+
+
+fviz_cos2(res.mca_retouchingALL, choice = "var", axes = 1:2) #visualising
+
+fviz_contrib(res.mca_retouchingALL, choice = "var", axes = 1, top = 15) #contribution to Dim 1. above the threshold are No, Other, Punctiform 
+
+fviz_contrib(res.mca_retouchingALL, choice = "var", axes = 2, top = 15) #contribution to Dim 2. above the threshold is only Plain, Punctiform, Linear
+
+MCA_retouchingALL_plot <- fviz_mca_var(
+  res.mca_retouchingALL,
+  col.var = "contrib",
+  label = "all",
+  invisible = "none",
+  gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+  repel = TRUE,
+  max.overlaps=Inf,
+  ggtheme = theme_classic()
+)
+MCA_retouchingALL_plot
+
+library(FactoInvestigate)
+Investigate(res.mca_retouchingALL, file = "retouchingALL_MCA_explained.Rmd", document = "pdf_document", parallel = TRUE) 
+
+ggsave("MCAretouchingALL.tiff", plot = MCA_retouchingALL_plot, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
+ggsave("MCAretouchingALL.png", plot = MCA_retouchingALL_plot, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)    
+```
+###blades and bladelets distinct
+```{r}
+library(FactoMineR)
+library(factoextra)
+library(dplyr)
+library(ggplot2)
+
+
+
+# Select relevant columns and remove missing values
+retouching_ALL2 <- Blanks_Main_merged_MCA %>% filter(Blank.type1 != "Flake", Tool == "Yes" ) %>% #check only laminar
+  select(SiteBlank.type2, SiteLaminar, Retouch.Position) %>%
+  na.omit()
+  
+summary(retouching_ALL2)
+
+# Run MCA
+res.mca_retouchingALL2 <- MCA(retouching_ALL2, graph = FALSE, quali.sup =1:2, method = "Burt") # SiteBlank.type1 is not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in retouching_ALL2, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
+
+
+print(res.mca_retouchingALL2)
+fviz_screeplot(res.mca_retouchingALL2, addlabels = TRUE, ylim = c(0, 45)) #To visualize the percentages of inertia explained by each MCA dimensions. Dim1 and Dim2 explain 56.986% of the variance
+summary(res.mca_retouchingALL2)
+
+
+fviz_mca_var(res.mca_retouchingALL2, choice = "mca.cor", 
+            repel = TRUE, 
+            ggtheme = theme_minimal()) #checking to which dimensions the variable are correlated
+fviz_mca_var(res.mca_retouchingALL2, 
+             repel = TRUE, # 
+             ggtheme = theme_minimal()) #Variable categories with a similar profile are grouped together. Negatively correlated variable categories are positioned on opposite sides of the plot origin (opposed quadrants).The distance between category points and the origin measures the quality of the variable category on the factor map. Category points that are away from the origin are well represented on the factor map.
+
+var <- get_mca_var(res.mca_retouchingALL2)
+head(var$cos2, 20) #If a variable category is well represented by two dimensions, the sum of the cos2 is closed to one. For some of the row items, more than 2 dimensions are required to perfectly represent the data.
+
+
+fviz_cos2(res.mca_retouchingALL2, choice = "var", axes = 1:2) #visualising
+
+fviz_contrib(res.mca_retouchingALL2, choice = "var", axes = 1, top = 15) #contribution to Dim 1. above the threshold are No, Other, Punctiform 
+
+fviz_contrib(res.mca_retouchingALL2, choice = "var", axes = 2, top = 15) #contribution to Dim 2. above the threshold is only Plain, Punctiform, Linear
+
+MCA_retouchingALL2_plot <- fviz_mca_var(
+  res.mca_retouchingALL2,
+  col.var = "contrib",
+  label = "all",
+  invisible = "none",
+  gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+  repel = TRUE,
+  max.overlaps=Inf,
+  ggtheme = theme_classic()
+)
+MCA_retouchingALL2_plot
+
+library(FactoInvestigate)
+description(res.mca_retouchingALL2, file = "", dim = 1:2) 
+
+ggsave("MCAretouchingALL2.tiff", plot = MCA_retouchingALL2_plot, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
+ggsave("MCAretouchingALL2.png", plot = MCA_retouchingALL2_plot, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)    
+```

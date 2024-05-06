@@ -1,0 +1,619 @@
+---
+title: "EUP Comparison_Datasets reshaping"
+author: "Jacopo Gennai"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(eval = FALSE)
+```
+
+# Introduction
+
+This is an R Markdown document containing the Rcode and workflow for the "reference_article". This section is dedicated to datasets merging and reshaping
+
+# Datasets
+
+the datasets contain raw data about technological analysis of four Early Upper Palaeolithic assemblages:
+
+-   Ansab AH1 (Jordan)
+-   Romanesti-Dumbravita GH3 (Romania)
+-   Fumane A1-A2 (Italy)
+-   Les Cottés 04inf (France)
+
+the assemblages are stratified and radiometrically dated to the period 41-38 ka cal BP.
+
+Datasets are available singularly at the Zenodo repository "insert link or reference". Datasets are divided in "Blanks", debitage products, and "Cores", exhausted blocks of raw material from which debitage products have been struck. The division is due to the different attributes recorded for the two categories.
+
+##Blanks
+
+getting the three original datasets
+
+```{r}
+library(readxl)
+Gennai_Rom_Ansab_Blanks <- read_excel(file.choose()) #Get the Gennai_Rom&Ansab_Blanks.xlsx
+View(Gennai_Rom_Ansab_Blanks)
+
+Falcucci_Fumane_Blanks <- read_excel(file.choose()) #Get the Falcucci_Fumane_Blanks.xlsx
+View(Falcucci_Fumane_Blanks)
+
+Niochet_CTS_US04inf_Blanks <- read_excel(file.choose()) #Get the Niochet_CTS-US04inf_Blanks.xlsx
+View(Niochet_CTS_US04inf_Blanks)
+```
+## Comparing the attributes
+
+Blanks (bold are comparable attributes across databases)
+
+Gennai : 
+Year,	**Site**,	**Layer**,	**Square**,	**Piece Original ID**,	StorBox,	**Entirety**,	**Cx**,	**CxPosition**,	**Length**,	**Width**,	**Thick**,	Fléche,	**El**,	Curv,	ExtAngle,	FAngle,	**ButtType**,	**BulbMorph**,	**Lipp**,	**OvAb**	, **Axiality**,	**Out**,	**Symmetry**,	**CrossSectMorph**,	**Pro**,	**DEndMorph**,	**StructureCat**,	**TechCat**,	**Cat**,	**NegN**,	NegType,	BladesNegN	BladeletsNegN,	**NegO**,	Lenght LCN,	Width LCN,	El LCN,	**R**,	**RLoc**,	**RPos**,	**RDis**,	RDel,	RExt,	RAng,	RMorph,	Description
+
+Falcucci : **ID**, **Layer**, **square**, sub.square, raw.material, **class**, **blank**, **technology**, **technology.ext**, **Cortex**, Cortex.y.n, **Cortex.position**, preservation, **Preservation**, **Length** **Width**, **Thickness**, **Elongation**, robustness, platform.width, platform.thickness, platformW.T., **platform.type**, platform.shape, **platform.angle**, **dorsal.thinning**, bulb, **bulb.type**, bulbar.scar, **lip**, lip.type, **curvature**, **torsion**, **cross.section**, **cross.section.symmetry**, **scar.count**, **axiality**, **scar.pattern**, distal.end, **distal.end.profile**, **blank.shape**, **bladelet.neg.blade**, **blade.neg.flake**, typology, typology.reduced, **retouch.position**, **dorsal.retouch.localization**, **ventral.retouch.localization**, retouch.length, **Site**
+
+Niochet: **Site**, **Layer**, **Piece Original ID**, **Entirety**, **CxSimpl**, **CxPosition**, **Length**, **Width**, **Thick**, **El**, **ButtType**, **BulbMorph**, **Lipp**, **OvAb**, **Axiality**, **Out**,  **Symmetry**, **CrossSectMorph**, **Pro**, **DEndMorph**, **StructureCat**, **TechCat**, **Cat**, **NegN**, NegType, **NegOSimpl**, **NegO**, **R**, **RLoc**, **RPos**, **RDis**,	RDel	RExt	RAng	RMorph	Typology	RawMat	RawMatSimpl	Description
+
+
+## selected attributes to be included in the merged dataset
+| Gennai Attribute Name | Niochet Attribute Name | Falcucci Attribute Names                                   | New Names            | Explanation                                                                                                            |
+|-----------------------|------------------------|------------------------------------------------------------|----------------------|------------------------------------------------------------------------------------------------------------------------|
+| Site                  | Site                   | Site                                                       | Site                 | assemblage site                                                                                                        |
+| Layer                 | Layer                  | Layer                                                      | Layer                | stratigraphical unit                                                                                                   |
+| Piece Original ID     | Piece Original ID      | ID                                                         | ID                   | ID of the single artefact                                                                                              |
+| Entirety              | Entirety               | Preservation                                               | Preservation         | whether the artefact is complete or fragmentary. If fragmentary Proximal, Mesio-Proximal, Mesial, Mesio-Distal, Distal |
+|                       |                        | Cortex.y.n                                                 | Cortex.y.n           | if there is cortex or not                                                                                               |
+| CxSimpl               | CxSimpl                | Cortex                                                     | Cortex               | Cortical surface extent                                                                                                |
+| CxPosition            | CxPosition             | Cortex.position                                            | Cortex.position      | position of the cortical surface on the artefact                                                                       |
+| Length                | Length                 | Length                                                     | Length               | artefact length on its technological axis                                                                              |
+| Width                 | Width                  | Width                                                      | Width                | artefact width at artefact mid-length perpendicular to the technological axis                                          |
+| Thick                 | Thick                  | Thickness                                                  | Thickness            | artefact thickness at artefact mid-length perpendicular to the width                                                   |
+| El                    | El                     | Elongation                                                 | Elongation           | artefact lenght/artefact width                                                                                         |
+| ButtType              | ButtType               | platform.type                                              | Platform             | type of platform                                                                                                       |
+| BulbMorph             | BulbMorph              | bulb.type                                                       | Bulb                 | type of Bulb                                                                                                           |
+| Lipp                  | Lipp                   | Lip                                                        | Lip                  | presence of a lip, recorded on laminar artefacts                                                                       |
+| OvAb                  | OvAb                   | dorsal.thinning                                            | Abrasion             | presence of overhang abrasion on the proximal dorsal surface                                                           |
+| Axiality              | Axiality               | axiality                                                   | Axiality             | if the artefact technological axisi correspond or not to its morphological axis                                        |
+| Out                   | Out                    | blank.shape                                                | Outline.morphology   | dorsal view of the artefact                                                                                            |
+| Symmetry              | Symmetry               | cross.section.symmetry                                     | Symmetry             | whether the artefact cross section is symmetric or not at mid-length                                                   |
+| CrossSectMorph        | CrossSectMorph         | cross.section                                              | Cross.section        | artefact cross section shape at mid-length                                                                             |
+| Pro                   | Pro                    | curvature                                                  | Profile              | artefact longitudinal profile                                                                                          |
+|                       |                        | Torsion                                                    | Torsion              | whether the artefact's longitudinal profile is twisted or not                                                          |
+| DEndMorph             | DEndMorph              | distal.end.profile                                         | Distal.end.morpho    | artefact's termination longitudinal profile                                                                            |
+|                       |                        |                                                            | Blank.type1          | Flake or Laminar                                                                                                       |
+| StructureCat          | StructureCat           | blank                                                      | Blank.type2          | Flake, Blade, Bladelet                                                                                                 |
+| TechCat               | TechCat                | technology                                                 | Technology.Phase     | phase of the reduction                                                                                                 |
+|  Cat                  | Cat                    | technology.ext                                             | Technology.Ext       | technological category                                                                                                 |
+| NegN                  | NegN                   | scar.count                                                 | Number.negatives     | number of negatives on the dorsal surface                                                                              |
+| NegType               | NegType                | bladelet.neg.blade & blade.neg.flake                       | Negatives.type       |                                                                                                                        |
+|              |               |                                             | Dorsal.scar.1        | Negatives orientation along the technological axis, simplified                                                         |
+| NegO                  | NegO                   | scar.pattern                                               | Dorsal.scar.2        | Negatives orientation along the technological axis                                                                     |
+| R                     | R                      | Class                                                      | Tool                 | whether the artefact is retouched or not                                                                               |
+| Rpos                  | Rpos                   | retouch.position                                           | Retouch.Position     | Retouch position on the artefact's faces                                                                               |
+| Rloc                  | Rloc                   | dorsal.retouch.localization & ventral.retouch.localization | Retouch Location | retouch localisation on the artefact                                                                                   |
+| Rdis                  | Rdis                   | dorsal.retouch.localization & ventral.retouch.localization | Retouch Distribution | retouch extent on the artefact                                                                                         |
+## Reshaping the datasets with similar names and observations
+
+###Gennai ROM & AN
+```{r}
+library(dplyr)
+Gennai_ROM_ANS_Blanks_reshaped <- Gennai_Rom_Ansab_Blanks %>%
+  rename(ID = "Piece Original ID", 
+         Preservation = "Entirety", 
+         Cortex="Cx", 
+         Cortex.position = "CxPosition", 
+         Thickness = "Thick", 
+         Elongation = "El", 
+         Platform = "ButtType", 
+         Bulb = "BulbMorph", 
+         Lip = "Lipp", 
+         Abrasion = "OvAb", 
+         Outline.morphology = "Out", 
+         Cross.section = "CrossSectMorph", 
+         Profile = "Pro", 
+         Distal.end.morpho = "DEndMorph",
+         Blank.type2 = "StructureCat", 
+         Technology.Phase = "TechCat", 
+         Technology.Ext = "Cat", 
+         Number.negatives = "NegN", 
+         Negatives.type = "NegType", 
+         Dorsal.scar.2 = "NegO", 
+         Tool = "R", 
+         Retouch.Position = "RPos", 
+         Retouch.Location = "RLoc", 
+         Retouch.Distribution= "RDis") %>%
+  mutate(Site= case_when(
+    Site == "Romanesti-Dumbravita I" ~ "ROM",
+    Site == "Ansab" ~ "AN")) %>% #Site
+  mutate(Preservation= case_when(
+    Preservation == "Mes+Dist" ~ "Mesiodistal",
+    Preservation =="Prox+Mes"  ~ "Mesioproximal",
+    TRUE ~ Preservation))%>% #Preservation
+  mutate(Cortex= case_when(Cortex == "0" ~ "No Cortex",
+    Cortex %in% c("1-24%", "24-49%","25-49%", "50%") ~ "Semi",
+    Cortex %in% c("51-74%", "75-99%") ~ "Extensive",
+    Cortex == "100%" ~ "Full"))%>% #Cortex
+  mutate(Cortex.y.n = Cortex, .after = Cortex.position) %>% #INSERT CORTEX.Y.N
+  mutate(Cortex.y.n =case_when(Cortex.y.n == "No Cortex" ~ "No", 
+                              Cortex.y.n %in% c("Extensive",
+                                               "Full",
+                                               "Semi") ~"Yes"))%>% #Cortex.y.n
+  mutate(Cortex.position =case_when(
+    Cortex.position == "Distal+Lateral left" ~ "Distal+lateral", 
+    Cortex.position == "Dorsal+Lateral left"~ "Dorsal+lateral",
+    Cortex.position == "Lateral left+Proximal"~ "Proximal+lateral",
+    Cortex.position %in% c("Right", "Bilateral" , "Lateral right",  "Lateral left")       ~ "Lateral",
+    Cortex.position %in% c("No Cortex", "No cortex") ~ NA,
+TRUE ~ Cortex.position))%>% # Cortex.position
+mutate(Platform =case_when(
+  Preservation %in% c("Complete", "Mesioproximal") & Platform == NA ~ "ND", 
+    Platform == "Concave"~ "Plain",
+    Platform == "Dihedral"~ "Facetted",
+    Platform == "Natural"~ "Cortical", 
+    Platform == "No Prox part"  ~  NA,
+    Platform %in% c("Crushed", "crushed")  ~  "ND", #the observer equated crushed as when it wasn’t possible to determine due to crushing
+TRUE ~ Platform))%>% # Platform
+mutate(Lip =case_when(
+Lip %in% c("No Prox part", "No Prox Part")  ~  NA, 
+TRUE ~ Lip))%>% # Lip
+mutate(Bulb =case_when(
+Preservation %in% c("Complete", "Mesioproximal") & Bulb == NA ~ "ND", 
+Bulb %in% c("Pronounced", "Bulbar scar") ~  "Marked",
+Bulb %in% c("Diffused" , "Not perceived") ~  "Diffuse",
+Bulb == "Crushed" ~ "ND",
+Bulb == "No Prox part" ~ NA, 
+TRUE ~ Bulb)) %>% #Bulb
+mutate(Abrasion =case_when(
+Abrasion %in% c("NA", "No Prox part")  ~ NA, 
+TRUE ~ Abrasion)) %>% #Abrasion
+mutate(Outline.morphology =case_when(
+Outline.morphology %in% c("No Dist Part", "NA") ~ NA, 
+Outline.morphology %in% c("(sub)Parallel Edges") ~ "Parallel",
+TRUE ~ Outline.morphology)) %>% #Outline.morphology
+mutate(Torsion = Profile, .after = Profile) %>% #INSERT Torsion
+mutate(Torsion = recode(Torsion, "Twisted" = "Yes", "Straight"= "No", "Curved"= "No", "Very Curved"="No","Very curved"="No", "Slightly Curved"="No", "Slightly curved"="No",
+ "ND"= "NA"))%>%
+  mutate(Torsion= case_when(
+    Torsion == "NA" ~ NA,
+  TRUE ~ Torsion
+  )) %>% #Torsion
+  mutate(Axiality = case_when(
+    Axiality == "on-axis" ~ "On-axis",
+    Axiality == "off-axis" ~ "Off-axis",
+    Axiality == "NA" ~ NA,
+    TRUE ~ as.character(Axiality)
+  )) %>%
+mutate(Profile = case_when(
+  Profile %in% c("Very Curved", "Very curved")  ~ "Curved",
+  Profile %in% c("Slightly curved")  ~ "Slightly Curved",
+    Profile == "Twisted" & Curv >= 0 & Curv <= 2.9 ~ "Straight", #using Bon 2002 values
+    Profile == "Twisted" & Distal.end.morpho =="Feathered" ~ "Straight", #assuming that if feathered it's straight
+    Profile == "Twisted" & Curv > 2.9 & Curv <= 5.9 ~ "Slightly Curved", #using Bon 2002 values
+    Profile == "Twisted" & Distal.end.morpho =="Plunging" ~ "Slightly Curved", #assuming that if it's plunging then it's at least slightly curved
+    Profile == "Twisted" & Curv > 5.9 & Curv <= 8.9 ~ "Curved", #using Bon 2002 values
+    Profile == "Twisted" & Curv > 8.9 ~ "Curved",
+    Profile == "NA" ~ NA,
+    TRUE ~ Profile,  # Keep the original Profile if not Twisted,
+  ))%>% #Profile
+  mutate(Cross.section =case_when(
+    Cross.section == "Flat" ~ "ND",
+    Cross.section == "NA" ~ NA,
+    TRUE ~ Cross.section
+  )) %>% #Cross section shape
+  mutate(Distal.end.morpho= case_when(
+    Distal.end.morpho %in% c("No Dist Part","Stepped") ~ NA, #stepped is assimilated to not complete
+    Distal.end.morpho %in% c("?", "Hinged") ~ "ND", #assimilated to undetermined as it's an accident and not the real termination
+    TRUE ~ Distal.end.morpho
+  ))%>% #Distal end morphology
+  mutate(Blank.type1 = Blank.type2, .after = Blank.type1) %>% #INSERT Blank.type1
+  mutate(Blank.type1= case_when(
+    Blank.type1 %in% c("Blade", "Bladelet") ~ "Laminar",
+    TRUE ~ Blank.type1
+  ))%>% #Blank.type1
+  mutate(Technology.Phase= case_when(
+    Technology.Phase %in% c("Mgmt", "Tablet") ~ "MGMT",
+    Technology.Phase %in% c("Simple", "Spall")  ~ "Ordinary",
+    TRUE ~ Technology.Phase
+  ))%>%#Technology phase
+mutate(Technology.Ext= case_when(
+ Technology.Ext == "1" ~ "Ordinary flake",
+ Technology.Ext== "2" ~ "Cortical flake",  
+ Technology.Ext %in% c("3", "3a") ~ "Core tablet",
+ Technology.Ext == "4" ~ "Maintenance flake",
+ Technology.Ext %in% c("4a", "4b") ~ "Flaking surface maintenance flake",
+ Technology.Ext == "5" ~ "Maintenance laminar",
+ Technology.Ext %in% c("5a", "5a1") ~ "Crested laminar",
+ Technology.Ext %in% c("5b", "5b1") ~ "Lateral asymmetrical laminar",
+ Technology.Ext %in% c("5c", "5c1") ~ "Overshot laminar",
+ Technology.Ext%in% c("5d", "5d1") ~ "Flaking surface maintenance laminar",
+ Technology.Ext %in% c("6", "6a", "6a1", "6b", "6B", "6b1") ~ "Ordinary blade",
+ Technology.Ext %in% c("7", "7a", "7a1", "7b", "7b1") ~ "Ordinary bladelet",
+ Technology.Ext == "7c" ~ "Burin spall"
+ ))%>% #Technology extended
+  mutate(Dorsal.scar.1 = Dorsal.scar.2, .after = Dorsal.scar.2) %>%
+  mutate(Dorsal.scar.1 = case_when(
+    Dorsal.scar.1 %in% c("Unidirectional+Convergent", 
+                     "Convergent") ~ "Unidirectional",
+    Dorsal.scar.1 %in% c("Unidirectional+Orthogonal", 
+                     "Unidirectional+Crossed",
+                     "Convergent+Orthogonal",
+                     "Unidirectional+Convergent+Crossed", 
+                     "Unidirectional+Convergent+Orthogonal",
+                     "Unidirectional+Crossed+Orthogonal") ~ "Unidirectional+Other direction", 
+   Dorsal.scar.1 == "Crossed+Orthogonal" ~ "Crossed",
+   Dorsal.scar.1 == "Bidirectional+Convergent" ~ "Bidirectional",
+   Dorsal.scar.1 %in% c("Bidirectional+Crossed", 
+                     "Bidirectional+Orthogonal") ~ "Bidirectional+Other direction",
+    Dorsal.scar.1 == "No negatives" ~ NA,
+    TRUE ~ Dorsal.scar.1
+    )) %>% #Dorsal.scar.1
+  mutate (Dorsal.scar.2= case_when(
+    Dorsal.scar.2 == "No negatives" ~ NA,
+    TRUE ~ Dorsal.scar.2
+  )) %>% #Dorsal.scar.2
+  select(Site, Layer, ID, Preservation, Cortex.y.n, Cortex, Cortex.position, Length, Width, Thickness, Elongation, Platform, Bulb, Lip, Abrasion, Axiality, Outline.morphology, Symmetry, Cross.section, Profile, Torsion, Distal.end.morpho, Blank.type1,Blank.type2, Technology.Phase, Technology.Ext, Number.negatives, Negatives.type, Dorsal.scar.1, Dorsal.scar.2, Tool, Retouch.Position)
+
+library(writexl)
+
+# Write data frame to Excel file
+write_xlsx(Gennai_ROM_ANS_Blanks_reshaped, "Gennai_ROM_ANS_Blanks_reshaped.xlsx")
+
+
+```
+
+###Falcucci FUM
+
+```{r}
+library(dplyr)
+library(writexl)
+
+Falcucci_FUM_Blanks_reshaped <- Falcucci_Fumane_Blanks %>%
+  rename(Platform = "platform.type",
+         Abrasion = "dorsal.thinning", 
+         Axiality = "axiality",
+         Outline.morphology = "blank.shape", 
+         Symmetry = "cross.section.symmetry",
+         Cross.section = "cross.section",
+         Lip = "lip",
+         Bulb = "bulb.type",
+         Profile = "curvature",
+         Torsion = "torsion",
+         Distal.end.morpho = "distal.end.profile",
+         Blank.type2 = "blank", 
+         Technology.Phase = "technology", 
+         Technology.Ext = "technology.ext", 
+         Number.negatives = "scar.count", 
+         Dorsal.scar.2 = "scar.pattern", 
+         Tool = "class", 
+         Retouch.Position = "retouch.position") %>%
+  filter(Preservation %in% c("Complete", "Almost-complete", "Mesio-distal", "Mesio-proximal")) %>%
+  mutate(Site = case_when(
+    Site == "Fumane" ~ "FUM"
+  )) %>%
+  mutate(Tool = case_when(
+    Tool == "Tool" ~ "Yes",
+    Tool == "Blank" ~ "No"
+  )) %>%
+  mutate(Preservation = case_when(
+    Preservation == "Mesio-distal" ~ "Mesiodistal",
+    Preservation == "Mesio-proximal" ~ "Mesioproximal",
+    Preservation == "Almost-complete" ~ "Complete",
+    TRUE ~ Preservation)) %>%
+  mutate(Cortex.y.n = case_when(
+    Cortex.y.n == "yes"~ "Yes",
+    Cortex.y.n == "no"~ "No"
+  )) %>%
+  mutate(Cortex = case_when(
+    Cortex %in% c("0%", "0") ~ "No Cortex", 
+    Cortex %in% c("1-33%", "33-66%") ~ "Semi",
+    Cortex == "66-99%" ~ "Extensive",
+    Cortex == "100%" ~ "Full")) %>%
+  mutate(Cortex.position = case_when(
+    Cortex.position %in% c("Distal;Right lateral complete", 
+                           "Distal;Left lateral partial",                                      
+                           "Distal;Left lateral complete" ,
+                           "Distal;Right lateral partial") ~ "Distal+lateral", 
+    Cortex.position %in% c("Distal;Middle/centre",
+                           "Distal;Middle/centre;Proximal", 
+                           "Middle/centre",
+                           "100%",                                                             
+                           "Middle/centre;Proximal",              
+                           "Distal;Left lateral complete;Proximal",                            
+                           "Left lateral complete;Middle/centre;Proximal", 
+                           "Distal;Left lateral partial;Proximal",                             
+                           "Distal;Middle/centre;Right lateral complete",
+                           "Distal;Left lateral partial;Middle/centre;Right lateral partial",
+                           "Distal;Left lateral complete;Middle/centre;Right lateral complete") ~ "Dorsal",  
+    Cortex.position %in% c("Middle/centre;Right lateral complete",                             
+                           "Middle/centre;Right lateral partial",                              
+                           "Left lateral complete;Middle/centre", 
+                           "Left lateral partial;Middle/centre") ~ "Dorsal+lateral",
+    Cortex.position == "Proximal + Dorsal" ~ "Dorsal",
+    Cortex.position %in% c("Distal right", "Distal left", "Dorsal distal") ~ "Distal",
+    Cortex.position == c("Distal;Proximal") ~ "Distal+proximal",
+    Cortex.position == "Dorsal + Distal" ~ "Dorsal+distal", 
+    Cortex.position %in% c("Left lateral complete;Proximal",
+                           "Proximal;Right lateral complete",
+                           "Left lateral partial;Proximal",                                    
+                           "Proximal;Right lateral partial") ~ "Proximal+lateral",
+    Cortex.position %in% c("Left lateral complete",                                            
+                           "Right lateral complete", 
+                           "Left lateral partial",   
+                           "Right lateral partial",  
+                           "Left lateral complete;Right lateral partial",                      
+                           "Distal;Proximal;Right lateral complete",                                     
+                           "Left lateral partial;Right lateral partial",
+                           "Left lateral complete;Right lateral complete") ~ "Lateral",
+    TRUE ~ Cortex.position
+  )) %>%
+  mutate(Platform = case_when(
+    Preservation %in% c("Complete", "Mesioproximal") & Platform == NA ~ "ND", 
+    Platform == "Double" ~ "Plain",
+    Platform %in% c("Dihedral flat", "Faceted") ~ "Facetted",
+    Platform %in% c("Abraded", "Undetermined") ~ "ND",
+    TRUE ~ Platform)) %>%
+  mutate(Lip = case_when(
+    Lip == "TRUE" ~ "Yes", 
+    Lip == "FALSE" ~ "No",
+    TRUE ~ as.character(Lip))) %>%
+  mutate(Bulb = case_when(
+      Preservation %in% c("Complete", "Mesioproximal") & Bulb == NA ~ "ND", 
+    Bulb == "Pronounced" ~ "Marked",
+    Bulb == "Moderate" ~ "Diffuse",
+    TRUE ~ Bulb)) %>%
+  mutate(Torsion = recode(Torsion, "1R" = "Yes", "2R" = "Yes", "1L" = "Yes", "2L" = "Yes", "0" = "No", "Undetermined" = "ND")) %>%
+  mutate(Profile = case_when(
+    Profile %in% c("Curved slightly", "Curved sligthly") ~ "Slightly Curved",
+    Profile %in% c("Curved inverse", "Undetermined") ~ "ND",
+    TRUE ~ Profile)) %>%
+  mutate(Abrasion = case_when(
+    Abrasion %in% c("Abrasion", "Abrasion;Hinged scars", "Abrasion;Hinged scars;Laminar scars", "Abrasion;Laminar scars", "Abrasion;Pointed scars", "Hinged scars", "Pointed scars", "Laminar scars", "Hinged scars;Laminar scars", "Hinged scars;Pointed scars") ~ "Yes", 
+    TRUE ~ Abrasion)) %>%
+  mutate(Axiality = case_when(
+    Axiality %in% c("Off-axis left", "Off-axis right") ~ "Off-axis", 
+    Axiality == "Axial" ~ "On-axis",
+    Axiality == "und" ~ NA,
+    Axiality == "NA" ~ NA,
+    TRUE ~ as.character(Axiality))) %>%
+  mutate(Outline.morphology = case_when(
+    Outline.morphology %in% c("Convex") ~ "Convergent", 
+    Outline.morphology %in% c("Sub-parallel") ~ "Parallel",
+    Axiality == "Off-axis" ~ "Off-axis",
+    Outline.morphology %in% c("Irregular", "Undetermined") ~ "ND",
+    TRUE ~ Outline.morphology)) %>%
+  mutate(Cross.section = case_when(
+    Cross.section %in% c("Lateral steep") ~ "Triangular",
+    Cross.section %in% c("Polyhedral", "Trapezoidal") ~ "Polyhedric",
+    Cross.section %in% c("Undetermined", "Flat") ~ "ND",
+    Cross.section == "NA" ~ NA,
+    TRUE ~ Cross.section
+  )) %>%
+  mutate(Symmetry = case_when(
+    Symmetry %in% c("FALSE") ~ "asymmetric",
+    Symmetry %in% c("TRUE") ~ "symmetric", 
+    TRUE ~ as.character(Symmetry)
+  )) %>%
+  mutate(Distal.end.morpho = case_when(
+    Distal.end.morpho %in% c("Step") ~ NA, 
+    Distal.end.morpho %in% c("Hinged", "Undetermined") ~ "ND", 
+    Distal.end.morpho == "Pointed" ~ "Feathered",
+    TRUE ~ Distal.end.morpho
+  )) %>%
+  mutate(Negatives.type = bladelet.neg.blade, .after = bladelet.neg.blade) %>%
+  mutate(Negatives.type = case_when(
+    bladelet.neg.blade == "TRUE" & blade.neg.flake == "FALSE" ~ "Bladelets",
+    bladelet.neg.blade == "FALSE" & blade.neg.flake == "TRUE" ~ "Blades",
+    bladelet.neg.blade == "FALSE" & blade.neg.flake == "FALSE" & Number.negatives >= 1 ~ "Flakes",
+    bladelet.neg.blade == "FALSE" & blade.neg.flake == "FALSE" & Number.negatives == 0 ~ "No negatives"
+  )) %>%
+  filter(Blank.type2 %in% c("Blade", "Bladelet", "Flake")) %>%
+  mutate(Blank.type1 = Blank.type2, .after = Blank.type1) %>%
+  mutate(Blank.type1 = case_when(
+    Blank.type1 %in% c("Blade", "Bladelet") ~ "Laminar",
+    TRUE ~ Blank.type1
+  )) %>%
+  mutate(Technology.Phase = case_when(
+    Technology.Phase %in% c("Maintenance", "Semi-cortical") ~ "MGMT",
+    Technology.Phase %in% c("Optimal") ~ "Ordinary",
+    Technology.Phase %in% c("Initialization") ~ "Init",
+    TRUE ~ Technology.Phase
+  )) %>%
+  filter(Technology.Ext != "Levallois") %>%
+  mutate(Technology.Ext = case_when(
+    Technology.Ext %in% c("Optimal","Blade")  ~ "Ordinary blade",
+    Technology.Ext == "Blade correction surface" ~ "Flaking surface maintenance laminar",
+    Technology.Ext %in% c("Optimal","Bladelet")  ~ "Ordinary bladelet",
+    Technology.Phase == "Cortical" & Blank.type1 == "Laminar" ~ "Cortical laminar",
+    Technology.Phase == "Cortical" & Blank.type1 == "Flake" ~ "Cortical flake",
+    Technology.Ext == c("Crest") & Blank.type1 == "Laminar" ~ "Crested laminar",
+    Technology.Ext %in% c("Crest", "Neo-crest", "Second crest") & Blank.type1 == "Flake" ~ "Flaking surface maintenance flake",
+    Technology.Ext %in% c("Crest blade", "Crested secondary blade", "Croisée", "Dihedral", "Neo-crest", "Second crest") ~ "Crested laminar",
+    Technology.Ext %in% c("Lateral", "Debordant blade", "Lateral blade") & Blank.type1 == "Laminar" ~ "Lateral asymmetrical laminar",
+    Technology.Ext == "Lateral" & Blank.type1 == "Flake" ~ "Flaking surface maintenance flake",
+    Technology.Ext %in% c("Semi-cortical", "Maintenance")  & Blank.type1 == "Flake" ~ "Maintenance flake",
+    Technology.Ext %in% c("Maintenance", "Semi-cortical", "Manteinance blade")
+ & Blank.type1 == "Laminar" ~ "Maintenance laminar",
+    Technology.Ext == "Optimal" & Blank.type1 == "Flake" ~ "Ordinary flake",
+    Technology.Ext %in% c("Semi-cortical bladelet","Semi-cortical blade") ~ "Maintenance laminar",
+    Technology.Ext == "Tablet" ~ "Core tablet"
+  )) %>%
+  mutate(Dorsal.scar.1 = Dorsal.scar.2, .after = Dorsal.scar.2) %>%
+  mutate(Dorsal.scar.1 = case_when(
+    Dorsal.scar.1 %in% c("Unidirectional convergent", 
+                         "Unidirectional parallel") ~ "Unidirectional",
+    Dorsal.scar.1 == "Unidirectional transverse" ~ "Crossed",   
+    Dorsal.scar.1 %in% c("Centripedal", "Multidirectional") ~ "Centripetal", 
+    Dorsal.scar.1 == "Undetermined" ~ "ND", 
+    TRUE ~ Dorsal.scar.1
+  )) %>%
+  mutate(Dorsal.scar.2 = case_when(
+    Number.negatives == 0 ~ NA,
+    TRUE ~ Dorsal.scar.2
+  )) %>%
+  select(Site, Layer, ID, Preservation, Cortex.y.n, Cortex, Cortex.position, Length, Width, Thickness, Elongation, Platform, Bulb, Lip, Abrasion, Axiality, Outline.morphology, Symmetry, Cross.section, Profile, Torsion, Distal.end.morpho, Blank.type1, Blank.type2, Technology.Phase, Technology.Ext, Number.negatives, Negatives.type, Dorsal.scar.1, Dorsal.scar.2, Tool, Retouch.Position)
+
+# Write data frame to Excel file
+write_xlsx(Falcucci_FUM_Blanks_reshaped, "Falcucci_FUM_Blanks_reshaped.xlsx")
+
+
+```
+
+
+###Niochet CTS
+```{r}
+Niochet_CTS_Blanks_reshaped <- Niochet_CTS_US04inf_Blanks %>%
+  rename(ID = "Piece Original ID", 
+         Preservation = "Entirety", 
+         Cortex="CxSimpl", 
+         Cortex.position = "CxPosition", 
+         Thickness = "Thick", 
+         Elongation = "El", 
+         Platform = "ButtType", 
+         Bulb = "BulbMorph", 
+         Lip = "Lipp", 
+         Abrasion = "OvAb", 
+         Outline.morphology = "Out", 
+         Cross.section = "CrossSectMorph", 
+         Profile = "Pro", 
+         Distal.end.morpho = "DEndMorph",
+         Blank.type2 = "StructureCat", 
+         Technology.Phase = "TechCat", 
+         Technology.Ext = "Cat", 
+         Number.negatives = "NegN", 
+         Negatives.type = "NegType", 
+         Dorsal.scar.2 = "NegO", 
+         Tool = "R", 
+         Retouch.Position = "RPos", 
+         Retouch.Location = "RLoc", 
+         Retouch.Distribution= "RDis") %>%
+  filter(RawMatSimpl %in% c("RMLocal")) %>% #only local raw material
+  mutate(Preservation= case_when(
+    Preservation == "Mes+Dist" ~ "Mesiodistal",
+    Preservation =="Mes+Prox"  ~ "Mesioproximal",
+    TRUE ~ Preservation))%>% #Preservation
+  mutate(Cortex=case_when(
+    Cortex=="No"~ "No Cortex",
+    TRUE ~ Cortex
+  )) %>% #Cortex
+  mutate(Cortex.y.n = Cortex, .after = Cortex.position) %>% #INSERT CORTEX.Y.N
+  mutate(Cortex.y.n =case_when(Cortex.y.n == "No Cortex" ~ "No", 
+                              Cortex.y.n %in% c("Extensive",
+                                               "Full",
+                                               "Semi") ~"Yes"))%>% #Cortex.y.n
+  mutate(Cortex.position = case_when(
+    Cortex.position %in% c("Lateral right + Distal", "Lateral left + Distal", "Bilateral + Distal") ~ "Distal+lateral", 
+    Cortex.position %in% c("Lateral right + Proximal", "Lateral left + Proximal") ~ "Proximal+lateral",
+    Cortex.position %in% c("Lateral left + Dorsal", "Lateral right + Dorsal") ~ "Dorsal+lateral",
+    Cortex.position == "Proximal + Dorsal" ~ "Dorsal",
+    Cortex.position %in% c("Distal right", "Distal left", "Dorsal distal") ~ "Distal",
+    Cortex.position == "Dorsal + Distal" ~ "Dorsal+distal", 
+    Cortex.position == "Lateral left + Proximal" ~ "Proximal+lateral",
+    Cortex.position %in% c("Bilateral", "Lateral right", "Lateral left") ~ "Lateral",
+    Cortex.position %in% c("No Cortex", "No cortex") ~ NA,
+    TRUE ~ Cortex.position
+  )) %>% #Cortex position
+mutate(Platform =case_when(
+  Preservation %in% c("Complete", "Mesioproximal") & Platform == NA ~ "ND", 
+    Platform == "Concave"~ "Plain",
+    Platform == "Dihedral"~ "Facetted",
+    Platform == "Natural"~ "Cortical", 
+    Platform == "No butt"  ~  NA,
+    Platform == "Retouched"  ~  "ND",
+    Platform %in% c("Crushed", "crushed")  ~  "Linear", #the observer equated crushed as to Linear
+TRUE ~ Platform))%>% # Platform
+mutate(Lip =case_when(
+Lip %in% c("No prox part")  ~  NA, 
+TRUE ~ Lip))%>% # Lip
+mutate(Bulb =case_when(
+  Preservation %in% c("Complete", "Mesioproximal") & Bulb == NA ~ "ND", 
+Bulb %in% c("Pronounced", "Bulbar scar") ~  "Marked",
+Bulb %in% c("Diffused" , "Not perceived") ~  "Diffuse",
+Bulb == "Crushed" ~ "ND",
+Bulb == "No bulb" ~ NA, 
+TRUE ~ Bulb)) %>% #Bulb
+mutate(Abrasion =case_when(
+Abrasion %in% c("NA", "No prox part") ~ NA, 
+TRUE ~ Abrasion)) %>% #Abrasion
+mutate(Axiality =case_when(
+Axiality %in% c("Off-axis to the left", "Off-axis to the right") ~"Off-axis",
+Axiality == "NA" ~ NA,
+TRUE ~ as.character(Axiality))) %>% #Axiality
+mutate(Outline.morphology =case_when(
+Outline.morphology %in% c("No Dist Part", "NA") ~ NA, 
+Outline.morphology %in% c("(sub)Parallel Edges") ~ "Parallel",
+Axiality == "Off-axis" ~ "Off-axis",
+TRUE ~ Outline.morphology)) %>% #Outline.morphology
+  mutate(Profile= case_when(
+    Profile== "Slightly curved" ~ "Slightly Curved",
+    Profile== "Very curved" ~ "Curved",
+    Profile== "NA" ~ NA,
+    TRUE ~ Profile)) %>% #Profile
+mutate(Torsion = Profile, .after = Profile) %>% #INSERT Torsion
+mutate(Torsion = recode(Torsion, "Twisted" = "Yes", "Straight"= "No", "Curved"= "No", "Very curved"="No", "Slightly curved"="No", "ND"= "NA"))%>%
+  mutate(Torsion= case_when(
+    Torsion == "NA" ~ NA,
+  TRUE ~ Torsion
+  )) %>% #Torsion
+  mutate(Cross.section =case_when(
+    Cross.section == "Flat" ~ "ND",
+    Cross.section == "NA" ~ NA,
+    TRUE ~ Cross.section
+  )) %>% #Cross section shape
+  mutate(Distal.end.morpho= case_when(
+    Distal.end.morpho %in% c("No distal end","Stepped", "Cassure en languette") ~ NA, #stepped is assimilated to not complete
+    Distal.end.morpho %in%c( "?","Bipolaire", "Hinged", "Indeterminate", "Corticale", "Retouchée")  ~ "ND", #assimilated to undetermined as it's an accident and not the real termination
+    TRUE ~ Distal.end.morpho
+  ))%>% #Distal end morphology
+  mutate(Blank.type1 = Blank.type2, .after = Blank.type1) %>% #INSERT Blank.type1
+  mutate(Blank.type1= case_when(
+    Blank.type1 %in% c("Blade", "Bladelet") ~ "Laminar",
+    TRUE ~ Blank.type1
+  ))%>% #Blank.type1
+  mutate(Technology.Phase= case_when(
+    Technology.Phase %in% c("Mngt", "Tablet") ~ "MGMT",
+    Technology.Phase %in% c("Simple")  ~ "Ordinary",
+    TRUE ~ Technology.Phase
+  ))%>%#Technology phase
+mutate(Technology.Ext= case_when(
+ Technology.Ext == "1" ~ "Ordinary flake",
+ Technology.Ext== "2" ~ "Cortical flake",  
+ Technology.Ext %in% c("3", "3a") ~ "Core tablet",
+ Technology.Ext == "4" ~ "Maintenance flake",
+ Technology.Ext %in% c("4a", "4b") ~ "Flaking surface maintenance flake",
+ Technology.Ext == "5" ~ "Maintenance laminar",
+ Technology.Ext %in% c("5a", "5a1") ~ "Crested laminar",
+ Technology.Ext %in% c("5b", "5b1") ~ "Lateral asymmetrical laminar",
+ Technology.Ext %in% c("5c", "5c1") ~ "Overshot laminar",
+ Technology.Ext%in% c("5d", "5d1") ~ "Flaking surface maintenance laminar",
+ Technology.Ext %in% c("6", "6a", "6a1", "6b", "6B", "6b1") ~ "Ordinary blade",
+ Technology.Ext %in% c("7", "7a", "7a1", "7b", "7b1") ~ "Ordinary bladelet",
+ Technology.Ext == "7c" ~ "Burin spall"
+ ))%>% #Technology extended
+  mutate(Dorsal.scar.1 = Dorsal.scar.2, .after = Dorsal.scar.2) %>%
+  mutate(Dorsal.scar.1 = case_when(
+    Dorsal.scar.1 %in% c("Unidirectional+Convergent", 
+                     "Convergent") ~ "Unidirectional",
+    Dorsal.scar.1 %in% c("Convergent + Orthogonal", "Convergent + Crested", "Unidirectional + Orthogonal"                 ) ~ "Unidirectional+Other direction", 
+   Dorsal.scar.1 == "Convergent + Bipolar" ~ "Bidirectional",
+   Dorsal.scar.1 %in% c("Unidirectional + Bidirectional + Orthogonal", "Convergent + Bidirectionnal", "Bidirectional + Orthogonal”, “Convergent + Bidirectional") ~ "Bidirectional+Other direction",
+   Dorsal.scar.1 %in% c("Cortical", "No negatives") ~ NA,
+   Dorsal.scar.1 == "Crested" ~ "Orthogonal",   
+   Dorsal.scar.1 == "Multidirectional" ~ "Centripetal",                                                   
+    TRUE ~ Dorsal.scar.1
+    )) %>% #Dorsal.scar.1
+  mutate (Dorsal.scar.2= case_when(
+    Dorsal.scar.2 == "No negatives" ~ NA,
+    TRUE ~ Dorsal.scar.2
+  )) %>% #Dorsal.scar.2
+  select(Site, Layer, ID, Preservation, Cortex.y.n, Cortex, Cortex.position, Length, Width, Thickness, Elongation, Platform, Bulb, Lip, Abrasion, Axiality, Outline.morphology, Symmetry, Cross.section, Profile, Torsion, Distal.end.morpho, Blank.type1,Blank.type2, Technology.Phase, Technology.Ext, Number.negatives, Negatives.type, Dorsal.scar.1, Dorsal.scar.2, Tool, Retouch.Position)
+
+library(writexl)
+
+# Write data frame to Excel file
+write_xlsx(Niochet_CTS_Blanks_reshaped, "Niochet_CTS_Blanks_reshaped.xlsx")
+```
+##Merging the Blanks dataset
+```{r}
+Blank_Main_merged <- rbind(Gennai_ROM_ANS_Blanks_reshaped, Falcucci_FUM_Blanks_reshaped, Niochet_CTS_Blanks_reshaped)
+library(writexl)
+writexl::write_xlsx(Blank_Main_merged, "Ans_Rom_Fum_CTS_Blanks_merged.xlsx")
+```
+
