@@ -66,7 +66,8 @@ Niochet: **Site**, **Layer**, **Piece Original ID**, **Entirety**, **CxSimpl**, 
 | Length                | Length                 | Length                                                     | Length               | artefact length on its technological axis                                                                              |
 | Width                 | Width                  | Width                                                      | Width                | artefact width at artefact mid-length perpendicular to the technological axis                                          |
 | Thick                 | Thick                  | Thickness                                                  | Thickness            | artefact thickness at artefact mid-length perpendicular to the width                                                   |
-| El                    | El                     | Elongation                                                 | Elongation           | artefact lenght/artefact width                                                                                         |
+| El                    | El                     | Elongation                                                 | Elongation           | artefact length/artefact width 
+|                     |                    |                          robustness                        | Robustness          | artefact width/artefact thickness
 | ButtType              | ButtType               | platform.type                                              | Platform             | type of platform                                                                                                       |
 | BulbMorph             | BulbMorph              | bulb.type                                                       | Bulb                 | type of Bulb                                                                                                           |
 | Lipp                  | Lipp                   | Lip                                                        | Lip                  | presence of a lip, recorded on laminar artefacts                                                                       |
@@ -94,11 +95,14 @@ Niochet: **Site**, **Layer**, **Piece Original ID**, **Entirety**, **CxSimpl**, 
 
 ###Gennai ROM & AN
 ```{r}
+library(readxl)
+Gennai_Rom_Ansab_Blanks <- read_excel(file.choose()) #Get the Gennai_Rom&Ansab_Blanks.xlsx
+View(Gennai_Rom_Ansab_Blanks)
 library(dplyr)
 Gennai_ROM_ANS_Blanks_reshaped <- Gennai_Rom_Ansab_Blanks %>%
   rename(ID = "Piece Original ID", 
          Preservation = "Entirety", 
-         Cortex="Cx", 
+         Cortex = "Cx", 
          Cortex.position = "CxPosition", 
          Thickness = "Thick", 
          Elongation = "El", 
@@ -119,7 +123,7 @@ Gennai_ROM_ANS_Blanks_reshaped <- Gennai_Rom_Ansab_Blanks %>%
          Tool = "R", 
          Retouch.Position = "RPos", 
          Retouch.Location = "RLoc", 
-         Retouch.Distribution= "RDis") %>%
+         Retouch.Distribution = "RDis") %>%
   mutate(Site= case_when(
     Site == "Romanesti-Dumbravita I" ~ "ROM",
     Site == "Ansab" ~ "AN")) %>% #Site
@@ -168,13 +172,19 @@ mutate(Outline.morphology =case_when(
 Outline.morphology %in% c("No Dist Part", "NA") ~ NA, 
 Outline.morphology %in% c("(sub)Parallel Edges") ~ "Parallel",
 TRUE ~ Outline.morphology)) %>% #Outline.morphology
-mutate(Torsion = Profile, .after = Profile) %>% #INSERT Torsion
-mutate(Torsion = recode(Torsion, "Twisted" = "Yes", "Straight"= "No", "Curved"= "No", "Very Curved"="No","Very curved"="No", "Slightly Curved"="No", "Slightly curved"="No",
- "ND"= "NA"))%>%
-  mutate(Torsion= case_when(
-    Torsion == "NA" ~ NA,
-  TRUE ~ Torsion
-  )) %>% #Torsion
+mutate(Torsion = Profile, .after = Profile) %>%  # Insert Torsion column after Profile
+  mutate(Torsion = case_when(
+    Torsion == "Twisted" ~ "Yes",
+    Torsion == "Straight" ~ "No",
+    Torsion == "Curved" ~ "No",
+    Torsion == "Very Curved" ~ "No",
+    Torsion == "Very curved" ~ "No",
+    Torsion == "Slightly Curved" ~ "No",
+    Torsion == "Slightly curved" ~ "No",
+    Torsion == "ND" ~ NA_character_,  # Map "ND" to NA_character_
+    Torsion == "NA" ~ NA_character_,  # Map "NA" to NA_character_
+    TRUE ~ Torsion  # Keep the original value for other cases
+  )) %>%
   mutate(Axiality = case_when(
     Axiality == "on-axis" ~ "On-axis",
     Axiality == "off-axis" ~ "Off-axis",
@@ -198,16 +208,19 @@ mutate(Profile = case_when(
     Cross.section == "NA" ~ NA,
     TRUE ~ Cross.section
   )) %>% #Cross section shape
-  mutate(Distal.end.morpho= case_when(
-    Distal.end.morpho %in% c("No Dist Part","Stepped") ~ NA, #stepped is assimilated to not complete
-    Distal.end.morpho %in% c("?", "Hinged") ~ "ND", #assimilated to undetermined as it's an accident and not the real termination
-    TRUE ~ Distal.end.morpho
-  ))%>% #Distal end morphology
+  mutate(Distal.end.morpho = case_when(
+    Distal.end.morpho %in% c("No Dist Part", "Stepped") ~ NA_character_, # Use NA_character_ for character columns
+    Distal.end.morpho %in% c("?", "Hinged") ~ "ND", # Map "?" and "Hinged" to "ND"
+    Distal.end.morpho == "feathered" ~ "Feathered", # Correct syntax for a single value
+    TRUE ~ Distal.end.morpho # Keep the original value for other cases
+  )) %>% #Distal end morphology
   mutate(Blank.type1 = Blank.type2, .after = Blank.type1) %>% #INSERT Blank.type1
   mutate(Blank.type1= case_when(
     Blank.type1 %in% c("Blade", "Bladelet") ~ "Laminar",
     TRUE ~ Blank.type1
   ))%>% #Blank.type1
+  mutate(Robustness = Elongation, .after = Elongation) %>%
+mutate(Robustness = if_else(Blank.type1 == "Laminar", Width / Thickness, NA_real_)) %>%
   mutate(Technology.Phase= case_when(
     Technology.Phase %in% c("Mgmt", "Tablet") ~ "MGMT",
     Technology.Phase %in% c("Simple", "Spall")  ~ "Ordinary",
@@ -248,8 +261,10 @@ mutate(Technology.Ext= case_when(
   mutate (Dorsal.scar.2= case_when(
     Dorsal.scar.2 == "No negatives" ~ NA,
     TRUE ~ Dorsal.scar.2
-  )) %>% #Dorsal.scar.2
-  select(Site, Layer, ID, Preservation, Cortex.y.n, Cortex, Cortex.position, Length, Width, Thickness, Elongation, Platform, Bulb, Lip, Abrasion, Axiality, Outline.morphology, Symmetry, Cross.section, Profile, Torsion, Distal.end.morpho, Blank.type1,Blank.type2, Technology.Phase, Technology.Ext, Number.negatives, Negatives.type, Dorsal.scar.1, Dorsal.scar.2, Tool, Retouch.Position)
+  ))  #Dorsal.scar.2
+    
+ Gennai_ROM_ANS_Blanks_reshaped <- Gennai_ROM_ANS_Blanks_reshaped %>% 
+   select(Site, Layer, ID, Preservation, Cortex.y.n, Cortex, Cortex.position, Length, Width, Thickness, Elongation, Robustness, Platform, Bulb, Lip, Abrasion, Axiality, Outline.morphology, Symmetry, Cross.section, Profile, Torsion, Distal.end.morpho, Blank.type1, Blank.type2, Technology.Phase, Technology.Ext, Number.negatives, Negatives.type, Dorsal.scar.1, Dorsal.scar.2, Tool, Retouch.Position)
 
 library(writexl)
 
@@ -264,9 +279,12 @@ write_xlsx(Gennai_ROM_ANS_Blanks_reshaped, "Gennai_ROM_ANS_Blanks_reshaped.xlsx"
 ```{r}
 library(dplyr)
 library(writexl)
-
+Falcucci_Fumane_Blanks <- read_excel(file.choose()) #Get the Falcucci_Fumane_Blanks.xlsx
+View(Falcucci_Fumane_Blanks)
 Falcucci_FUM_Blanks_reshaped <- Falcucci_Fumane_Blanks %>%
-  rename(Platform = "platform.type",
+  rename(
+    Robustness = "robustness",
+    Platform = "platform.type",
          Abrasion = "dorsal.thinning", 
          Axiality = "axiality",
          Outline.morphology = "blank.shape", 
@@ -395,6 +413,7 @@ Falcucci_FUM_Blanks_reshaped <- Falcucci_Fumane_Blanks %>%
     Distal.end.morpho %in% c("Step") ~ NA, 
     Distal.end.morpho %in% c("Hinged", "Undetermined") ~ "ND", 
     Distal.end.morpho == "Pointed" ~ "Feathered",
+    Distal.end.morpho == "feathered" ~ "Feathered",
     TRUE ~ Distal.end.morpho
   )) %>%
   mutate(Negatives.type = bladelet.neg.blade, .after = bladelet.neg.blade) %>%
@@ -448,7 +467,7 @@ Falcucci_FUM_Blanks_reshaped <- Falcucci_Fumane_Blanks %>%
     Number.negatives == 0 ~ NA,
     TRUE ~ Dorsal.scar.2
   )) %>%
-  select(Site, Layer, ID, Preservation, Cortex.y.n, Cortex, Cortex.position, Length, Width, Thickness, Elongation, Platform, Bulb, Lip, Abrasion, Axiality, Outline.morphology, Symmetry, Cross.section, Profile, Torsion, Distal.end.morpho, Blank.type1, Blank.type2, Technology.Phase, Technology.Ext, Number.negatives, Negatives.type, Dorsal.scar.1, Dorsal.scar.2, Tool, Retouch.Position)
+  select(Site, Layer, ID, Preservation, Cortex.y.n, Cortex, Cortex.position, Length, Width, Thickness, Elongation, Robustness, Platform, Bulb, Lip, Abrasion, Axiality, Outline.morphology, Symmetry, Cross.section, Profile, Torsion, Distal.end.morpho, Blank.type1, Blank.type2, Technology.Phase, Technology.Ext, Number.negatives, Negatives.type, Dorsal.scar.1, Dorsal.scar.2, Tool, Retouch.Position)
 
 # Write data frame to Excel file
 write_xlsx(Falcucci_FUM_Blanks_reshaped, "Falcucci_FUM_Blanks_reshaped.xlsx")
@@ -459,6 +478,9 @@ write_xlsx(Falcucci_FUM_Blanks_reshaped, "Falcucci_FUM_Blanks_reshaped.xlsx")
 
 ###Niochet CTS
 ```{r}
+Niochet_CTS_US04inf_Blanks <- read_excel(file.choose()) #Get the Niochet_CTS-US04inf_Blanks.xlsx
+View(Niochet_CTS_US04inf_Blanks)
+
 Niochet_CTS_Blanks_reshaped <- Niochet_CTS_US04inf_Blanks %>%
   rename(ID = "Piece Original ID", 
          Preservation = "Entirety", 
@@ -473,7 +495,7 @@ Niochet_CTS_Blanks_reshaped <- Niochet_CTS_US04inf_Blanks %>%
          Outline.morphology = "Out", 
          Cross.section = "CrossSectMorph", 
          Profile = "Pro", 
-         Distal.end.morpho = "DEndMorph",
+         Distal.end.morpho = "DendMorph",
          Blank.type2 = "StructureCat", 
          Technology.Phase = "TechCat", 
          Technology.Ext = "Cat", 
@@ -539,6 +561,7 @@ TRUE ~ as.character(Axiality))) %>% #Axiality
 mutate(Outline.morphology =case_when(
 Outline.morphology %in% c("No Dist Part", "NA") ~ NA, 
 Outline.morphology %in% c("(sub)Parallel Edges") ~ "Parallel",
+Outline.morphology %in% c("Other") ~ "ND",
 Axiality == "Off-axis" ~ "Off-axis",
 TRUE ~ Outline.morphology)) %>% #Outline.morphology
   mutate(Profile= case_when(
@@ -547,10 +570,11 @@ TRUE ~ Outline.morphology)) %>% #Outline.morphology
     Profile== "NA" ~ NA,
     TRUE ~ Profile)) %>% #Profile
 mutate(Torsion = Profile, .after = Profile) %>% #INSERT Torsion
-mutate(Torsion = recode(Torsion, "Twisted" = "Yes", "Straight"= "No", "Curved"= "No", "Very curved"="No", "Slightly curved"="No", "ND"= "NA"))%>%
-  mutate(Torsion= case_when(
-    Torsion == "NA" ~ NA,
-  TRUE ~ Torsion
+mutate(Torsion = case_when(
+    Torsion == "Twisted" | Torsion == "Curved" | Torsion == "Very curved" | Torsion == "Slightly Curved" ~ "No",
+    Torsion == "Straight" ~ "Yes",
+    Torsion == "ND" ~ "NA",
+    TRUE ~ Torsion
   )) %>% #Torsion
   mutate(Cross.section =case_when(
     Cross.section == "Flat" ~ "ND",
@@ -560,6 +584,7 @@ mutate(Torsion = recode(Torsion, "Twisted" = "Yes", "Straight"= "No", "Curved"= 
   mutate(Distal.end.morpho= case_when(
     Distal.end.morpho %in% c("No distal end","Stepped", "Cassure en languette") ~ NA, #stepped is assimilated to not complete
     Distal.end.morpho %in%c( "?","Bipolaire", "Hinged", "Indeterminate", "Corticale", "Retouchée")  ~ "ND", #assimilated to undetermined as it's an accident and not the real termination
+    Distal.end.morpho == "feathered" ~ "Feathered",
     TRUE ~ Distal.end.morpho
   ))%>% #Distal end morphology
   mutate(Blank.type1 = Blank.type2, .after = Blank.type1) %>% #INSERT Blank.type1
@@ -567,6 +592,8 @@ mutate(Torsion = recode(Torsion, "Twisted" = "Yes", "Straight"= "No", "Curved"= 
     Blank.type1 %in% c("Blade", "Bladelet") ~ "Laminar",
     TRUE ~ Blank.type1
   ))%>% #Blank.type1
+  mutate(Robustness = Elongation, .after = Elongation) %>%
+mutate(Robustness = if_else(Blank.type1 == "Laminar", Width / Thickness, NA_real_)) %>%
   mutate(Technology.Phase= case_when(
     Technology.Phase %in% c("Mngt", "Tablet") ~ "MGMT",
     Technology.Phase %in% c("Simple")  ~ "Ordinary",
@@ -603,7 +630,7 @@ mutate(Technology.Ext= case_when(
     Dorsal.scar.2 == "No negatives" ~ NA,
     TRUE ~ Dorsal.scar.2
   )) %>% #Dorsal.scar.2
-  select(Site, Layer, ID, Preservation, Cortex.y.n, Cortex, Cortex.position, Length, Width, Thickness, Elongation, Platform, Bulb, Lip, Abrasion, Axiality, Outline.morphology, Symmetry, Cross.section, Profile, Torsion, Distal.end.morpho, Blank.type1,Blank.type2, Technology.Phase, Technology.Ext, Number.negatives, Negatives.type, Dorsal.scar.1, Dorsal.scar.2, Tool, Retouch.Position)
+  select(Site, Layer, ID, Preservation, Cortex.y.n, Cortex, Cortex.position, Length, Width, Thickness, Elongation, Robustness, Platform, Bulb, Lip, Abrasion, Axiality, Outline.morphology, Symmetry, Cross.section, Profile, Torsion, Distal.end.morpho, Blank.type1,Blank.type2, Technology.Phase, Technology.Ext, Number.negatives, Negatives.type, Dorsal.scar.1, Dorsal.scar.2, Tool, Retouch.Position)
 
 library(writexl)
 
@@ -612,8 +639,10 @@ write_xlsx(Niochet_CTS_Blanks_reshaped, "Niochet_CTS_Blanks_reshaped.xlsx")
 ```
 ##Merging the Blanks dataset
 ```{r}
-Blank_Main_merged <- rbind(Gennai_ROM_ANS_Blanks_reshaped, Falcucci_FUM_Blanks_reshaped, Niochet_CTS_Blanks_reshaped)
+library(dplyr)
+Blanks_Main_merged <- rbind(Gennai_ROM_ANS_Blanks_reshaped, Falcucci_FUM_Blanks_reshaped, Niochet_CTS_Blanks_reshaped)
+
 library(writexl)
-writexl::write_xlsx(Blank_Main_merged, "Ans_Rom_Fum_CTS_Blanks_merged.xlsx")
+writexl::write_xlsx(Blanks_Main_merged, "Ans_Rom_Fum_CTS_Blanks_merged.xlsx")
 ```
 

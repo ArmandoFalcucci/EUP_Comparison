@@ -29,7 +29,6 @@ Datasets are available singularly at the Zenodo repository "insert link or refer
 #Getting the merged dataset
 ```{r}
 library(readxl)
-library(dplyr)
 Blanks_Main_merged <- read_excel(file.choose()) #get the Ans_Rom_Fum_CTS_Blanks_merged.xlsx
 ```
 #Reorder
@@ -689,7 +688,175 @@ Retouch.Position
 ggsave("Retouch.Position.tiff", plot = Retouch.Position, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
 ggsave("Retouch.Position.png", plot = Retouch.Position, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
 ```
-##Width
+##Dimensions
+```{r}
+library(ggplot2)
+library(ggstatsplot)
+library(dplyr)
+```
+
+```{r}
+Length <- grouped_ggbetweenstats(
+  data = filter(Blanks_Main_merged, Blank.type2_F != "Flake", Preservation == "Complete", Length !="NA"),
+  x = Site_F,     
+  y = Length, 
+  grouping.var = Blank.type1,
+  xlab = "Site",
+  ylab = "mm",
+  nonparametric = TRUE,  # Perform non-parametric tests
+  results.subtitle = TRUE,
+  centrality.plotting = TRUE,
+  centrality.type = "nonparametric",
+  violin.args = list(width = 0.5, alpha = 0.2, na.rm = TRUE),
+  ggplot.component = list(
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    ),
+    scale_y_continuous(limits = c(0, 125))  # Start y-axis at 0
+  )
+)
+Length
+
+ggsave("Length.tiff", plot = Length, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+ggsave("Length.png", plot = Length, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+
+```
+
+```{r}
+
+Width <- grouped_ggbetweenstats(
+  data = filter(Blanks_Main_merged, Blank.type2_F != "Flake", Width !="NA"),
+  x = Site_F,     
+  y = Width, 
+  grouping.var = Blank.type1,
+  xlab = "Site",
+  ylab = "mm",
+  nonparametric = TRUE,  # Perform non-parametric tests
+  results.subtitle = TRUE,
+  centrality.plotting = TRUE,
+  centrality.type = "nonparametric",
+  violin.args = list(width = 0.5, alpha = 0.2, na.rm = TRUE),
+  ggplot.component = list(
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    ),
+    geom_hline(yintercept = 12, linetype = "dashed", color = "red"),
+    scale_y_continuous(limits = c(0, 45))  # Start y-axis at 0
+  )
+)
+Width
+
+ggsave("Width.tiff", plot = Width, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+ggsave("Width.png", plot = Width, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+```{r}
+Thickness <- grouped_ggbetweenstats(
+  data = filter(Blanks_Main_merged, Blank.type2_F != "Flake", Thickness !="NA"),
+  x = Site_F,     
+  y = Thickness, 
+  grouping.var = Blank.type1,
+  xlab = "Site",
+  ylab = "mm",
+  nonparametric = TRUE,  # Perform non-parametric tests
+  results.subtitle = TRUE,
+  centrality.plotting = TRUE,
+  centrality.type = "nonparametric",
+  violin.args = list(width = 0.5, alpha = 0.2, na.rm = TRUE),
+  ggplot.component = list(
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    ),
+    scale_y_continuous(limits = c(0, 45))  # Start y-axis at 0
+  )
+)
+Thickness
+
+ggsave("Thickness.tiff", plot = Thickness, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+ggsave("Thickness.png", plot = Thickness, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+```{r}
+Elongation <- grouped_ggbetweenstats(
+  data = filter(Blanks_Main_merged, Blank.type2_F != "Flake", Elongation !="NA", Elongation !="0"),
+  x = Site_F,     
+  y = Elongation, 
+  grouping.var = Blank.type1,
+  xlab = "Site",
+  nonparametric = TRUE,  # Perform non-parametric tests
+  results.subtitle = TRUE,
+  centrality.plotting = TRUE,
+  centrality.type = "nonparametric",
+  violin.args = list(width = 0.5, alpha = 0.2, na.rm = TRUE),
+  ggplot.component = list(
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    ),
+    scale_y_continuous(limits = c(0, 10))  # Start y-axis at 0
+  )
+)
+Elongation
+
+ggsave("Elongation.tiff", plot = Elongation, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+ggsave("Elongation.png", plot = Elongation, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+```{r}
+Robustness <- grouped_ggbetweenstats(
+  data = filter(Blanks_Main_merged, Blank.type2_F != "Flake", Robustness !="NA"),
+  x = Site_F,     
+  y = Robustness, 
+  grouping.var = Blank.type1,
+  xlab = "Site",
+  nonparametric = TRUE,  # Perform non-parametric tests
+  results.subtitle = TRUE,
+  centrality.plotting = TRUE,
+  centrality.type = "nonparametric",
+  violin.args = list(width = 0.5, alpha = 0.2, na.rm = TRUE),
+  ggplot.component = list(
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    ),
+    scale_y_continuous(limits = c(0, 15))  # Start y-axis at 0
+  )
+)
+Robustness
+
+ggsave("Robustness.tiff", plot = Robustness, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+ggsave("Robustness.png", plot = Robustness, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+##Width histogram
 ```{r}
 filtered_data <- filter(Blanks_Main_merged, Blank.type2_F %in% c("Blade", "Bladelet") & !is.na(Width))
 filtered_data$Width <- as.numeric(filtered_data$Width)

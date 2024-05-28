@@ -53,11 +53,32 @@ mutate(SiteLaminar = case_when(
     Site == "AN" & Blank.type1 == "Laminar"  ~ "AN",
     Site == "CTS" & Blank.type1 == "Laminar"  ~ "CTS",
     Site == "FUM" & Blank.type1 == "Laminar" ~ "FUM",
-    Site == "ROM" & Blank.type1 == "Laminar" ~ "ROM"))
+    Site == "ROM" & Blank.type1 == "Laminar" ~ "ROM")) %>%
+mutate(
+    Length = as.numeric(Length), 
+    Width = as.numeric(Width),
+    Thickness = as.numeric(Thickness),
+    Elongation = as.numeric(Elongation),
+    Robustness = as.numeric(Robustness))
     
 str(Blanks_Main_merged_MCA)
 library(writexl)
 write_xlsx(Blanks_Main_merged_MCA, "Ans_Rom_Fum_CTS_Blanks_mergedMCA.xlsx")
+```
+#New dataframe for testing attributes association with dimensional indexes
+```{r}
+library(dplyr)
+library(RcmdrMisc)
+Laminar_Blanks_Merged_MCA <- Blanks_Main_merged_MCA %>%
+  filter(Blank.type1 == "Laminar") %>% # Filter the data to include only rows where Blank.Type1 is 'Laminar'
+  filter(Elongation != 0) %>%
+  filter(Robustness != 0) %>%
+mutate(Robustness_binned = binVariable(Robustness, bins = 3, method = "natural", labels = c("low", "medium", "high"))) %>% # Bin 'Robustness' into three categories: "low", "medium", and "high"
+  mutate(Elongation_binned = binVariable(Elongation, bins = 3, method = "natural", labels = c("low", "medium", "high")))
+
+head(Laminar_Blanks_Merged_MCA)
+str(Laminar_Blanks_Merged_MCA)
+write_xlsx(Laminar_Blanks_Merged_MCA, "Ans_Rom_Fum_CTS_LaminarBlanks_mergedMCA.xlsx")
 ```
 #MCA
 
@@ -462,8 +483,8 @@ library(FactoInvestigate)
 Investigate(res.mca_PlatformALL2, file = "PlatformALL2_MCA_explained.Rmd", document = "pdf_document", parallel = TRUE) 
 
 
-ggsave("MCAPlatformALL2.tiff", plot = MCA_PlatformALL2_plot, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
-ggsave("MCAPlatformALL2.png", plot = MCA_PlatformALL2_plot, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)    
+ggsave("MCAPlatformALL226052024.tiff", plot = MCA_PlatformALL2_plot, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
+ggsave("MCAPlatformALL226052024.png", plot = MCA_PlatformALL2_plot, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)    
 ```
 
 #Convexity shaping
@@ -850,7 +871,7 @@ fviz_mca_var(res.mca_convexityALL2,
              ggtheme = theme_minimal()) #Variable categories with a similar profile are grouped together. Negatively correlated variable categories are positioned on opposite sides of the plot origin (opposed quadrants).The distance between category points and the origin measures the quality of the variable category on the factor map. Category points that are away from the origin are well represented on the factor map.
 
 var <- get_mca_var(res.mca_convexityALL2)
-head(var$cos2, 20) #If a variable category is well represented by two dimensions, the sum of the cos2 is closed to one. For some of the row items, more than 2 dimensions are required to perfectly represent the data.
+head(var$cos2, 60) #If a variable category is well represented by two dimensions, the sum of the cos2 is closed to one. For some of the row items, more than 2 dimensions are required to perfectly represent the data.
 
 
 fviz_cos2(res.mca_convexityALL2, choice = "var", axes = 1:2) #visualising
@@ -874,8 +895,78 @@ MCA_convexityALL2_plot
 library(FactoInvestigate)
 Investigate(res.mca_convexityALL2, file = "convexityALL2_MCA_explained.Rmd", document = "pdf_document", parallel = TRUE) 
 
-ggsave("MCAconvexityALL2.tiff", plot = MCA_convexityALL2_plot, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
-ggsave("MCAconvexityALL2.png", plot = MCA_convexityALL2_plot, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)    
+ggsave("MCAconvexityALL22605.tiff", plot = MCA_convexityALL2_plot, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
+ggsave("MCAconvexityALL22605.png", plot = MCA_convexityALL2_plot, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)    
+```
+#Dimension and shaping 
+##ALL SITES
+```{r}
+library(FactoMineR)
+library(factoextra)
+library(dplyr)
+library(ggplot2)
+
+#only Axiality and Torsion as they provide mostly same info as Outline and Distal.end.morpho
+str(Laminar_Blanks_Merged_MCA)
+
+# Select relevant columns and remove missing values
+dimconvexity_maintenance <- Laminar_Blanks_Merged_MCA %>%
+  filter(!Axiality %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Symmetry %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Outline.morphology %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Profile %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Cross.section %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Torsion %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Distal.end.morpho %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Robustness_binned %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Elongation_binned %in% c("NA", "ND")) %>% #removing blanks without clear info
+  select(SiteBlank.type2, Blank.type2, Axiality, Symmetry, Cross.section, Profile, Torsion, Robustness_binned, Elongation_binned) %>%
+  na.omit()
+
+summary(dimconvexity_maintenance)
+# Run MCA
+res.mca_DimConvexity <- MCA(dimconvexity_maintenance, graph = FALSE, quali.sup =1:2, method = "Burt") # SiteBlank.type1 is not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in convexity_maintenanceAN, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
+
+print(res.mca_DimConvexity)
+fviz_screeplot(res.mca_DimConvexity, addlabels = TRUE, ylim = c(0, 45)) #To visualize the percentages of inertia explained by each MCA dimensions. Dim1 and Dim2 explain 56.986% of the variance
+summary(res.mca_DimConvexity)
+
+
+fviz_mca_var(res.mca_DimConvexity, choice = "mca.cor", 
+            repel = TRUE, 
+            ggtheme = theme_minimal()) #checking to which dimensions the variable are correlated
+fviz_mca_var(res.mca_DimConvexity, 
+             repel = TRUE, # 
+             ggtheme = theme_minimal()) #Variable categories with a similar profile are grouped together. Negatively correlated variable categories are positioned on opposite sides of the plot origin (opposed quadrants).The distance between category points and the origin measures the quality of the variable category on the factor map. Category points that are away from the origin are well represented on the factor map.
+
+var <- get_mca_var(res.mca_DimConvexity)
+head(var$cos2, 60) #If a variable category is well represented by two dimensions, the sum of the cos2 is closed to one. For some of the row items, more than 2 dimensions are required to perfectly represent the data.
+
+
+fviz_cos2(res.mca_DimConvexity, choice = "var", axes = 1:2) #visualising
+
+fviz_contrib(res.mca_DimConvexity, choice = "var", axes = 1, top = 15) 
+
+fviz_contrib(res.mca_DimConvexity, choice = "var", axes = 2, top = 15) 
+
+MCA_DimConvexity_plot <- fviz_mca_var(
+  res.mca_DimConvexity,
+  col.var = "contrib",
+  label = "all",
+  invisible = "none",
+  gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+  repel = TRUE,
+  max.overlaps=Inf,
+  ggtheme = theme_classic()
+)
+MCA_DimConvexity_plot
+
+library(FactoInvestigate)
+Investigate(res.mca_DimConvexity, file = "DimConvexity_MCA_explained.Rmd", document = "pdf_document", 
+            parallel = TRUE)
+
+ggsave("MCADimConvexity2705.tiff", plot = MCA_DimConvexity_plot, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
+ggsave("MCADimConvexity2705.png", plot = MCA_DimConvexity_plot, width = 43.656255, height = 20.29354, units = "cm", dpi = 300) 
 ```
 #Retouching
 ##ALL SITES
