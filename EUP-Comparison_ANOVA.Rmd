@@ -1,0 +1,989 @@
+---
+title: "Comparison EUP_ANOVA testing"
+author: "Jacopo Gennai"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(eval = FALSE)
+```
+#Introduction
+
+This is an R Markdown document containing the Rcode and workflow for the "reference_article". This section is dedicated to the ANOVA testing of MCA results
+
+#Datasets
+
+the datasets contain raw data about technological analysis of four Early Upper Palaeolithic assemblages:
+
+-   Ansab AH1 (Jordan)
+-   Romanesti-Dumbravita GH3 (Romania)
+-   Fumane A1-A2 (Italy)
+-   Les Cottés 04inf (France)
+
+the assemblages are stratified and radiometrically dated to the period 41-38 ka cal BP.
+
+Datasets are available singularly at the Zenodo repository "insert link or reference". Datasets are divided in "Blanks", debitage products, and "Cores", exhausted blocks of raw material from which debitage products have been struck. The division is due to the different attributes recorded for the two categories.
+
+```{r}
+library(readxl)
+library(dplyr)
+Blanks_Main_merged_MCA <- read_excel(file.choose()) #get the Ans_Rom_Fum_CTS_Blanks_mergedMCA.xlsx
+```
+#Platform
+#blades and bladelets together
+##preparing the data
+```{r}
+
+library(dplyr)
+MCA_Platform <- as.data.frame(res.mca_PlatformALL$ind)
+Site <- as.data.frame(platform_maintenanceALL$SiteLaminar)
+
+mca.Platformdim1_2 <- MCA_Platform %>%
+  select(1:2)
+
+mca_Platform_fin <- bind_cols(Site, mca.Platformdim1_2)
+
+Mca.Platform <- mca_Platform_fin %>%
+  mutate(Site = platform_maintenanceALL$SiteLaminar, "dim1" = coord.Dim.1, "dim2" =  coord.Dim.2)%>%
+  select(4:6) #creating a dataframe with the Dim1 and Dim2 coordinates obtained with MCA_Reduction of each individual (blank)
+
+###create unique comparisons
+unique(Mca.Platform$SiteLaminar)
+
+#setting the unique comparisons 
+assemblages <- c("AN", "ROM", "FUM", "CTS")
+
+# Generate all possible unique combinations of size 2
+all_combinations <- combn(assemblages, 2)
+
+# Convert the result to a data frame for better readability
+combinations_df <- data.frame(t(all_combinations))
+
+# Print the result
+print(combinations_df)
+
+comparisons_Platform <- c(
+  "AN-ROM", "AN-FUM", "AN-CTS", "ROM-FUM",
+  "ROM-CTS", "FUM-CTS")
+
+
+```
+
+##Bootstrapping
+
+```{r}
+# Multi-comparison bootstrap
+install.packages("WRS2")
+library(WRS2)
+# Multi-comparison bootstrap
+
+
+boot_dim1 <- mcppb20(dim1 ~ Site, data = Mca.Platform, nboot = 5000)
+boot_dim2 <- mcppb20(dim2 ~ Site, data = Mca.Platform, nboot = 5000)
+
+# Convert results to data frames
+multi_comp_dim1 <- as.data.frame(boot_dim1$comp)
+multi_comp_dim2 <- as.data.frame(boot_dim2$comp)
+
+# Add SiteType names and transform to column "SiteType"
+multi_comp_dim1$Site <- comparisons_Platform
+multi_comp_dim1 <- multi_comp_dim1[!duplicated(names(multi_comp_dim1))]
+
+multi_comp_dim2$Site <- comparisons_Platform
+multi_comp_dim2 <- multi_comp_dim2[!duplicated(names(multi_comp_dim2))]
+
+# Join the results
+multi_comp <- full_join(multi_comp_dim1, multi_comp_dim2, by = "Site", suffix = c("dim1", "dim2"))
+
+# Select relevant columns
+multi_comp <- select(multi_comp, Site, `p-valuedim1`, `p-valuedim2`)
+
+# Build a list with pairwise p-values
+labels_dim1 <- setNames(multi_comp$`p-valuedim1`, multi_comp_dim1$Site)
+labels_dim2 <- setNames(multi_comp$`p-valuedim2`, multi_comp_dim2$Site)
+
+# Attribute letters to each grouping based on alpha = .05
+install.packages("multcompView")
+library(multcompView)
+library(tibble)
+grouping_dim1 <- data.frame(multcompLetters(labels_dim1)["Letters"])
+grouping_dim1 <- rownames_to_column(grouping_dim1, "Site")
+
+grouping_dim2 <- data.frame(multcompLetters(labels_dim2)["Letters"])
+grouping_dim2 <- rownames_to_column(grouping_dim2, "Site")
+
+# Join the grouping results
+grouping <- full_join(grouping_dim1, grouping_dim2, by = "Site", suffix = c("dim1", "dim2"))
+
+
+# Print or use the 'grouping' dataframe for further analysis or visualization
+print(grouping)
+
+```
+##Plotting
+```{r}
+library(RcmdrMisc)
+library(gridExtra)
+library(DescTools)
+
+mca_summary <- Mca.Platform %>% 
+  group_by(Site) %>% 
+  summarise(meandim1 = mean(dim1, trim = 0.2), meandim2 = mean(dim2, trim = 0.2), 
+            LCIdim1 = MeanCI(dim1, trim = 0.2)[2], MCIdim1 = MeanCI(dim1, trim = 0.2)[3],
+            LCIdim2 = MeanCI(dim2, trim = 0.2)[2], MCIdim2 = MeanCI(dim2, trim = 0.2)[3]) 
+
+m1 <- max(mca_summary$MCIdim1)
+m2 <- max(mca_summary$MCIdim2)
+
+dim1 <- ggplot(mca_summary) +
+  geom_point(stat = "identity", aes(x = Site, y = meandim1), size = 3) +
+  geom_errorbar(stat = "identity", aes(x = Site, ymin = LCIdim1, ymax = MCIdim1), width = 0) +
+  geom_hline(aes(yintercept = 0), color = "red", linetype = "dashed", show.legend = FALSE) +
+  geom_text(data = grouping, aes(x = Site, y = m1 + 0.08, label = Lettersdim1, size = 15), show.legend = FALSE) +
+  xlab("") +
+  ylab("Dimension 1") +
+  scale_colour_discrete(l = 40) +
+  theme(text = element_text(size = 18)) +
+  coord_flip()
+
+
+dim2 <- ggplot(mca_summary) +
+  geom_point(stat = "identity", aes(x = Site, y = meandim2), size = 3) +
+  geom_errorbar(stat = "identity", aes(x = Site, ymin = LCIdim2, ymax = MCIdim2), width = 0) +
+  geom_hline(aes(yintercept = 0), color = "red", linetype = "dashed", show.legend = FALSE) +
+  geom_text(data = grouping, aes(x = Site, y = m2 + 0.08, label = Lettersdim2, size = 15), show.legend = FALSE) +
+  xlab("") +
+  ylab("Dimension 2") +
+  scale_colour_discrete(l = 40) +
+  theme(text = element_text(size = 18)) +
+  coord_flip()
+
+
+ANOVAPlatform <- grid.arrange(dim1, dim2, ncol = 1)
+
+ggsave("ANOVAPlatform.tiff", plot = ANOVAPlatform, width = 43.656255, height = 20.29354, units = "cm", dpi = 300) 
+ggsave("ANOVAPlatform.png", plot = ANOVAPlatform, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
+
+ANOVAPlatformMCA <- grid.arrange(ANOVAPlatform, MCA_PlatformALL_plot, ncol = 1)
+
+ggsave("ANOVAMCAcombinedPlat.tiff", plot = ANOVAPlatformMCA, width = 66.96604, height = 32.75542, units = "cm", dpi = 300) 
+ggsave("ANOVAMCAcombinedPlat.png", plot = ANOVAPlatformMCA, width = 66.96604, height = 32.75542, units = "cm", dpi = 300)
+
+```
+#blades and bladelets distinct
+##preparing the data
+```{r}
+
+library(dplyr)
+MCA_Platform2 <- as.data.frame(res.mca_PlatformALL2$ind)
+SiteBlank <- as.data.frame(platform_maintenanceALL2$SiteBlank.type2)
+
+mca.Platform2dim1_2 <- MCA_Platform2 %>%
+  select(1:2)
+
+mca_Platform_fin2 <- bind_cols(SiteBlank, mca.Platform2dim1_2)
+
+Mca.Platform2 <- mca_Platform_fin2 %>%
+  mutate(SiteBlank = platform_maintenanceALL2$SiteBlank.type2, "dim1" = coord.Dim.1, "dim2" =  coord.Dim.2)%>%
+  select(4:6) #creating a dataframe with the Dim1 and Dim2 coordinates obtained with MCA_Reduction of each individual (blank)
+
+###create unique comparisons
+unique(Mca.Platform2$SiteBlank)
+
+#setting the unique comparisons 
+assemblages2 <- c("AN.bladlt", "AN.Blade" ,  "ROM.bladlt", "ROM.Blade",  "FUM.Blade",  "FUM.bladlt", "CTS.bladlt", "CTS.Blade")
+
+# Generate all possible unique combinations of size 2
+all_combinations2 <- combn(assemblages2, 2)
+
+# Convert the result to a data frame for better readability
+combinations_df2 <- data.frame(t(all_combinations2))
+
+# Print the result
+print(combinations_df2)
+
+comparisons_Platform2 <- c(
+"AN.bladlt-AN.Blade",
+"AN.bladlt-ROM.bladlt",
+"AN.bladlt-ROM.Blade",
+"AN.bladlt-FUM.Blade",
+"AN.bladlt-FUM.bladlt",
+"AN.bladlt-CTS.bladlt",
+"AN.bladlt-CTS.Blade",
+"AN.Blade-ROM.bladlt",
+"AN.Blade-ROM.Blade",
+"AN.Blade-FUM.Blade",
+"AN.Blade-FUM.bladlt",
+"AN.Blade-CTS.bladlt",
+"AN.Blade-CTS.Blade",
+"ROM.bladlt-ROM.Blade",
+"ROM.bladlt-FUM.Blade",
+"ROM.bladlt-FUM.bladlt",
+"ROM.bladlt-CTS.bladlt",
+"ROM.bladlt-CTS.Blade",
+"ROM.Blade-FUM.Blade",
+"ROM.Blade-FUM.bladlt",
+"ROM.Blade-CTS.bladlt",
+"ROM.Blade-CTS.Blade",
+"FUM.Blade-FUM.bladlt",
+"FUM.Blade-CTS.bladlt",
+"FUM.Blade-CTS.Blade",
+"FUM.bladlt-CTS.bladlt",
+"FUM.bladlt-CTS.Blade",
+"CTS.bladlt-CTS.Blade")
+
+
+```
+
+##Bootstrapping
+
+```{r}
+# Multi-comparison bootstrap
+install.packages("WRS2")
+library(WRS2)
+# Multi-comparison bootstrap
+
+
+boot_dim1_2 <- mcppb20(dim1 ~ SiteBlank, data = Mca.Platform2, nboot = 5000)
+boot_dim2_2 <- mcppb20(dim2 ~ SiteBlank, data = Mca.Platform2, nboot = 5000)
+
+# Convert results to data frames
+multi_comp_dim1_2 <- as.data.frame(boot_dim1_2$comp)
+multi_comp_dim2_2 <- as.data.frame(boot_dim2_2$comp)
+
+# Add SiteType names and transform to column "SiteType"
+multi_comp_dim1_2$SiteBlank <- comparisons_Platform2
+multi_comp_dim1_2 <- multi_comp_dim1_2[!duplicated(names(multi_comp_dim1_2))]
+
+multi_comp_dim2_2$SiteBlank <- comparisons_Platform2
+multi_comp_dim2_2 <- multi_comp_dim2_2[!duplicated(names(multi_comp_dim2_2))]
+
+# Join the results
+multi_comp2 <- full_join(multi_comp_dim1_2, multi_comp_dim2_2, by = "SiteBlank", suffix = c("dim1", "dim2"))
+
+# Select relevant columns
+multi_comp2 <- select(multi_comp2, SiteBlank, `p-valuedim1`, `p-valuedim2`)
+
+# Build a list with pairwise p-values
+labels_dim1_2 <- setNames(multi_comp2$`p-valuedim1`, multi_comp_dim1_2$SiteBlank)
+labels_dim2_2 <- setNames(multi_comp2$`p-valuedim2`, multi_comp_dim2_2$SiteBlank)
+
+# Attribute letters to each grouping based on alpha = .05
+install.packages("multcompView")
+library(multcompView)
+library(tibble)
+grouping_dim1_2 <- data.frame(multcompLetters(labels_dim1_2)["Letters"])
+grouping_dim1_2 <- rownames_to_column(grouping_dim1_2, "SiteBlank")
+
+grouping_dim2_2 <- data.frame(multcompLetters(labels_dim2_2)["Letters"])
+grouping_dim2_2 <- rownames_to_column(grouping_dim2_2, "SiteBlank")
+
+# Join the grouping results
+grouping2 <- full_join(grouping_dim1_2, grouping_dim2_2, by = "SiteBlank", suffix = c("dim1", "dim2"))
+
+
+# Print or use the 'grouping' dataframe for further analysis or visualization
+print(grouping2)
+
+```
+##Plotting
+```{r}
+library(RcmdrMisc)
+library(gridExtra)
+library(DescTools)
+
+mca_summary2 <- Mca.Platform2 %>%
+  group_by(SiteBlank) %>%
+  summarise(meandim1 = mean(dim1, trim = 0.2), 
+            meandim2 = mean(dim2, trim = 0.2),
+            LCIdim1 = MeanCI(dim1, trim = 0.2)[2],
+            MCIdim1 = MeanCI(dim1, trim = 0.2)[3],
+            LCIdim2 = MeanCI(dim2, trim = 0.2)[2],
+            MCIdim2 = MeanCI(dim2, trim = 0.2)[3])
+
+# Define maximum values for y-axis for both dimensions
+m1 <- max(mca_summary2$MCIdim1)
+m2 <- max(mca_summary2$MCIdim2)
+
+# Create ggplot objects for Dimension 1 and Dimension 2
+dim1_plot <- ggplot(mca_summary2) +
+  geom_point(stat = "identity", aes(x = SiteBlank, y = meandim1), size = 3) +
+  geom_errorbar(stat = "identity", aes(x = SiteBlank, ymin = LCIdim1, ymax = MCIdim1), width = 0) +
+  geom_hline(yintercept = 0, color = "red", linetype = "dashed", show.legend = FALSE) +
+  geom_text(data = grouping2, aes(x = SiteBlank, y = m1 + 0.08, label = Lettersdim1, size = 15), show.legend = FALSE) +
+  xlab("") +
+  ylab("Dimension 1") +
+  theme(text = element_text(size = 18)) +
+  coord_flip()
+
+dim2_plot <- ggplot(mca_summary2) +
+  geom_point(stat = "identity", aes(x = SiteBlank, y = meandim2), size = 3) +
+  geom_errorbar(stat = "identity", aes(x = SiteBlank, ymin = LCIdim2, ymax = MCIdim2), width = 0) +
+  geom_hline(yintercept = 0, color = "red", linetype = "dashed", show.legend = FALSE) +
+  geom_text(data = grouping2, aes(x = SiteBlank, y = m2 + 0.08, label = Lettersdim2, size = 15), show.legend = FALSE) +
+  xlab("") +
+  ylab("Dimension 2") +
+  theme(text = element_text(size = 18)) +
+  coord_flip()
+
+# Arrange plots vertically
+ANOVAPlatform2 <- grid.arrange(dim1_plot, dim2_plot, ncol = 1)
+
+# Save plots as TIFF and PNG files
+ggsave("ANOVAPlatform2.tiff", plot = ANOVAPlatform2, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
+ggsave("ANOVAPlatform2.png", plot = ANOVAPlatform2, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
+
+ANOVAPlatformMCA2 <- grid.arrange(ANOVAPlatform2, MCA_PlatformALL2_plot, ncol = 1)
+
+ggsave("ANOVAMCAcombinedPlat2705.tiff", plot = ANOVAPlatformMCA2, width = 66.96604, height = 32.75542, units = "cm", dpi = 300) 
+ggsave("ANOVAMCAcombinedPlat2705.png", plot = ANOVAPlatformMCA2, width = 66.96604, height = 32.75542, units = "cm", dpi = 300)
+
+```
+#Convexity
+#blades and bladelets together
+##preparing the data
+```{r}
+
+library(dplyr)
+MCA_Convexity <- as.data.frame(res.mca_convexityALL$ind)
+Site <- as.data.frame(convexity_maintenanceALL$SiteLaminar)
+
+mca.Convexitydim1_2 <- MCA_Convexity %>%
+  select(1:2)
+
+mca_Convexity_fin <- bind_cols(Site, mca.Convexitydim1_2)
+
+Mca.Convexity <- mca_Convexity_fin %>%
+  mutate(Site = convexity_maintenanceALL$SiteLaminar, "dim1" = coord.Dim.1, "dim2" =  coord.Dim.2)%>%
+  select(4:6) #creating a dataframe with the Dim1 and Dim2 coordinates obtained with MCA_Reduction of each individual (blank)
+
+###create unique comparisons
+unique(Mca.Convexity$SiteLaminar)
+
+#setting the unique comparisons 
+assemblages <- c("AN", "ROM", "FUM", "CTS")
+
+# Generate all possible unique combinations of size 2
+all_combinations <- combn(assemblages, 2)
+
+# Convert the result to a data frame for better readability
+combinations_df <- data.frame(t(all_combinations))
+
+# Print the result
+print(combinations_df)
+
+comparisons_Convexity <- c(
+  "AN-ROM", "AN-FUM", "AN-CTS", "ROM-FUM",
+  "ROM-CTS", "FUM-CTS")
+
+
+```
+
+##Bootstrapping
+
+```{r}
+# Multi-comparison bootstrap
+install.packages("WRS2")
+library(WRS2)
+# Multi-comparison bootstrap
+
+
+boot_dim1 <- mcppb20(dim1 ~ Site, data = Mca.Convexity, nboot = 5000)
+boot_dim2 <- mcppb20(dim2 ~ Site, data = Mca.Convexity, nboot = 5000)
+
+# Convert results to data frames
+multi_comp_dim1 <- as.data.frame(boot_dim1$comp)
+multi_comp_dim2 <- as.data.frame(boot_dim2$comp)
+
+# Add SiteType names and transform to column "SiteType"
+multi_comp_dim1$Site <- comparisons_Convexity
+multi_comp_dim1 <- multi_comp_dim1[!duplicated(names(multi_comp_dim1))]
+
+multi_comp_dim2$Site <- comparisons_Convexity
+multi_comp_dim2 <- multi_comp_dim2[!duplicated(names(multi_comp_dim2))]
+
+# Join the results
+multi_comp <- full_join(multi_comp_dim1, multi_comp_dim2, by = "Site", suffix = c("dim1", "dim2"))
+
+# Select relevant columns
+multi_comp <- select(multi_comp, Site, `p-valuedim1`, `p-valuedim2`)
+
+# Build a list with pairwise p-values
+labels_dim1 <- setNames(multi_comp$`p-valuedim1`, multi_comp_dim1$Site)
+labels_dim2 <- setNames(multi_comp$`p-valuedim2`, multi_comp_dim2$Site)
+
+# Attribute letters to each grouping based on alpha = .05
+install.packages("multcompView")
+library(multcompView)
+library(tibble)
+grouping_dim1 <- data.frame(multcompLetters(labels_dim1)["Letters"])
+grouping_dim1 <- rownames_to_column(grouping_dim1, "Site")
+
+grouping_dim2 <- data.frame(multcompLetters(labels_dim2)["Letters"])
+grouping_dim2 <- rownames_to_column(grouping_dim2, "Site")
+
+# Join the grouping results
+grouping <- full_join(grouping_dim1, grouping_dim2, by = "Site", suffix = c("dim1", "dim2"))
+
+
+# Print or use the 'grouping' dataframe for further analysis or visualization
+print(grouping)
+
+```
+##Plotting
+```{r}
+library(RcmdrMisc)
+library(gridExtra)
+library(DescTools)
+
+mca_summary <- Mca.Convexity %>% 
+  group_by(Site) %>% 
+  summarise(meandim1 = mean(dim1, trim = 0.2), meandim2 = mean(dim2, trim = 0.2), 
+            LCIdim1 = MeanCI(dim1, trim = 0.2)[2], MCIdim1 = MeanCI(dim1, trim = 0.2)[3],
+            LCIdim2 = MeanCI(dim2, trim = 0.2)[2], MCIdim2 = MeanCI(dim2, trim = 0.2)[3]) 
+
+m1 <- max(mca_summary$MCIdim1)
+m2 <- max(mca_summary$MCIdim2)
+
+dim1 <- ggplot(mca_summary) +
+  geom_point(stat = "identity", aes(x = Site, y = meandim1), size = 3) +
+  geom_errorbar(stat = "identity", aes(x = Site, ymin = LCIdim1, ymax = MCIdim1), width = 0) +
+  geom_hline(aes(yintercept = 0), color = "red", linetype = "dashed", show.legend = FALSE) +
+  geom_text(data = grouping, aes(x = Site, y = m1 + 0.08, label = Lettersdim1, size = 15), show.legend = FALSE) +
+  xlab("") +
+  ylab("Dimension 1") +
+  scale_colour_discrete(l = 40) +
+  theme(text = element_text(size = 18)) +
+  coord_flip()
+
+
+dim2 <- ggplot(mca_summary) +
+  geom_point(stat = "identity", aes(x = Site, y = meandim2), size = 3) +
+  geom_errorbar(stat = "identity", aes(x = Site, ymin = LCIdim2, ymax = MCIdim2), width = 0) +
+  geom_hline(aes(yintercept = 0), color = "red", linetype = "dashed", show.legend = FALSE) +
+  geom_text(data = grouping, aes(x = Site, y = m2 + 0.08, label = Lettersdim2, size = 15), show.legend = FALSE) +
+  xlab("") +
+  ylab("Dimension 2") +
+  scale_colour_discrete(l = 40) +
+  theme(text = element_text(size = 18)) +
+  coord_flip()
+
+
+ANOVAConvexity <- grid.arrange(dim1, dim2, ncol = 1)
+
+ggsave("ANOVAConvexity.tiff", plot = ANOVAConvexity, width = 43.656255, height = 20.29354, units = "cm", dpi = 300) 
+ggsave("ANOVAConvexity.png", plot = ANOVAConvexity, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
+
+ANOVAConvexityMCA <- grid.arrange(ANOVAConvexity, MCA_convexityALL_plot, ncol = 1)
+
+ggsave("ANOVAMCAcombinedConv.tiff", plot = ANOVAConvexityMCA, width = 66.96604, height = 32.75542, units = "cm", dpi = 300) 
+ggsave("ANOVAMCAcombinedConv.png", plot = ANOVAConvexityMCA, width = 66.96604, height = 32.75542, units = "cm", dpi = 300)
+
+```
+#blades and bladelets distinct
+##preparing the data
+```{r}
+
+library(dplyr)
+MCA_Convexity2 <- as.data.frame(res.mca_convexityALL2$ind)
+SiteBlank <- as.data.frame(convexity_maintenance_ALL2$SiteBlank.type2)
+
+mca.Convexity2dim1_2 <- MCA_Convexity2 %>%
+  select(1:2)
+
+mca_Convexity_fin2 <- bind_cols(SiteBlank, mca.Convexity2dim1_2)
+
+Mca.Convexity2 <- mca_Convexity_fin2 %>%
+  mutate(SiteBlank = convexity_maintenance_ALL2$SiteBlank.type2, "dim1" = coord.Dim.1, "dim2" =  coord.Dim.2)%>%
+  select(4:6) #creating a dataframe with the Dim1 and Dim2 coordinates obtained with MCA_Reduction of each individual (blank)
+
+###create unique comparisons
+unique(Mca.Convexity2$SiteBlank)
+
+#setting the unique comparisons 
+assemblages2 <- c("AN.bladlt", "AN.Blade" ,  "ROM.bladlt", "ROM.Blade",  "FUM.Blade",  "FUM.bladlt", "CTS.bladlt", "CTS.Blade")
+
+# Generate all possible unique combinations of size 2
+all_combinations2 <- combn(assemblages2, 2)
+
+# Convert the result to a data frame for better readability
+combinations_df2 <- data.frame(t(all_combinations2))
+
+# Print the result
+print(combinations_df2)
+
+comparisons_Convexity2 <- c(
+"AN.bladlt-AN.Blade",
+"AN.bladlt-ROM.bladlt",
+"AN.bladlt-ROM.Blade",
+"AN.bladlt-FUM.Blade",
+"AN.bladlt-FUM.bladlt",
+"AN.bladlt-CTS.bladlt",
+"AN.bladlt-CTS.Blade",
+"AN.Blade-ROM.bladlt",
+"AN.Blade-ROM.Blade",
+"AN.Blade-FUM.Blade",
+"AN.Blade-FUM.bladlt",
+"AN.Blade-CTS.bladlt",
+"AN.Blade-CTS.Blade",
+"ROM.bladlt-ROM.Blade",
+"ROM.bladlt-FUM.Blade",
+"ROM.bladlt-FUM.bladlt",
+"ROM.bladlt-CTS.bladlt",
+"ROM.bladlt-CTS.Blade",
+"ROM.Blade-FUM.Blade",
+"ROM.Blade-FUM.bladlt",
+"ROM.Blade-CTS.bladlt",
+"ROM.Blade-CTS.Blade",
+"FUM.Blade-FUM.bladlt",
+"FUM.Blade-CTS.bladlt",
+"FUM.Blade-CTS.Blade",
+"FUM.bladlt-CTS.bladlt",
+"FUM.bladlt-CTS.Blade",
+"CTS.bladlt-CTS.Blade")
+
+
+```
+
+##Bootstrapping
+
+```{r}
+# Multi-comparison bootstrap
+install.packages("WRS2")
+library(WRS2)
+# Multi-comparison bootstrap
+
+
+boot_dim1_2 <- mcppb20(dim1 ~ SiteBlank, data = Mca.Convexity2, nboot = 5000)
+boot_dim2_2 <- mcppb20(dim2 ~ SiteBlank, data = Mca.Convexity2, nboot = 5000)
+
+# Convert results to data frames
+multi_comp_dim1_2 <- as.data.frame(boot_dim1_2$comp)
+multi_comp_dim2_2 <- as.data.frame(boot_dim2_2$comp)
+
+# Add SiteType names and transform to column "SiteType"
+multi_comp_dim1_2$SiteBlank <- comparisons_Convexity2
+multi_comp_dim1_2 <- multi_comp_dim1_2[!duplicated(names(multi_comp_dim1_2))]
+
+multi_comp_dim2_2$SiteBlank <- comparisons_Convexity2
+multi_comp_dim2_2 <- multi_comp_dim2_2[!duplicated(names(multi_comp_dim2_2))]
+
+# Join the results
+multi_comp2 <- full_join(multi_comp_dim1_2, multi_comp_dim2_2, by = "SiteBlank", suffix = c("dim1", "dim2"))
+
+# Select relevant columns
+multi_comp2 <- select(multi_comp2, SiteBlank, `p-valuedim1`, `p-valuedim2`)
+
+# Build a list with pairwise p-values
+labels_dim1_2 <- setNames(multi_comp2$`p-valuedim1`, multi_comp_dim1_2$SiteBlank)
+labels_dim2_2 <- setNames(multi_comp2$`p-valuedim2`, multi_comp_dim2_2$SiteBlank)
+
+# Attribute letters to each grouping based on alpha = .05
+install.packages("multcompView")
+library(multcompView)
+library(tibble)
+grouping_dim1_2 <- data.frame(multcompLetters(labels_dim1_2)["Letters"])
+grouping_dim1_2 <- rownames_to_column(grouping_dim1_2, "SiteBlank")
+
+grouping_dim2_2 <- data.frame(multcompLetters(labels_dim2_2)["Letters"])
+grouping_dim2_2 <- rownames_to_column(grouping_dim2_2, "SiteBlank")
+
+# Join the grouping results
+grouping2 <- full_join(grouping_dim1_2, grouping_dim2_2, by = "SiteBlank", suffix = c("dim1", "dim2"))
+
+
+# Print or use the 'grouping' dataframe for further analysis or visualization
+print(grouping2)
+
+```
+##Plotting
+```{r}
+library(RcmdrMisc)
+library(gridExtra)
+library(DescTools)
+
+mca_summary2 <- Mca.Convexity2 %>%
+  group_by(SiteBlank) %>%
+  summarise(meandim1 = mean(dim1, trim = 0.2), 
+            meandim2 = mean(dim2, trim = 0.2),
+            LCIdim1 = MeanCI(dim1, trim = 0.2)[2],
+            MCIdim1 = MeanCI(dim1, trim = 0.2)[3],
+            LCIdim2 = MeanCI(dim2, trim = 0.2)[2],
+            MCIdim2 = MeanCI(dim2, trim = 0.2)[3])
+
+# Define maximum values for y-axis for both dimensions
+m1 <- max(mca_summary2$MCIdim1)
+m2 <- max(mca_summary2$MCIdim2)
+
+# Create ggplot objects for Dimension 1 and Dimension 2
+dim1_plot <- ggplot(mca_summary2) +
+  geom_point(stat = "identity", aes(x = SiteBlank, y = meandim1), size = 3) +
+  geom_errorbar(stat = "identity", aes(x = SiteBlank, ymin = LCIdim1, ymax = MCIdim1), width = 0) +
+  geom_hline(yintercept = 0, color = "red", linetype = "dashed", show.legend = FALSE) +
+  geom_text(data = grouping2, aes(x = SiteBlank, y = m1 + 0.08, label = Lettersdim1, size = 15), show.legend = FALSE) +
+  xlab("") +
+  ylab("Dimension 1") +
+  theme(text = element_text(size = 18)) +
+  coord_flip()
+
+dim2_plot <- ggplot(mca_summary2) +
+  geom_point(stat = "identity", aes(x = SiteBlank, y = meandim2), size = 3) +
+  geom_errorbar(stat = "identity", aes(x = SiteBlank, ymin = LCIdim2, ymax = MCIdim2), width = 0) +
+  geom_hline(yintercept = 0, color = "red", linetype = "dashed", show.legend = FALSE) +
+  geom_text(data = grouping2, aes(x = SiteBlank, y = m2 + 0.08, label = Lettersdim2, size = 15), show.legend = FALSE) +
+  xlab("") +
+  ylab("Dimension 2") +
+  theme(text = element_text(size = 18)) +
+  coord_flip()
+
+# Arrange plots vertically
+ANOVAConvexity2 <- grid.arrange(dim1_plot, dim2_plot, ncol = 1)
+
+# Save plots as TIFF and PNG files
+ggsave("ANOVAConvexity2.tiff", plot = ANOVAConvexity2, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
+ggsave("ANOVAConvexity2.png", plot = ANOVAConvexity2, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
+
+ANOVAConvexityMCA2 <- grid.arrange(ANOVAConvexity2, MCA_convexityALL2_plot, ncol = 1)
+
+ggsave("ANOVAMCAcombinedConv2705.tiff", plot = ANOVAConvexityMCA2, width = 66.96604, height = 32.75542, units = "cm", dpi = 300) 
+ggsave("ANOVAMCAcombinedConv2705.png", plot = ANOVAConvexityMCA2, width = 66.96604, height = 32.75542, units = "cm", dpi = 300)
+
+```
+#DimConvexity
+##preparing the data
+```{r}
+library(dplyr)
+MCA_DimConvexity <- as.data.frame(res.mca_DimConvexity$ind)
+SiteBlank <- as.data.frame(dimconvexity_maintenance$SiteBlank.type2)
+
+mca.DimConvexitydim1_2 <- MCA_DimConvexity %>%
+  select(1:2)
+
+mca_DimConvexity_fin2 <- bind_cols(SiteBlank, mca.DimConvexitydim1_2)
+
+Mca.DimConvexity <- mca_DimConvexity_fin2 %>%
+  mutate(SiteBlank = dimconvexity_maintenance$SiteBlank.type2, "dim1" = coord.Dim.1, "dim2" =  coord.Dim.2)%>%
+  select(4:6) #creating a dataframe with the Dim1 and Dim2 coordinates obtained with MCA_Reduction of each individual (blank)
+
+###create unique comparisons
+unique(Mca.DimConvexity$SiteBlank)
+
+#setting the unique comparisons 
+assemblages2 <- c("AN.bladlt", "AN.Blade" ,  "ROM.bladlt", "ROM.Blade",  "FUM.Blade",  "FUM.bladlt", "CTS.bladlt", "CTS.Blade")
+
+# Generate all possible unique combinations of size 2
+all_combinations2 <- combn(assemblages2, 2)
+
+# Convert the result to a data frame for better readability
+combinations_df2 <- data.frame(t(all_combinations2))
+
+# Print the result
+print(combinations_df2)
+
+comparisons_DimConvexity <- c(
+"AN.bladlt-AN.Blade",
+"AN.bladlt-ROM.bladlt",
+"AN.bladlt-ROM.Blade",
+"AN.bladlt-FUM.Blade",
+"AN.bladlt-FUM.bladlt",
+"AN.bladlt-CTS.bladlt",
+"AN.bladlt-CTS.Blade",
+"AN.Blade-ROM.bladlt",
+"AN.Blade-ROM.Blade",
+"AN.Blade-FUM.Blade",
+"AN.Blade-FUM.bladlt",
+"AN.Blade-CTS.bladlt",
+"AN.Blade-CTS.Blade",
+"ROM.bladlt-ROM.Blade",
+"ROM.bladlt-FUM.Blade",
+"ROM.bladlt-FUM.bladlt",
+"ROM.bladlt-CTS.bladlt",
+"ROM.bladlt-CTS.Blade",
+"ROM.Blade-FUM.Blade",
+"ROM.Blade-FUM.bladlt",
+"ROM.Blade-CTS.bladlt",
+"ROM.Blade-CTS.Blade",
+"FUM.Blade-FUM.bladlt",
+"FUM.Blade-CTS.bladlt",
+"FUM.Blade-CTS.Blade",
+"FUM.bladlt-CTS.bladlt",
+"FUM.bladlt-CTS.Blade",
+"CTS.bladlt-CTS.Blade")
+
+
+```
+
+##Bootstrapping
+
+```{r}
+# Multi-comparison bootstrap
+install.packages("WRS2")
+library(WRS2)
+# Multi-comparison bootstrap
+
+
+boot_dim1_2 <- mcppb20(dim1 ~ SiteBlank, data = Mca.DimConvexity, nboot = 5000)
+boot_dim2_2 <- mcppb20(dim2 ~ SiteBlank, data = Mca.DimConvexity, nboot = 5000)
+
+# Convert results to data frames
+multi_comp_dim1_2 <- as.data.frame(boot_dim1_2$comp)
+multi_comp_dim2_2 <- as.data.frame(boot_dim2_2$comp)
+
+# Add SiteType names and transform to column "SiteType"
+multi_comp_dim1_2$SiteBlank <- comparisons_DimConvexity
+multi_comp_dim1_2 <- multi_comp_dim1_2[!duplicated(names(multi_comp_dim1_2))]
+
+multi_comp_dim2_2$SiteBlank <- comparisons_DimConvexity
+multi_comp_dim2_2 <- multi_comp_dim2_2[!duplicated(names(multi_comp_dim2_2))]
+
+# Join the results
+multi_comp2 <- full_join(multi_comp_dim1_2, multi_comp_dim2_2, by = "SiteBlank", suffix = c("dim1", "dim2"))
+
+# Select relevant columns
+multi_comp2 <- select(multi_comp2, SiteBlank, `p-valuedim1`, `p-valuedim2`)
+
+# Build a list with pairwise p-values
+labels_dim1_2 <- setNames(multi_comp2$`p-valuedim1`, multi_comp_dim1_2$SiteBlank)
+labels_dim2_2 <- setNames(multi_comp2$`p-valuedim2`, multi_comp_dim2_2$SiteBlank)
+
+# Attribute letters to each grouping based on alpha = .05
+install.packages("multcompView")
+library(multcompView)
+library(tibble)
+grouping_dim1_2 <- data.frame(multcompLetters(labels_dim1_2)["Letters"])
+grouping_dim1_2 <- rownames_to_column(grouping_dim1_2, "SiteBlank")
+
+grouping_dim2_2 <- data.frame(multcompLetters(labels_dim2_2)["Letters"])
+grouping_dim2_2 <- rownames_to_column(grouping_dim2_2, "SiteBlank")
+
+# Join the grouping results
+grouping2 <- full_join(grouping_dim1_2, grouping_dim2_2, by = "SiteBlank", suffix = c("dim1", "dim2"))
+
+
+# Print or use the 'grouping' dataframe for further analysis or visualization
+print(grouping2)
+
+```
+##Plotting
+When you see "abd" in this context, it's not a combination of "a", "b", and "d" in sequence. Rather, it's an indication that the group shares similarity with other groups having each of these individual letters "a", "b", and "d". So, it's interpreted as the presence of "a", "b", and "d" rather than a specific sequence. Each letter represents a characteristic that the group shares with other groups assigned the same letter in the same dimension.
+
+```{r}
+library(RcmdrMisc)
+library(gridExtra)
+library(DescTools)
+
+mca_summary2 <- Mca.DimConvexity %>%
+  group_by(SiteBlank) %>%
+  summarise(meandim1 = mean(dim1, trim = 0.2), 
+            meandim2 = mean(dim2, trim = 0.2),
+            LCIdim1 = MeanCI(dim1, trim = 0.2)[2],
+            MCIdim1 = MeanCI(dim1, trim = 0.2)[3],
+            LCIdim2 = MeanCI(dim2, trim = 0.2)[2],
+            MCIdim2 = MeanCI(dim2, trim = 0.2)[3])
+
+# Define maximum values for y-axis for both dimensions
+m1 <- max(mca_summary2$MCIdim1)
+m2 <- max(mca_summary2$MCIdim2)
+
+# Create ggplot objects for Dimension 1 and Dimension 2
+dim1_plot <- ggplot(mca_summary2) +
+  geom_point(stat = "identity", aes(x = SiteBlank, y = meandim1), size = 3) +
+  geom_errorbar(stat = "identity", aes(x = SiteBlank, ymin = LCIdim1, ymax = MCIdim1), width = 0) +
+  geom_hline(yintercept = 0, color = "red", linetype = "dashed", show.legend = FALSE) +
+  geom_text(data = grouping2, aes(x = SiteBlank, y = m1 + 0.08, label = Lettersdim1, size = 15), show.legend = FALSE) +
+  xlab("") +
+  ylab("Dimension 1") +
+  theme(text = element_text(size = 18)) +
+  coord_flip()
+
+dim2_plot <- ggplot(mca_summary2) +
+  geom_point(stat = "identity", aes(x = SiteBlank, y = meandim2), size = 3) +
+  geom_errorbar(stat = "identity", aes(x = SiteBlank, ymin = LCIdim2, ymax = MCIdim2), width = 0) +
+  geom_hline(yintercept = 0, color = "red", linetype = "dashed", show.legend = FALSE) +
+  geom_text(data = grouping2, aes(x = SiteBlank, y = m2 + 0.08, label = Lettersdim2, size = 15), show.legend = FALSE) +
+  xlab("") +
+  ylab("Dimension 2") +
+  theme(text = element_text(size = 18)) +
+  coord_flip()
+
+# Arrange plots vertically
+ANOVADimConvexity <- grid.arrange(dim1_plot, dim2_plot, ncol = 1)
+
+# Save plots as TIFF and PNG files
+ggsave("ANOVADimConvexity.tiff", plot = ANOVADimConvexity, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
+ggsave("ANOVADimConvexity.png", plot = ANOVADimConvexity, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
+
+ANOVADimConvexityMCA <- grid.arrange(ANOVADimConvexity, MCA_DimConvexity_plot, ncol = 1)
+
+ggsave("ANOVAMCAcombinedDimConv2705.tiff", plot = ANOVADimConvexityMCA, width = 66.96604, height = 32.75542, units = "cm", dpi = 300) 
+ggsave("ANOVAMCAcombinedDimConv2705.png", plot = ANOVADimConvexityMCA, width = 66.96604, height = 32.75542, units = "cm", dpi = 300)
+```
+#Retouching
+#blades and bladelets distinct
+##preparing the data
+```{r}
+
+library(dplyr)
+MCA_Retouching2 <- as.data.frame(res.mca_retouchingALL2$ind)
+SiteBlank <- as.data.frame(retouching_ALL2$SiteBlank.type2)
+
+mca.Retouching2dim1_2 <- MCA_Retouching2 %>%
+  select(1:2)
+
+mca_Retouching_fin2 <- bind_cols(SiteBlank, mca.Retouching2dim1_2)
+
+Mca.Retouching2 <- mca_Retouching_fin2 %>%
+  mutate(SiteBlank = retouching_ALL2$SiteBlank.type2, "dim1" = coord.Dim.1, "dim2" =  coord.Dim.2)%>%
+  select(4:6) #creating a dataframe with the Dim1 and Dim2 coordinates obtained with MCA_Reduction of each individual (blank)
+
+###create unique comparisons
+unique(Mca.Retouching2$SiteBlank)
+
+#setting the unique comparisons 
+assemblages2 <- c("AN.bladlt", "AN.Blade" ,  "ROM.bladlt", "ROM.Blade",  "FUM.Blade",  "FUM.bladlt", "CTS.bladlt", "CTS.Blade")
+
+# Generate all possible unique combinations of size 2
+all_combinations2 <- combn(assemblages2, 2)
+
+# Convert the result to a data frame for better readability
+combinations_df2 <- data.frame(t(all_combinations2))
+
+# Print the result
+print(combinations_df2)
+
+comparisons_Retouching2 <- c(
+"AN.bladlt-AN.Blade",
+"AN.bladlt-ROM.bladlt",
+"AN.bladlt-ROM.Blade",
+"AN.bladlt-FUM.Blade",
+"AN.bladlt-FUM.bladlt",
+"AN.bladlt-CTS.bladlt",
+"AN.bladlt-CTS.Blade",
+"AN.Blade-ROM.bladlt",
+"AN.Blade-ROM.Blade",
+"AN.Blade-FUM.Blade",
+"AN.Blade-FUM.bladlt",
+"AN.Blade-CTS.bladlt",
+"AN.Blade-CTS.Blade",
+"ROM.bladlt-ROM.Blade",
+"ROM.bladlt-FUM.Blade",
+"ROM.bladlt-FUM.bladlt",
+"ROM.bladlt-CTS.bladlt",
+"ROM.bladlt-CTS.Blade",
+"ROM.Blade-FUM.Blade",
+"ROM.Blade-FUM.bladlt",
+"ROM.Blade-CTS.bladlt",
+"ROM.Blade-CTS.Blade",
+"FUM.Blade-FUM.bladlt",
+"FUM.Blade-CTS.bladlt",
+"FUM.Blade-CTS.Blade",
+"FUM.bladlt-CTS.bladlt",
+"FUM.bladlt-CTS.Blade",
+"CTS.bladlt-CTS.Blade")
+
+
+```
+
+##Bootstrapping
+
+```{r}
+# Multi-comparison bootstrap
+install.packages("WRS2")
+library(WRS2)
+# Multi-comparison bootstrap
+
+
+boot_dim1_2 <- mcppb20(dim1 ~ SiteBlank, data = Mca.Retouching2, nboot = 5000)
+boot_dim2_2 <- mcppb20(dim2 ~ SiteBlank, data = Mca.Retouching2, nboot = 5000)
+
+# Convert results to data frames
+multi_comp_dim1_2 <- as.data.frame(boot_dim1_2$comp)
+multi_comp_dim2_2 <- as.data.frame(boot_dim2_2$comp)
+
+# Add SiteType names and transform to column "SiteType"
+multi_comp_dim1_2$SiteBlank <- comparisons_Retouching2
+multi_comp_dim1_2 <- multi_comp_dim1_2[!duplicated(names(multi_comp_dim1_2))]
+
+multi_comp_dim2_2$SiteBlank <- comparisons_Retouching2
+multi_comp_dim2_2 <- multi_comp_dim2_2[!duplicated(names(multi_comp_dim2_2))]
+
+# Join the results
+multi_comp2 <- full_join(multi_comp_dim1_2, multi_comp_dim2_2, by = "SiteBlank", suffix = c("dim1", "dim2"))
+
+# Select relevant columns
+multi_comp2 <- select(multi_comp2, SiteBlank, `p-valuedim1`, `p-valuedim2`)
+
+# Build a list with pairwise p-values
+labels_dim1_2 <- setNames(multi_comp2$`p-valuedim1`, multi_comp_dim1_2$SiteBlank)
+labels_dim2_2 <- setNames(multi_comp2$`p-valuedim2`, multi_comp_dim2_2$SiteBlank)
+
+# Attribute letters to each grouping based on alpha = .05
+install.packages("multcompView")
+library(multcompView)
+library(tibble)
+grouping_dim1_2 <- data.frame(multcompLetters(labels_dim1_2)["Letters"])
+grouping_dim1_2 <- rownames_to_column(grouping_dim1_2, "SiteBlank")
+
+grouping_dim2_2 <- data.frame(multcompLetters(labels_dim2_2)["Letters"])
+grouping_dim2_2 <- rownames_to_column(grouping_dim2_2, "SiteBlank")
+
+# Join the grouping results
+grouping2 <- full_join(grouping_dim1_2, grouping_dim2_2, by = "SiteBlank", suffix = c("dim1", "dim2"))
+
+
+# Print or use the 'grouping' dataframe for further analysis or visualization
+print(grouping2)
+
+```
+##Plotting
+```{r}
+library(RcmdrMisc)
+library(gridExtra)
+library(DescTools)
+
+mca_summary2 <- Mca.Retouching2 %>%
+  group_by(SiteBlank) %>%
+  summarise(meandim1 = mean(dim1, trim = 0.2), 
+            meandim2 = mean(dim2, trim = 0.2),
+            LCIdim1 = MeanCI(dim1, trim = 0.2)[2],
+            MCIdim1 = MeanCI(dim1, trim = 0.2)[3],
+            LCIdim2 = MeanCI(dim2, trim = 0.2)[2],
+            MCIdim2 = MeanCI(dim2, trim = 0.2)[3])
+
+# Define maximum values for y-axis for both dimensions
+m1 <- max(mca_summary2$MCIdim1)
+m2 <- max(mca_summary2$MCIdim2)
+
+# Create ggplot objects for Dimension 1 and Dimension 2
+dim1_plot <- ggplot(mca_summary2) +
+  geom_point(stat = "identity", aes(x = SiteBlank, y = meandim1), size = 3) +
+  geom_errorbar(stat = "identity", aes(x = SiteBlank, ymin = LCIdim1, ymax = MCIdim1), width = 0) +
+  geom_hline(yintercept = 0, color = "red", linetype = "dashed", show.legend = FALSE) +
+  geom_text(data = grouping2, aes(x = SiteBlank, y = m1 + 0.08, label = Lettersdim1, size = 15), show.legend = FALSE) +
+  xlab("") +
+  ylab("Dimension 1") +
+  theme(text = element_text(size = 18)) +
+  coord_flip()
+
+dim2_plot <- ggplot(mca_summary2) +
+  geom_point(stat = "identity", aes(x = SiteBlank, y = meandim2), size = 3) +
+  geom_errorbar(stat = "identity", aes(x = SiteBlank, ymin = LCIdim2, ymax = MCIdim2), width = 0) +
+  geom_hline(yintercept = 0, color = "red", linetype = "dashed", show.legend = FALSE) +
+  geom_text(data = grouping2, aes(x = SiteBlank, y = m2 + 0.08, label = Lettersdim2, size = 15), show.legend = FALSE) +
+  xlab("") +
+  ylab("Dimension 2") +
+  theme(text = element_text(size = 18)) +
+  coord_flip()
+
+# Arrange plots vertically
+ANOVARetouching2 <- grid.arrange(dim1_plot, dim2_plot, ncol = 1)
+
+# Save plots as TIFF and PNG files
+ggsave("ANOVARetouching2.tiff", plot = ANOVARetouching2, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
+ggsave("ANOVARetouching2.png", plot = ANOVARetouching2, width = 43.656255, height = 20.29354, units = "cm", dpi = 300)
+
+ANOVARetouchingMCA2 <- grid.arrange(ANOVARetouching2, MCA_RetouchingALL2_plot, ncol = 1)
+
+ggsave("ANOVAMCAcombinedRetouching.tiff", plot = ANOVARetouchingMCA2, width = 66.96604, height = 32.75542, units = "cm", dpi = 300) 
+ggsave("ANOVAMCAcombinedRetouching.png", plot = ANOVARetouchingMCA2, width = 66.96604, height = 32.75542, units = "cm", dpi = 300)

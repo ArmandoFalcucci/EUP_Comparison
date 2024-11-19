@@ -1,0 +1,949 @@
+---
+title: "Comparison EUP_exploratory plots"
+author: "Jacopo Gennai"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(eval = FALSE)
+```
+# Introduction
+
+This is an R Markdown document containing the Rcode and workflow for the "reference_article". This section is dedicated to exploratory plots
+
+# Datasets
+
+the datasets contain raw data about technological analysis of four Early Upper Palaeolithic assemblages:
+
+-   Ansab AH1 (Jordan)
+-   Romanesti-Dumbravita GH3 (Romania)
+-   Fumane A1-A2 (Italy)
+-   Les Cottés 04inf (France)
+
+the assemblages are stratified and radiometrically dated to the period 41-38 ka cal BP.
+
+Datasets are available singularly at the Zenodo repository "insert link or reference". Datasets are divided in "Blanks", debitage products, and "Cores", exhausted blocks of raw material from which debitage products have been struck. The division is due to the different attributes recorded for the two categories.
+
+
+#Getting the merged dataset
+```{r}
+library(readxl)
+Blanks_Main_merged <- read_excel(file.choose()) #get the Ans_Rom_Fum_CTS_Blanks_merged.xlsx
+```
+#Reorder
+```{r}
+#reordering for more intuitive display
+Blanks_Main_merged$Site_F <- factor(Blanks_Main_merged$Site, levels= c("AN", "ROM", "FUM", "CTS")) #geographical South East to NorthWest
+
+Blanks_Main_merged$Blank.type2_F <- factor(Blanks_Main_merged$Blank.type2, levels= c("Flake", "Blade", "Bladelet")) #reorder bigger to smaller
+```
+#Plotting
+##Blanks
+```{r}
+library(RColorBrewer)
+Blank_values <- unique(Blanks_Main_merged$Blank.type_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Blank_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Blank_pal <- setNames(color_palette, Blank_values)
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+
+Blank <- ggbarstats(
+  data = Blanks_Main_merged,
+  x = Blank.type2_F,  
+  y = Site_F,  
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Blank_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+      axis.title.x =element_blank()
+      ))
+    )
+  Blank
+  
+  ggsave("Blank.tiff", plot = Blank, width = 13.20271, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd() 
+  ggsave("Blank.png", plot = Blank, width = 13.20271, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd() 
+```
+ROM has an unusual amount of flakes. CTS almost no flakes.
+##Technological Phases 
+```{r}
+Blanks_Main_merged$Technology.Phase_F <- factor(Blanks_Main_merged$Technology.Phase, levels= c("Init", "MGMT", "Ordinary")) #reorder earlier to later
+library(RColorBrewer)
+# Get unique values in the Technology.Phase_F column
+Tech_values <- unique(Blanks_Main_merged$Technology.Phase_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Tech_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Tech_pal <- setNames(color_palette, Tech_values)
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+# Create grouped bar plot
+Tech.Phase <- grouped_ggbarstats(
+  data = Blanks_Main_merged,
+  grouping.var = Blank.type2_F,
+  x = Technology.Phase_F,  
+  y = Site_F,  
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Tech_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+      axis.title.x =element_blank()
+    )))
+ Tech.Phase
+ 
+ggsave("TechPhase.tiff", plot = Tech.Phase, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd() 
+ggsave("TechPhase.png", plot = Tech.Phase, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd() 
+```
+The amount of blades belonging to the Ordinary phase is linked with the geographical gradient. in CTS there is the highest amount of laminar blanks within Initialisation phase, meaning reduction starts with laminar or decortication flakes happen elsewhere.
+##Cortex
+```{r}
+Blanks_Main_merged$Cortex_F <- factor(Blanks_Main_merged$Cortex, levels= c("No Cortex", "Semi", "Extensive", "Full")) #less to fully covered
+library(RColorBrewer)
+# Get unique values in the Platform.Simpl column
+Cx_values <- unique(Blanks_Main_merged$Cortex_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Cx_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Cortex_pal <- setNames(color_palette, Cx_values)
+
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+# Create grouped bar plot
+Gen.Cortex <- grouped_ggbarstats(
+  data = Blanks_Main_merged,
+  x = Cortex_F,  
+  y = Site_F,
+  xlab = "Site",
+  grouping.var = Blank.type2_F,
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Cortex_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Gen.Cortex
+
+ggsave("Gen.Cortex.tiff", plot = Gen.Cortex, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+ggsave("Gen.Cortex.png", plot = Gen.Cortex, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+Non cortical blanks dominate the assemblages. Blades do present more cortical surfaces than bladelets.
+
+##Cortex position
+```{r}
+unique(Blanks_Main_merged$Cortex.position)
+Blanks_Main_merged$Cortex.position_F <- factor(Blanks_Main_merged$Cortex.position, levels= c("Proximal", "Proximal+lateral", "Proximal+Distal","Dorsal+lateral", "Dorsal", "Dorsal+distal", "Lateral","Distal", "Distal+lateral" , "Distal+proximal", "ND")) #proximal to distal
+
+library(RColorBrewer)
+# Get unique values in the Platform.Simpl column
+position_values <- unique(Blanks_Main_merged$Cortex.position_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(position_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Cortex.Pos_pal <- setNames(color_palette, position_values)
+
+
+library(ggstatsplot)
+library(ggplot2)
+# Create grouped bar plot
+Gen.Cortex.Pos <- grouped_ggbarstats(
+  data = filter(Blanks_Main_merged, Cortex.y.n == "Yes", Cortex.position !="ND"), 
+  x = Cortex.position_F,  
+  y = Site_F, 
+  grouping.var = Blank.type2_F,
+  xlab = "Site",
+  results.subtitle = FALSE,
+  ggplot.component = list(scale_fill_manual(values =  Cortex.Pos_pal),
+     # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Gen.Cortex.Pos
+
+ggsave("Gen.Cortex.Pos.tiff", plot = Gen.Cortex.Pos, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+ggsave("Gen.Cortex.Pos.png", plot = Gen.Cortex.Pos, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+##Platform
+```{r}
+unique(Blanks_Main_merged$Platform)
+Blanks_Main_merged$Platform_F <- factor(Blanks_Main_merged$Platform, levels= c("Plain", "Punctiform", "Linear", "ND" ,"Cortical","Facetted")) #unprepared to prepared
+
+library(RColorBrewer)
+# Get unique values in the Platform.Simpl column
+platform_values <- unique(Blanks_Main_merged$Platform_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(platform_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Platform_pal <- setNames(color_palette, platform_values)
+
+
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+# Create grouped bar plot
+Gen.Platform.simpl <- grouped_ggbarstats(
+  data = filter(Blanks_Main_merged, Preservation !="Mesiodistal", !Platform == "ND"), #only blanks with a platform
+  x = Platform_F,  
+  y = Site_F, 
+  grouping.var = Blank.type2_F,
+  xlab="Site",
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values = Platform_pal),
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Gen.Platform.simpl
+
+ggsave("Gen.Platform.simpl.tiff", plot = Gen.Platform.simpl, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+ggsave("Gen.Platform.simpl.png", plot = Gen.Platform.simpl, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+##Bulb
+```{r}
+unique(Blanks_Main_merged$Bulb)
+Blanks_Main_merged$Bulb_F <- factor(Blanks_Main_merged$Bulb, levels= c("Diffuse", "Marked", "ND")) #small to big
+
+library(RColorBrewer)
+# Get unique values in the Platform.Simpl column
+Bulb_values <- unique(Blanks_Main_merged$Bulb_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Bulb_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Bulb_pal <- setNames(color_palette, Bulb_values)
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+# Create grouped bar plot
+Gen.Bulb <- grouped_ggbarstats(
+  data = filter(Blanks_Main_merged, Preservation !="Mesiodistal", Bulb_F != "ND"), 
+  x = Bulb_F,  
+  y = Site_F,
+  xlab="Site",
+  grouping.var = Blank.type2_F,
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Bulb_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Gen.Bulb
+
+ggsave("Gen.Bulb.tiff", plot = Gen.Bulb, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+ggsave("Gen.Bulb.png", plot = Gen.Bulb, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+##Abrasion
+```{r}
+Blanks_Main_merged$Abrasion_F <- factor(Blanks_Main_merged$Abrasion, levels=c("Yes", "No", "ND")) 
+library(RColorBrewer)
+# Get unique values in the Platform.Simpl column
+Abrasion_values <- unique(Blanks_Main_merged$Abrasion_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Abrasion_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Abrasion_pal <- setNames(color_palette, Abrasion_values)
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+# Create grouped bar plot
+Gen.Abrasion <- grouped_ggbarstats(
+  data = filter(Blanks_Main_merged, Blank.type2_F != "Flake", Preservation !="Mesiodistal", Abrasion_F != "ND"), 
+  x = Abrasion_F,  
+  y = Site_F, 
+  grouping.var = Blank.type2_F,
+  xlab="Site",
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Abrasion_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Gen.Abrasion
+
+ggsave("Gen.Abrasion.tiff", plot = Gen.Abrasion, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+ggsave("Gen.Abrasion.png", plot = Gen.Abrasion, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+##Axiality and Outline 
+```{r}
+Blanks_Main_merged$Axiality_F <- factor(Blanks_Main_merged$Axiality, levels=c("Off-axis", "On-axis")) 
+library(RColorBrewer)
+# Get unique values in the Platform.Simpl column
+Axiality_values <- unique(Blanks_Main_merged$Axiality_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Axiality_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Axiality.simpl_pal <- setNames(color_palette, Axiality_values)
+
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+# Create grouped bar plot
+Gen.Ax <- grouped_ggbarstats(
+  data = filter(Blanks_Main_merged, Blank.type2_F !="Flake", Preservation != "Mesioproximal"), 
+  x = Axiality_F,  
+  y = Site_F, 
+  grouping.var = Blank.type2_F,
+  xlab="Site",
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Axiality.simpl_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Gen.Ax
+
+ggsave("Gen.Axiality.tiff", plot = Gen.Ax, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+ggsave("Gen.Axiality.png", plot = Gen.Ax, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+##Outline
+
+```{r}
+Blanks_Main_merged$Outline.morphology_F <- factor(Blanks_Main_merged$Outline.morphology, levels=c("Parallel", "Convergent", "Off-axis", "ND")) 
+library(RColorBrewer)
+# Get unique values in the Platform.Simpl column
+Out.Morph_values <- unique(Blanks_Main_merged$Outline.morphology_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Out.Morph_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Out.Morph_pal <- setNames(color_palette, Out.Morph_values)
+
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+# Create grouped bar plot
+Gen.Out.Morph <- grouped_ggbarstats(
+  data = filter(Blanks_Main_merged, Blank.type2_F !="Flake", Preservation != "Mesioproximal", Outline.morphology_F != "ND"), 
+  x = Outline.morphology_F,  
+  y = Site_F, 
+  grouping.var = Blank.type2_F,
+  xlab="Site",
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Out.Morph_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Gen.Out.Morph
+
+ggsave("Gen.Out.Morph.tiff", plot = Gen.Out.Morph, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+ggsave("Gen.Out.Morph.png", plot = Gen.Out.Morph, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+##Symmetry
+```{r}
+Blanks_Main_merged$Symmetry_F <- factor(Blanks_Main_merged$Symmetry, levels=c("symmetric", "asymmetric", "ND"))
+library(RColorBrewer)
+# Get unique values in the Platform.Simpl column
+Symmetry_values <- unique(Blanks_Main_merged$Symmetry_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Symmetry_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Symmetry_pal <- setNames(color_palette,Symmetry_values)
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+# Create grouped bar plot
+Gen.Symmetry <- grouped_ggbarstats(
+  data = filter(Blanks_Main_merged, Blank.type2_F !="Flake", Symmetry_F != "ND"), 
+  x = Symmetry_F,  
+  y = Site_F, 
+  grouping.var = Blank.type2_F,
+  xlab="Site",
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Symmetry_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Gen.Symmetry
+
+ggsave("Gen.Symmetry.tiff", plot = Gen.Symmetry, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+ggsave("Gen.Symmetry.png", plot = Gen.Symmetry, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+##Crosssection shape
+```{r}
+Blanks_Main_merged$Cross.section_F <- factor(Blanks_Main_merged$Cross.section, levels=c("Triangular", "Polyhedric" , "ND"))
+
+library(RColorBrewer)
+# Get unique values in the Platform.Simpl column
+Cross.Section_values <- unique(Blanks_Main_merged$Cross.section_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Cross.Section_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Cross.Section_pal <- setNames(color_palette,Cross.Section_values)
+
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+# Create grouped bar plot
+Gen.Cross.Section <- grouped_ggbarstats(
+  data = filter(Blanks_Main_merged, Blank.type2_F !="Flake", Cross.section_F !="ND"), 
+  x = Cross.section_F,  
+  y = Site_F, 
+  grouping.var = Blank.type2_F,
+  xlab="Site",
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Cross.Section_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Gen.Cross.Section
+
+ggsave("Gen.Cross.Section.tiff", plot = Gen.Cross.Section, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+ggsave("Gen.Cross.Section.png", plot = Gen.Cross.Section, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+##profile
+```{r}
+Blanks_Main_merged$Profile_F <- factor(Blanks_Main_merged$Profile, levels=c("Straight", "Slightly Curved","Curved","Twisted","ND"))
+library(RColorBrewer)
+# Get unique values in the Platform.Simpl column
+Profile_values <- unique(Blanks_Main_merged$Profile_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Profile_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+
+#no twisted because Fumane has no such observation
+Profile_pal <- setNames(color_palette,Profile_values)
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+# Create grouped bar plot
+Gen.Profile <- grouped_ggbarstats(
+  data = filter(Blanks_Main_merged, Blank.type2_F !="Flake", Profile_F !="ND", Profile_F !="Twisted"), 
+  x = Profile_F,  
+  y = Site_F, 
+  xlab = "Site",
+  grouping.var = Blank.type2_F,
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Profile_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Gen.Profile
+
+ggsave("Gen.Profile.tiff", plot = Gen.Profile, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+ggsave("Gen.Profile.png", plot = Gen.Profile, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+## distal end morphology
+```{r}
+Blanks_Main_merged$Distal.end.morpho_F <- factor(Blanks_Main_merged$Distal.end.morpho, levels=c("Feathered", "Plunging", "ND"))
+library(RColorBrewer)
+# Get unique values in the Platform.Simpl column
+Distal.end.morpho_values <- unique(Blanks_Main_merged$Distal.end.morpho_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Distal.end.morpho_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Distal.end.morpho_pal <- setNames(color_palette,Distal.end.morpho_values)
+
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+# Create grouped bar plot
+Gen.Distal.end.morpho <- grouped_ggbarstats(
+  data = filter(Blanks_Main_merged, Blank.type2_F !="Flake",Distal.end.morpho_F != "ND", Preservation != "Mesioproximal"), 
+  x = Distal.end.morpho_F,  
+  y = Site_F, 
+  grouping.var = Blank.type2_F,
+  xlab = "Site",
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Distal.end.morpho_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Gen.Distal.end.morpho
+
+ggsave("Gen.Distal.end.morpho.tiff", plot = Gen.Distal.end.morpho, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+ggsave("Gen.Distal.end.morpho.png", plot = Gen.Distal.end.morpho, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+##torsion
+```{r}
+library(RColorBrewer)
+# Get unique values in the Torsion column
+Torsion_values <- unique(Blanks_Main_merged$Torsion)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Torsion_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Torsion_pal <- setNames(color_palette, Torsion_values)
+
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+Gen.Torsion <- grouped_ggbarstats(
+  data = filter(Blanks_Main_merged, Blank.type2_F !="Flake", Torsion !="ND"), 
+  x = Torsion,  
+  y = Site_F, 
+  grouping.var = Blank.type2_F,
+  xlab = "Site",
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Torsion_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Gen.Torsion
+
+ggsave("Gen.Torsion.tiff", plot = Gen.Torsion, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+ggsave("Gen.Torsion.png", plot = Gen.Torsion, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+##dorsal scar pattern
+```{r}
+
+Blanks_Main_merged$Dorsal.scar.1_F <- factor(Blanks_Main_merged$Dorsal.scar.1, levels=c( "Unidirectional",  "Unidirectional+Other direction", "Bidirectional" , "Bidirectional+Other direction" , "Orthogonal" ,   "Centripetal", "Crossed" , "ND", "Other" ))
+library(RColorBrewer)
+# Get unique values in the Platform.Simpl column
+Dorsal.scar.1_values <- unique(Blanks_Main_merged$Dorsal.scar.1_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Dorsal.scar.1_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Dorsal.scar.1_pal <- setNames(color_palette, Dorsal.scar.1_values)
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+# Create grouped bar plot
+Gen.Dorsal.scar.1 <- grouped_ggbarstats(
+  data = filter(Blanks_Main_merged, Dorsal.scar.1_F != "ND"), 
+  x = Dorsal.scar.1_F,  
+  y = Site_F, 
+  grouping.var = Blank.type2_F,
+  xlab = "Site",
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values = Dorsal.scar.1_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Gen.Dorsal.scar.1
+
+ggsave("Gen.Dorsal.scar.1.tiff", plot = Gen.Dorsal.scar.1, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+ggsave("Gen.Dorsal.scar.1.png", plot = Gen.Dorsal.scar.1, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+##retouch position
+```{r}
+
+
+Blanks_Main_merged$Retouch.Position_F <- factor(Blanks_Main_merged$Retouch.Position, levels=c( "Direct", "Inverse", "Alternate", "Crossed"))
+library(RColorBrewer)
+# Get unique values in the Platform.Simpl column
+Retouch.Position_values <- unique(Blanks_Main_merged$Retouch.Position_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Retouch.Position_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Retouch.Position_pal <- setNames(color_palette, Retouch.Position_values)
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+# Create grouped bar plot
+Retouch.Position <- grouped_ggbarstats(
+  data = filter(Blanks_Main_merged, Blank.type2_F != "Flake", Tool == "Yes"), 
+  x = Retouch.Position_F,  
+  y = Site_F, 
+  grouping.var = Blank.type2_F,
+  xlab = "Site",
+  results.subtitle = FALSE,
+  ggplot.component = list(
+    scale_fill_manual(values =  Retouch.Position_pal),  # Assign colors to values and set a single legend
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    )))
+Retouch.Position
+
+ggsave("Retouch.Position.tiff", plot = Retouch.Position, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+ggsave("Retouch.Position.png", plot = Retouch.Position, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+##Dimensions
+```{r}
+library(ggplot2)
+library(ggstatsplot)
+library(dplyr)
+```
+
+```{r}
+Length <- grouped_ggbetweenstats(
+  data = filter(Blanks_Main_merged, Blank.type2_F != "Flake", Preservation == "Complete", Length !="NA"),
+  x = Site_F,     
+  y = Length, 
+  grouping.var = Blank.type1,
+  xlab = "Site",
+  ylab = "mm",
+  nonparametric = TRUE,  # Perform non-parametric tests
+  results.subtitle = TRUE,
+  centrality.plotting = TRUE,
+  centrality.type = "nonparametric",
+  violin.args = list(width = 0.5, alpha = 0.2, na.rm = TRUE),
+  ggplot.component = list(
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    ),
+    scale_y_continuous(limits = c(0, 125))  # Start y-axis at 0
+  )
+)
+Length
+
+ggsave("Length.tiff", plot = Length, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+ggsave("Length.png", plot = Length, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+
+```
+
+```{r}
+
+Width <- grouped_ggbetweenstats(
+  data = filter(Blanks_Main_merged, Blank.type2_F != "Flake", Width !="NA"),
+  x = Site_F,     
+  y = Width, 
+  grouping.var = Blank.type1,
+  xlab = "Site",
+  ylab = "mm",
+  nonparametric = TRUE,  # Perform non-parametric tests
+  results.subtitle = TRUE,
+  centrality.plotting = TRUE,
+  centrality.type = "nonparametric",
+  violin.args = list(width = 0.5, alpha = 0.2, na.rm = TRUE),
+  ggplot.component = list(
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    ),
+    geom_hline(yintercept = 12, linetype = "dashed", color = "red"),
+    scale_y_continuous(limits = c(0, 45))  # Start y-axis at 0
+  )
+)
+Width
+
+ggsave("Width.tiff", plot = Width, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+ggsave("Width.png", plot = Width, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+```{r}
+Thickness <- grouped_ggbetweenstats(
+  data = filter(Blanks_Main_merged, Blank.type2_F != "Flake", Thickness !="NA"),
+  x = Site_F,     
+  y = Thickness, 
+  grouping.var = Blank.type1,
+  xlab = "Site",
+  ylab = "mm",
+  nonparametric = TRUE,  # Perform non-parametric tests
+  results.subtitle = TRUE,
+  centrality.plotting = TRUE,
+  centrality.type = "nonparametric",
+  violin.args = list(width = 0.5, alpha = 0.2, na.rm = TRUE),
+  ggplot.component = list(
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    ),
+    scale_y_continuous(limits = c(0, 45))  # Start y-axis at 0
+  )
+)
+Thickness
+
+ggsave("Thickness.tiff", plot = Thickness, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+ggsave("Thickness.png", plot = Thickness, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+```{r}
+Elongation <- grouped_ggbetweenstats(
+  data = filter(Blanks_Main_merged, Blank.type2_F != "Flake", Elongation !="NA", Elongation !="0"),
+  x = Site_F,     
+  y = Elongation, 
+  grouping.var = Blank.type1,
+  xlab = "Site",
+  nonparametric = TRUE,  # Perform non-parametric tests
+  results.subtitle = TRUE,
+  centrality.plotting = TRUE,
+  centrality.type = "nonparametric",
+  violin.args = list(width = 0.5, alpha = 0.2, na.rm = TRUE),
+  ggplot.component = list(
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    ),
+    scale_y_continuous(limits = c(0, 10))  # Start y-axis at 0
+  )
+)
+Elongation
+
+ggsave("Elongation.tiff", plot = Elongation, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+ggsave("Elongation.png", plot = Elongation, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+```{r}
+Robustness <- grouped_ggbetweenstats(
+  data = filter(Blanks_Main_merged, Blank.type2_F != "Flake", Robustness !="NA"),
+  x = Site_F,     
+  y = Robustness, 
+  grouping.var = Blank.type1,
+  xlab = "Site",
+  nonparametric = TRUE,  # Perform non-parametric tests
+  results.subtitle = TRUE,
+  centrality.plotting = TRUE,
+  centrality.type = "nonparametric",
+  violin.args = list(width = 0.5, alpha = 0.2, na.rm = TRUE),
+  ggplot.component = list(
+    theme(
+      plot.subtitle = element_text(size = 8, color = "black"),
+      plot.caption = element_text(size = 8, color = "black"),
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+      axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+      legend.title = element_blank(),  
+      axis.ticks.x = element_blank(),
+      strip.text = element_text(face = "bold", size = 8, family = "Arial")
+    ),
+    scale_y_continuous(limits = c(0, 15))  # Start y-axis at 0
+  )
+)
+Robustness
+
+ggsave("Robustness.tiff", plot = Robustness, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+ggsave("Robustness.png", plot = Robustness, width = 27.49021, height = 20.13479, units = "cm", dpi = 300) #set your working directory with setwd()
+```
+
+##Width histogram
+```{r}
+filtered_data <- filter(Blanks_Main_merged, Blank.type2_F %in% c("Blade", "Bladelet") & !is.na(Width))
+filtered_data$Width <- as.numeric(filtered_data$Width)
+
+# Create the plot
+histowidthLaminar <- ggplot(filtered_data, aes(x = Width, color = "Medians and Threshold")) +
+  geom_histogram(aes(y = ..count..), color = "grey", fill = "grey", binwidth = 1) +  # Added aes(y = ..count..) to specify count
+  geom_density() +
+  facet_wrap(~Site_F, ncol = 2) +
+  geom_vline(xintercept = 12, aes(color = "Threshold"), linetype = "dashed", linewidth = 1) +
+  scale_x_continuous(breaks = seq(0, max(filtered_data$Width, na.rm = TRUE), by = 2)) +
+  theme(axis.title.y = element_blank(),
+        axis.text.x = element_text(size = 4),
+        legend.position = "top",
+        legend.title = element_text(size = 6, face = "bold"),
+        legend.text = element_text(size = 4)) +
+  labs(x = "Width (mm)", y = "N") +
+  scale_color_manual(values = c("red", "black"), 
+                     name = "Medians and Threshold", 
+                     labels = c("Blade and Bladelet", "Threshold"))
+
+histowidthLaminar
+
+# Group by site and calculate median width for Blade
+median_blade <- filtered_data %>%
+  filter(Blank.type2_F == "Blade") %>%
+  group_by(Site_F) %>%
+  summarise(median_width = median(Width, na.rm = TRUE))
+
+print(median_blade)
+
+# Group by site and calculate median width for Bladelet
+median_bladelet <- filtered_data %>%
+  filter(Blank.type2_F == "Bladelet") %>%
+  group_by(Site_F) %>%
+  summarise(median_width = median(Width, na.rm = TRUE))
+
+print(median_bladelet)
+
+# Group by site and calculate median width excluding Blade and Bladelet
+median_laminar<- filtered_data %>%
+  filter(Blank.type2_F %in% c("Blade", "Bladelet")) %>%
+  group_by(Site_F) %>%
+  summarise(median_width = median(Width, na.rm = TRUE))
+
+print(median_laminar)
+
+histolaminarwidth <- histowidthLaminar + 
+  geom_vline(data = median_blade, aes(xintercept = median_width, color = "Blade"), linetype = "dashed") +
+  geom_vline(data = median_bladelet, aes(xintercept = median_width, color = "Bladelet"), linetype = "dashed") +
+  geom_vline(data = median_laminar, aes(xintercept = median_width, color = "Blade and Bladelet"), linetype = "dashed") +
+  geom_vline(aes(xintercept = 12, color = "Blade and Bladelet Threshold"), linetype = "dashed", size = 1) +
+  theme(legend.title = element_text(size = 6, face = "bold"),
+        legend.text = element_text(size = 4)) +
+  scale_color_manual(values = c("Blade" = "blue", 
+                                 "Bladelet" = "green", 
+                                 "Blade and Bladelet" = "#FFA500",  # Correct color for "Blade and Bladelet"
+                                 "Blade and Bladelet Threshold" = "red"),
+                     name = "Medians and Threshold",
+                     breaks = c("Blade", "Bladelet", "Blade and Bladelet", "Blade and Bladelet Threshold"),
+                     labels = c("Blade", "Bladelet",  "Blade and\nBladelet", "Blade and\nBladelet Threshold")) +
+  guides(color = guide_legend(title = "Medians and\nThreshold"))
+histolaminarwidth
+
+ggsave("histolaminarwidth.tiff", plot = histolaminarwidth, width = 15, height = 10, units = "cm", dpi = 300) #set your working directory with setwd()
+ggsave("histolaminarwidth.png", plot = histolaminarwidth, width = 15, height = 10, units = "cm", dpi = 300) #set your working directory with setwd()
+  
+```
+#Platform domain
+```{r}
+library(ggpubr)
+PlatformDom <- ggarrange(Gen.Platform.simpl, Gen.Abrasion, labels = c("A", "B"), ncol = 2, nrow =1)
+# Save the combined plot
+ggsave("PlatformDom.tiff", plot = PlatformDom, width = 66.96604, height = 32.75542, units = "cm", dpi = 300)
+ggsave("PlatformDom.png", plot = PlatformDom, width = 66.96604, height = 32.75542, units = "cm", dpi = 300)
+```
+#Convexity domain
+```{r}
+library(ggpubr)
+ConvexityDom <- ggarrange(Gen.Ax, Gen.Out.Morph, Gen.Symmetry, Gen.Cross.Section, Gen.Profile, Gen.Torsion, Gen.Distal.end.morpho, labels = c("A", "B", "C", "D", "E", "F", "G"),
+                            ncol = 3, nrow = 3)
+ConvexityDom
+# Save the combined plot as TIFF
+ggsave("ConvexityDom.tiff", plot = ConvexityDom, width = 66.96604, height = 32.75542, units = "cm", dpi = 300, device = "tiff")
+
+# Save the combined plot as PNG
+ggsave("ConvexityDom.png", plot = ConvexityDom, width = 66.96604, height = 32.75542, units = "cm", dpi = 300, device = "png")
+
+
+```
