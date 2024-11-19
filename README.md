@@ -44,7 +44,7 @@ This repository contains data, code, and output files associated with the paper.
 To replicate the results from the paper, follow these steps:
 
 1. Download the entire repository.
-2. Open the `Early-Upper-Palaeolithic-Technological-Set.Rproj` R project file.
+2. Open the `EUP_Comparison.Rproj` R project file.
 3. Navigate to the `script` folder, where you will find the R scripts used for data reshaping, exploratory analysis, and Multiple Correspondence Analysis.
 
 For consistent results, the `renv` package (v. 1.0.3) was used, following the procedures outlined in its vignette. All analyses were performed using R 4.3.1 on Microsoft Windows 10.0.19045 (64-bit). Necessary packages are provided within the `renv` folder.
