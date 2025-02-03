@@ -1,0 +1,2200 @@
+---
+title: "Comparison EUP_exploratory plots"
+author: "Jacopo Gennai"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(eval = FALSE)
+```
+# Introduction
+
+This is an R Markdown document containing the Rcode and workflow for the "reference_article". This section is dedicated to exploratory plots
+
+# Datasets
+
+the datasets contain raw data about technological analysis of four Early Upper Palaeolithic assemblages:
+
+-   Ansab AH1 (Jordan)
+-   Romanesti-Dumbravita GH3 (Romania)
+-   Fumane A1-A2 (Italy)
+-   Les Cottés 04inf (France)
+
+the assemblages are stratified and radiometrically dated to the period 41-38 ka cal BP.
+
+Datasets are available singularly at the Zenodo repository "insert link or reference". Datasets are divided in "Blanks", debitage products, and "Cores", exhausted blocks of raw material from which debitage products have been struck. The division is due to the different attributes recorded for the two categories.
+
+
+#Getting the merged dataset and the Solutrean dataset
+```{r}
+library(readxl)
+Blanks_Main_merged <- read_excel(file.choose())#get the Ans_Rom_Fum_CTS_Blanks_merged.xlsx 
+
+combinedControl_df <- read_excel(file.choose()) #get the Control_Blanks.xlsx
+```
+#Reorder
+```{r}
+#reordering for more intuitive display
+Blanks_Main_merged$Site_F <- factor(Blanks_Main_merged$Site, levels= c("AN", "ROM", "FUM", "CTS04inf")) #geographical South East to NorthWest
+
+Blanks_Main_merged$Blank.type2_F <- factor(Blanks_Main_merged$Blank.type2, levels= c("Flake", "Blade", "Bladelet")) #reorder bigger to smaller
+```
+
+#Plotting
+
+#fonts
+```{r}
+library(extrafont)
+
+# Import only the Arial font
+font_import(pattern = "arial", prompt = FALSE)
+
+# Load the Arial font for Windows
+loadfonts(device = "win")
+
+
+```
+
+##blanks
+```{r}
+library(RColorBrewer)
+Blank_values <- unique(Blanks_Main_merged$Blank.type2_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Blank_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Blank_pal <- setNames(color_palette, Blank_values)
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+
+Blank <- ggplot(Blanks_Main_merged, aes(x = Site_F, fill = Blank.type2_F)) +
+  geom_bar(position = "fill", stat = "count", show.legend = TRUE) +  
+  scale_fill_manual(values = Blank_pal) +  
+  scale_y_continuous(
+    labels = scales::percent_format(),  
+    breaks = seq(0, 1, by = 0.1)  
+  ) +
+  theme_minimal() +  
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),  
+    panel.background = element_rect(fill = "white", color = NA), 
+    axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8, family = "Arial"),  
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),  
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  )
+  Blank
+  #set your working directory with setwd()
+  ggsave("Blank.tiff", plot = Blank, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw")  
+  ggsave("SIFig01.tiff", plot = Blank, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw")
+```
+
+##blanks with Solu
+```{r}
+library(RColorBrewer)
+Blank_values <- unique(combinedControl_df$Blank.type)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Blank_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Blank_pal <- setNames(color_palette, Blank_values)
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+
+filtered_data <- filter(combinedControl_df, Blank.type2 != "Flake")
+
+  BlankSolu <- ggplot(filtered_data, aes(x = Technocomplex, fill = Blank.type2)) +
+  geom_bar(position = "fill", stat = "count", show.legend = TRUE) +  
+  scale_fill_manual(values = Blank_pal) +  
+  scale_y_continuous(
+    labels = scales::percent_format(),  
+    breaks = seq(0, 1, by = 0.1)  
+  ) +
+  theme_minimal() +  
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),  
+    panel.background = element_rect(fill = "white", color = NA), 
+    axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8, family = "Arial"),  
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),  
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  )
+  BlankSolu
+  
+  ggsave("BlankSolu.tiff", plot = BlankSolu, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw") #set your working directory with setwd() 
+  ggsave("SIFig02.tiff", plot = BlankSolu, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw")
+```
+
+##technological Phases 
+```{r}
+Blanks_Main_merged$Technology.Phase_F <- factor(Blanks_Main_merged$Technology.Phase, levels= c("Init", "MGMT", "Ordinary")) #reorder earlier to later
+library(RColorBrewer)
+# Get unique values in the Technology.Phase_F column
+Tech_values <- unique(Blanks_Main_merged$Technology.Phase_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Tech_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Tech_pal <- setNames(color_palette, Tech_values)
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+# Create the grouped bar plot
+
+  Tech.Phase <- ggplot(Blanks_Main_merged, aes(x = Site_F, fill = Technology.Phase_F)) +
+  geom_bar(position = "fill", stat = "count", show.legend = TRUE) +  
+  facet_wrap(~ Blank.type2_F) +  
+  scale_fill_manual(values = Tech_pal) +  
+  scale_y_continuous(
+    labels = scales::percent_format(),  
+    breaks = seq(0, 1, by = 0.1)  
+  ) +
+  theme_minimal() +  
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),  
+    panel.background = element_rect(fill = "white", color = NA), 
+    axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8, family = "Arial"),  
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),  
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  )
+Tech.Phase
+ 
+ggsave("TechPhase.tiff", plot = Tech.Phase, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw") #set your working directory with setwd() 
+  ggsave("SIFig03.tiff", plot = Tech.Phase, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw")
+```
+
+##cortex
+```{r}
+Blanks_Main_merged$Cortex_F <- factor(Blanks_Main_merged$Cortex, levels= c("No Cortex", "Semi", "Extensive", "Full")) #less to fully covered
+library(RColorBrewer)
+# Get unique values in the Platform.Simpl column
+Cx_values <- unique(Blanks_Main_merged$Cortex_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Cx_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Cortex_pal <- setNames(color_palette, Cx_values)
+
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+# Create the grouped bar plot
+Gen.Cortex <- ggplot(Blanks_Main_merged, aes(x = Site_F, fill = Cortex_F)) +
+  geom_bar(position = "fill", stat = "count", show.legend = TRUE) +  
+  facet_wrap(~ Blank.type2_F) +  
+  scale_fill_manual(values = Cortex_pal) +  
+  scale_y_continuous(
+    labels = scales::percent_format(),  
+    breaks = seq(0, 1, by = 0.1)  
+  ) +
+  theme_minimal() +  
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),  
+    panel.background = element_rect(fill = "white", color = NA), 
+    axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8, family = "Arial"),  
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),  
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  )
+Gen.Cortex
+
+ggsave("Gen.Cortex.tiff", plot = Gen.Cortex, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw") #set your working directory with setwd() 
+  ggsave("SIFig04.tiff", plot = Gen.Cortex, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw")
+```
+
+##cortex with Solu
+```{r}
+combinedControl_df$Cortex_F <- factor(combinedControl_df$Cortex, levels= c("No Cortex", "Semi", "Extensive", "Full")) #less to fully covered
+library(RColorBrewer)
+# Get unique values in the Platform.Simpl column
+Cx_values <- unique(combinedControl_df$Cortex_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Cx_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Cortex_pal <- setNames(color_palette, Cx_values)
+
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+# Create the grouped bar plot
+filtered_data <- filter(combinedControl_df, Blank.type2 != "Flake")
+
+
+Gen.CortexSolu <- ggplot(filtered_data, aes(x = Technocomplex, fill = Cortex_F)) +
+  geom_bar(position = "fill", stat = "count", show.legend = TRUE) +  
+  facet_wrap(~ Blank.type2) +  
+  scale_fill_manual(values = Cortex_pal) +  
+  scale_y_continuous(
+    labels = scales::percent_format(),  
+    breaks = seq(0, 1, by = 0.1)  
+  ) +
+  theme_minimal() +  
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),  
+    panel.background = element_rect(fill = "white", color = NA), 
+    axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8, family = "Arial"),  
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),  
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  )
+
+Gen.CortexSolu
+#set your working directory with setwd() 
+
+ggsave("Gen.CortexSolu.tiff", plot = Gen.CortexSolu, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw") 
+  ggsave("SIFig05.tiff", plot = Gen.CortexSolu, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw")
+```
+
+
+##cortex position
+```{r}
+
+Blanks_Main_merged$Cortex.position_F <- factor(Blanks_Main_merged$Cortex.position, levels= c("Proximal", "Proximal+lateral", "Proximal+Distal","Dorsal+lateral", "Dorsal", "Dorsal+distal", "Lateral","Distal", "Distal+lateral" , "Distal+proximal", "ND")) #proximal to distal
+
+library(RColorBrewer)
+# Get unique values in the Platform.Simpl column
+position_values <- unique(Blanks_Main_merged$Cortex.position_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(position_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Cortex.Pos_pal <- setNames(color_palette, position_values)
+
+
+library(ggstatsplot)
+library(ggplot2)
+# Create grouped bar plot
+filtered_data <- Blanks_Main_merged %>%
+  filter(!is.na(Cortex.position_F)) #no No Cortex
+
+Gen.Cortex.Pos <- ggplot(filtered_data, aes(x = Site_F, fill = Cortex.position_F)) +
+  geom_bar(position = "fill", stat = "count", show.legend = TRUE) +  
+  facet_wrap(~ Blank.type2_F) +  
+  scale_fill_manual(values = Cortex.Pos_pal) +  
+  scale_y_continuous(
+    labels = scales::percent_format(),  
+    breaks = seq(0, 1, by = 0.1)  
+  ) +
+  theme_minimal() +  
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),  
+    panel.background = element_rect(fill = "white", color = NA), 
+    axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8, family = "Arial"),  
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),  
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  )
+Gen.Cortex.Pos
+#set your working directory with setwd()
+ggsave("Gen.Cortex.Pos.tiff", plot = Gen.Cortex.Pos, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw") 
+  ggsave("SIFig06.tiff", plot = Gen.Cortex.Pos, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw") 
+```
+##cortex position with Solu
+```{r}
+combinedControl_df$Cortex.position_F <- factor(combinedControl_df$Cortex.position, levels= c("Proximal", "Proximal+lateral", "Proximal+Distal","Dorsal+lateral", "Dorsal", "Dorsal+distal", "Lateral","Distal", "Distal+lateral" , "Distal+proximal", "ND")) #proximal to distal
+                                         
+library(RColorBrewer)
+# Get unique values in the Platform.Simpl column
+Cx.Pos_values <- unique(combinedControl_df$Cortex.position_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Cx.Pos_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Cortex.Pos_pal <- setNames(color_palette, Cx.Pos_values)
+
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+# Create the grouped bar plot
+filtered_data <- filter(combinedControl_df, Blank.type2 != "Flake")%>%
+  filter(!is.na(Cortex.position_F)) #no No Cortex
+
+
+Gen.Cortex.PosSolu <- ggplot(filtered_data, aes(x = Technocomplex, fill = Cortex.position_F)) +
+  geom_bar(position = "fill", stat = "count", show.legend = TRUE) +  
+  facet_wrap(~ Blank.type2) +  
+  scale_fill_manual(values = Cortex.Pos_pal) +  
+  scale_y_continuous(
+    labels = scales::percent_format(),  
+    breaks = seq(0, 1, by = 0.1)  
+  ) +
+  theme_minimal() +  
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),  
+    panel.background = element_rect(fill = "white", color = NA), 
+    axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8, family = "Arial"),  
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),  
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  )
+
+Gen.Cortex.PosSolu
+#set your working directory with setwd() 
+
+ggsave("Gen.Cortex.PosSolu.tiff", plot = Gen.Cortex.PosSolu, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw") 
+  ggsave("SIFig07.tiff", plot = Gen.Cortex.PosSolu, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw")
+```
+
+
+##platform
+```{r}
+Blanks_Main_merged$Platform_F <- factor(Blanks_Main_merged$Platform, levels= c("Plain", "Punctiform", "Linear", "ND" ,"Cortical","Facetted")) #unprepared to prepared
+
+library(RColorBrewer)
+# Get unique values in the Platform.Simpl column
+platform_values <- unique(Blanks_Main_merged$Platform_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(platform_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Platform_pal <- setNames(color_palette, platform_values)
+
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+
+filtered_data <- Blanks_Main_merged %>%
+  filter(Preservation !="Mesiodistal", !Platform == "ND") #no distal 
+
+Gen.Platform.simpl <- ggplot(filtered_data, aes(x = Site_F, fill = Platform_F)) +
+  geom_bar(position = "fill", stat = "count", show.legend = TRUE) +  
+  facet_wrap(~ Blank.type2_F) +  
+  scale_fill_manual(values = Platform_pal) +  
+  scale_y_continuous(
+    labels = scales::percent_format(),  
+    breaks = seq(0, 1, by = 0.1)  
+  ) +
+  theme_minimal() +  
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),  
+    panel.background = element_rect(fill = "white", color = NA), 
+    axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8, family = "Arial"),  
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),  
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  )
+Gen.Platform.simpl
+
+#set your working directory with setwd()
+ggsave("Gen.Platform.simpl.tiff", plot = Gen.Platform.simpl, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw") 
+  ggsave("SIFig08.tiff", plot = Gen.Platform.simpl, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw") 
+```
+##platform with Solu
+```{r}
+combinedControl_df$Platform_F <- factor(combinedControl_df$Platform, levels= c("Plain", "Punctiform", "Linear", "ND" ,"Cortical","Facetted")) #unprepared to prepared
+
+library(RColorBrewer)
+# Get unique values in the Platform.Simpl column
+platform_values <- unique(combinedControl_df$Platform_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(platform_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Platform_pal <- setNames(color_palette, platform_values)
+
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+
+filtered_data <- combinedControl_df %>%
+  filter(Blank.type2 !="Flake", !is.na(Platform), !Platform == "ND", !Platform == "Crushed", !Platform == "Other" ) #no distal 
+
+Gen.Platform.simplSolu <- ggplot(filtered_data, aes(x = Technocomplex, fill = Platform_F)) +
+  geom_bar(position = "fill", stat = "count", show.legend = TRUE) +  
+  facet_wrap(~ Blank.type2) +  
+  scale_fill_manual(values = Platform_pal) +  
+  scale_y_continuous(
+    labels = scales::percent_format(),  
+    breaks = seq(0, 1, by = 0.1)  
+  ) +
+  theme_minimal() +  
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),  
+    panel.background = element_rect(fill = "white", color = NA), 
+    axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8, family = "Arial"),  
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),  
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  )
+Gen.Platform.simplSolu
+
+#set your working directory with setwd()
+ggsave("Gen.Platform.simplSolu.tiff", plot = Gen.Platform.simplSolu, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw") 
+  ggsave("SIFig09.tiff", plot = Gen.Platform.simplSolu, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw") 
+```
+
+##bulb
+```{r}
+unique(Blanks_Main_merged$Bulb)
+Blanks_Main_merged$Bulb_F <- factor(Blanks_Main_merged$Bulb, levels= c("Diffuse", "Marked", "ND")) #small to big
+
+library(RColorBrewer)
+# Get unique values in the Platform.Simpl column
+Bulb_values <- unique(Blanks_Main_merged$Bulb_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Bulb_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Bulb_pal <- setNames(color_palette, Bulb_values)
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+# Create grouped bar plot
+filtered_data <- Blanks_Main_merged %>%
+  filter(Preservation !="Mesiodistal", !Bulb == "ND", !is.na(Bulb)) #no distal 
+
+Gen.Bulb <- ggplot(filtered_data, aes(x = Site_F, fill = Bulb_F)) +
+  geom_bar(position = "fill", stat = "count", show.legend = TRUE) +  
+  facet_wrap(~ Blank.type2_F) +  
+  scale_fill_manual(values = Bulb_pal) +  
+  scale_y_continuous(
+    labels = scales::percent_format(),  
+    breaks = seq(0, 1, by = 0.1)  
+  ) +
+  theme_minimal() +  
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),  
+    panel.background = element_rect(fill = "white", color = NA), 
+    axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8, family = "Arial"),  
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),  
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  )
+Gen.Bulb
+
+#set your working directory with setwd()
+ggsave("Gen.Bulb.tiff", plot = Gen.Bulb, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw") 
+  ggsave("SIFig10.tiff", plot = Gen.Bulb, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw") 
+```
+##abrasion
+```{r}
+Blanks_Main_merged$Abrasion_F <- factor(Blanks_Main_merged$Abrasion, levels=c("Yes", "No", "ND")) 
+library(RColorBrewer)
+# Get unique values in the Platform.Simpl column
+Abrasion_values <- unique(Blanks_Main_merged$Abrasion_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Abrasion_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Abrasion_pal <- setNames(color_palette, Abrasion_values)
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+# Create grouped bar plot
+filtered_data <- Blanks_Main_merged %>%
+  filter(Preservation !="Mesiodistal", Blank.type2_F!="Flake", !Abrasion == "ND", !is.na(Abrasion)) #no distal
+
+Gen.Abrasion<- ggplot(filtered_data, aes(x = Site_F, fill = Abrasion_F)) +
+  geom_bar(position = "fill", stat = "count", show.legend = TRUE) +  
+  facet_wrap(~ Blank.type2_F) +  
+  scale_fill_manual(values = Abrasion_pal) +  
+  scale_y_continuous(
+    labels = scales::percent_format(),  
+    breaks = seq(0, 1, by = 0.1)  
+  ) +
+  theme_minimal() +  
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),  
+    panel.background = element_rect(fill = "white", color = NA), 
+    axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8, family = "Arial"),  
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),  
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  )
+Gen.Abrasion
+
+#set your working directory with setwd()
+ggsave("Gen.Abrasion.tiff", plot = Gen.Abrasion, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw") 
+  ggsave("SIFig11.tiff", plot = Gen.Abrasion, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw") 
+
+```
+##axiality
+```{r}
+Blanks_Main_merged$Axiality_F <- factor(Blanks_Main_merged$Axiality, levels=c("Off-axis", "On-axis")) 
+library(RColorBrewer)
+# Get unique values in the Axiality_F column
+Axiality_values <- unique(Blanks_Main_merged$Axiality_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Axiality_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Axiality_pal <- setNames(color_palette, Axiality_values)
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+
+# Create grouped bar plot
+filtered_data <- Blanks_Main_merged %>%
+  filter(Blank.type2_F != "Flake", !is.na(Axiality_F)) 
+
+Gen.Axiality <- ggplot(filtered_data, aes(x = Site_F, fill = Axiality_F)) +
+  geom_bar(position = "fill", stat = "count", show.legend = TRUE) +  
+  facet_wrap(~ Blank.type2_F) +  
+  scale_fill_manual(values = Axiality_pal) +  
+  scale_y_continuous(
+    labels = scales::percent_format(),  
+    breaks = seq(0, 1, by = 0.1)  
+  ) +
+  theme_minimal() +  
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),  
+    panel.background = element_rect(fill = "white", color = NA), 
+    axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8, family = "Arial"),  
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),  
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  )
+Gen.Axiality
+
+# Save the plot
+#set your working directory with setwd()
+ggsave("Gen.Axiality.tiff", plot = Gen.Axiality, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw") 
+ggsave("SIFig12.tiff", plot = Gen.Axiality, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw")
+```
+##axiality with solu
+```{r}
+combinedControl_df$Axiality_F <- factor(combinedControl_df$Axiality, levels=c("Off-axis", "On-axis")) 
+
+library(RColorBrewer)
+# Get unique values in the Axiality_F column
+axiality_values <- unique(combinedControl_df$Axiality_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(axiality_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Axiality_pal <- setNames(color_palette, axiality_values)
+
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+
+filtered_data <- combinedControl_df %>%
+  filter(Blank.type2 != "Flake", !is.na(Axiality_F))  
+
+Gen.Axiality.Solu <- ggplot(filtered_data, aes(x = Technocomplex, fill = Axiality_F)) +
+  geom_bar(position = "fill", stat = "count", show.legend = TRUE) +  
+  facet_wrap(~ Blank.type2) +  
+  scale_fill_manual(values = Axiality_pal) +  
+  scale_y_continuous(
+    labels = scales::percent_format(),  
+    breaks = seq(0, 1, by = 0.1)  
+  ) +
+  theme_minimal() +  
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),  
+    panel.background = element_rect(fill = "white", color = NA), 
+    axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8, family = "Arial"),  
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),  
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  )
+Gen.Axiality.Solu
+
+#set your working directory with setwd()
+ggsave("Gen.Axiality.simplSolu.tiff", plot = Gen.Axiality.Solu, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw") 
+ggsave("SIFig13.tiff", plot = Gen.Axiality.Solu, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw")
+
+```
+
+##outline
+
+```{r}
+Blanks_Main_merged$Outline.morphology_F <- factor(Blanks_Main_merged$Outline.morphology, levels=c("Parallel", "Convergent", "Off-axis", "ND"))  
+library(RColorBrewer)
+# Get unique values in the Outline.morphology_F column
+Outline_morphology_values <- unique(Blanks_Main_merged$Outline.morphology_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Outline_morphology_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Outline_morphology_pal <- setNames(color_palette, Outline_morphology_values)
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+
+# Create grouped bar plot
+filtered_data <- Blanks_Main_merged %>%
+filter(Blank.type2_F !="Flake", Preservation != "Mesioproximal", Outline.morphology_F != "ND", !is.na(Outline.morphology_F))
+
+Gen.OutlineMorphology <- ggplot(filtered_data, aes(x = Site_F, fill = Outline.morphology_F)) +
+  geom_bar(position = "fill", stat = "count", show.legend = TRUE) +  
+  facet_wrap(~ Blank.type2_F) +  
+  scale_fill_manual(values = Outline_morphology_pal) +  
+  scale_y_continuous(
+    labels = scales::percent_format(),  
+    breaks = seq(0, 1, by = 0.1)  
+  ) +
+  theme_minimal() +  
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),  
+    panel.background = element_rect(fill = "white", color = NA), 
+    axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8, family = "Arial"),  
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),  
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  )
+Gen.OutlineMorphology
+
+# Save the plot
+#set your working directory with setwd()
+ggsave("Gen.OutlineMorphology.tiff", plot = Gen.OutlineMorphology, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw") 
+ggsave("SIFig14.tiff", plot = Gen.OutlineMorphology, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw")
+```
+##Outline morph with Solu
+```{r}
+combinedControl_df$Outline.morphology_F <- factor(combinedControl_df$Outline.morphology, levels=c("Parallel", "Off-axis", "Convergent", "Biconvex", "Divergent", "ND")) 
+
+library(RColorBrewer)
+# Get unique values in the Outline.morphology_F column
+Outline.morphology_values <- unique(combinedControl_df$Outline.morphology_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Outline.morphology_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Outline.morphology_pal <- setNames(color_palette, Outline.morphology_values)
+
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+
+filtered_data <- combinedControl_df %>%
+  filter(Blank.type2 != "Flake", Outline.morphology_F != "ND", !is.na(Outline.morphology_F))  
+
+Gen.Outline.morphology.Solu <- ggplot(filtered_data, aes(x = Technocomplex, fill = Outline.morphology_F)) +
+  geom_bar(position = "fill", stat = "count", show.legend = TRUE) +  
+  facet_wrap(~ Blank.type2) +  
+  scale_fill_manual(values = Outline.morphology_pal) +  
+  scale_y_continuous(
+    labels = scales::percent_format(),  
+    breaks = seq(0, 1, by = 0.1)  
+  ) +
+  theme_minimal() +  
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),  
+    panel.background = element_rect(fill = "white", color = NA), 
+    axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8, family = "Arial"),  
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),  
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  )
+Gen.Outline.morphology.Solu
+
+#set your working directory with setwd()
+ggsave("Gen.Outline.morphology.Solu.tiff", plot = Gen.Outline.morphology.Solu, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw") 
+ggsave("SIFig15.tiff", plot = Gen.Outline.morphology.Solu, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw")
+```
+
+##symmetry
+```{r}
+Blanks_Main_merged$Symmetry_F <- factor(Blanks_Main_merged$Symmetry, levels=c("symmetric", "asymmetric", "ND"))
+library(RColorBrewer)
+# Get unique values in the Symmetry column
+Symmetry_values <- unique(Blanks_Main_merged$Symmetry_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Symmetry_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Symmetry_pal <- setNames(color_palette,Symmetry_values)
+library(dplyr)
+library(ggplot2)
+
+# Create grouped bar plot
+filtered_data <- Blanks_Main_merged %>%
+filter(Blank.type2_F !="Flake", Symmetry_F != "ND", !is.na(Symmetry_F))
+
+Gen.Symmetry <- ggplot(filtered_data, aes(x = Site_F, fill = Symmetry_F)) +
+  geom_bar(position = "fill", stat = "count", show.legend = TRUE) +  
+  facet_wrap(~ Blank.type2_F) +  
+  scale_fill_manual(values = Symmetry_pal) +  
+  scale_y_continuous(
+    labels = scales::percent_format(),  
+    breaks = seq(0, 1, by = 0.1)  
+  ) +
+  theme_minimal() +  
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),  
+    panel.background = element_rect(fill = "white", color = NA), 
+    axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8, family = "Arial"),  
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),  
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  )
+Gen.Symmetry
+
+# Save the plot
+#set your working directory with setwd()
+ggsave("Gen.Symmetry.tiff", plot = Gen.Symmetry, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw") 
+ggsave("SIFig16.tiff", plot = Gen.Symmetry, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw")
+```
+##crosssection shape
+```{r}
+Blanks_Main_merged$Cross.section_F <- factor(Blanks_Main_merged$Cross.section, levels=c("Triangular", "Polyhedric" , "ND"))
+
+library(RColorBrewer)
+# Get unique values in the Crosssection column
+Cross.Section_values <- unique(Blanks_Main_merged$Cross.section_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Cross.Section_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Cross.Section_pal <- setNames(color_palette,Cross.Section_values)
+
+library(dplyr)
+library(ggplot2)
+# Create grouped bar plot
+filtered_data <- Blanks_Main_merged %>%
+filter(Blank.type2_F !="Flake", Cross.section_F != "ND", !is.na(Cross.section_F))
+
+Gen.CrossSection <- ggplot(filtered_data, aes(x = Site_F, fill = Cross.section_F)) +
+  geom_bar(position = "fill", stat = "count", show.legend = TRUE) +  
+  facet_wrap(~ Blank.type2_F) +  
+  scale_fill_manual(values = Cross.Section_pal) +  
+  scale_y_continuous(
+    labels = scales::percent_format(),  
+    breaks = seq(0, 1, by = 0.1)  
+  ) +
+  theme_minimal() +  
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),  
+    panel.background = element_rect(fill = "white", color = NA), 
+    axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8, family = "Arial"),  
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),  
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  )
+Gen.CrossSection
+
+# Save the plot
+#set your working directory with setwd()
+ggsave("Gen.CrossSection.tiff", plot = Gen.CrossSection, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw") 
+ggsave("SIFig17.tiff", plot = Gen.CrossSection, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw")
+```
+##crosssection with Solu
+```{r}
+combinedControl_df$Cross.section_F <- factor(combinedControl_df$Cross.section, levels=c("Triangular", "Polyhedric" , "ND"))
+
+library(RColorBrewer)
+# Get unique values in the Cross.section_F column
+Cross.section_values <- unique(combinedControl_df$Cross.section_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Cross.section_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Cross.section_pal <- setNames(color_palette, Cross.section_values)
+
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+
+filtered_data <- combinedControl_df %>%
+  filter(Blank.type2 != "Flake", Cross.section_F != "ND", !is.na(Cross.section_F))  
+
+Gen.Cross.section.Solu <- ggplot(filtered_data, aes(x = Technocomplex, fill = Cross.section_F)) +
+  geom_bar(position = "fill", stat = "count", show.legend = TRUE) +  
+  facet_wrap(~ Blank.type2) +  
+  scale_fill_manual(values = Cross.section_pal) +  
+  scale_y_continuous(
+    labels = scales::percent_format(),  
+    breaks = seq(0, 1, by = 0.1)  
+  ) +
+  theme_minimal() +  
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),  
+    panel.background = element_rect(fill = "white", color = NA), 
+    axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8, family = "Arial"),  
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),  
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  )
+Gen.Cross.section.Solu
+
+#set your working directory with setwd()
+ggsave("Gen.Cross.section.Solu.tiff", plot = Gen.Cross.section.Solu, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw") 
+ggsave("SIFig18.tiff", plot = Gen.Cross.section.Solu, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw")
+```
+
+##profile
+```{r}
+Blanks_Main_merged$Profile_F <- factor(Blanks_Main_merged$Profile, levels=c("Straight", "Slightly Curved","Curved","Twisted","ND"))
+library(RColorBrewer)
+# Get unique values in the Platform.Simpl column
+Profile_values <- unique(Blanks_Main_merged$Profile_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Profile_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+
+#no twisted because Fumane has no such observation
+Profile_pal <- setNames(color_palette,Profile_values)
+library(dplyr)
+library(ggplot2)
+# Create grouped bar plot
+filtered_data <- Blanks_Main_merged %>%
+filter(Blank.type2_F !="Flake", Profile_F != "ND", !is.na(Profile_F))
+
+Gen.Pro <- ggplot(filtered_data, aes(x = Site_F, fill = Profile_F)) +
+  geom_bar(position = "fill", stat = "count", show.legend = TRUE) +  
+  facet_wrap(~ Blank.type2_F) +  
+  scale_fill_manual(values = Profile_pal) +  
+  scale_y_continuous(
+    labels = scales::percent_format(),  
+    breaks = seq(0, 1, by = 0.1)  
+  ) +
+  theme_minimal() +  
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),  
+    panel.background = element_rect(fill = "white", color = NA), 
+    axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8, family = "Arial"),  
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),  
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  )
+Gen.Pro
+
+# Save the plot
+#set your working directory with setwd()
+ggsave("Gen.Pro.tiff", plot = Gen.Pro, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw") 
+ggsave("SIFig19.tiff", plot = Gen.Pro, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw")
+
+```
+##profile with Solu
+```{r}
+combinedControl_df$Profile_F <- factor(combinedControl_df$Profile, levels=c("Straight", "Slightly Curved","Curved","Twisted","ND"))
+
+library(RColorBrewer)
+# Get unique values in the Profile_F column
+Profile_values <- unique(combinedControl_df$Profile_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Profile_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Profile_pal <- setNames(color_palette, Profile_values)
+
+library(dplyr)
+library(ggplot2)
+library(ggstatsplot)
+
+filtered_data <- combinedControl_df %>%
+  filter(Blank.type2 != "Flake", Profile_F != "ND", !is.na(Profile_F))  
+
+Gen.Profile.Solu <- ggplot(filtered_data, aes(x = Technocomplex, fill = Profile_F)) +
+  geom_bar(position = "fill", stat = "count", show.legend = TRUE) +  
+  facet_wrap(~ Blank.type2) +  
+  scale_fill_manual(values = Profile_pal) +  
+  scale_y_continuous(
+    labels = scales::percent_format(),  
+    breaks = seq(0, 1, by = 0.1)  
+  ) +
+  theme_minimal() +  
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),  
+    panel.background = element_rect(fill = "white", color = NA), 
+    axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8, family = "Arial"),  
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),  
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  )
+Gen.Profile.Solu
+
+#set your working directory with setwd()
+ggsave("Gen.Profile.Solu.tiff", plot = Gen.Profile.Solu, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw") 
+ggsave("SIFig20.tiff", plot = Gen.Profile.Solu, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw")
+```
+
+## distal end morphology
+```{r}
+Blanks_Main_merged$Distal.end.morpho_F <- factor(Blanks_Main_merged$Distal.end.morpho, levels=c("Feathered", "Plunging", "ND"))
+library(RColorBrewer)
+# Get unique values in the Platform.Simpl column
+Distal.end.morpho_values <- unique(Blanks_Main_merged$Distal.end.morpho_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Distal.end.morpho_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Distal.end.morpho_pal <- setNames(color_palette,Distal.end.morpho_values)
+
+library(dplyr)
+library(ggplot2)
+# Create grouped bar plot
+filtered_data <- Blanks_Main_merged %>%
+filter(Blank.type2_F !="Flake", Preservation != "Mesioproximal", Distal.end.morpho_F != "ND", !is.na(Distal.end.morpho_F))
+
+Gen.Distal.end.morpho <- ggplot(filtered_data, aes(x = Site_F, fill = Distal.end.morpho_F)) +
+  geom_bar(position = "fill", stat = "count", show.legend = TRUE) +  
+  facet_wrap(~ Blank.type2_F) +  
+  scale_fill_manual(values = Distal.end.morpho_pal) +  
+  scale_y_continuous(
+    labels = scales::percent_format(),  
+    breaks = seq(0, 1, by = 0.1)  
+  ) +
+  theme_minimal() +  
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),  
+    panel.background = element_rect(fill = "white", color = NA), 
+    axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8, family = "Arial"),  
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),  
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  )
+Gen.Distal.end.morpho
+
+# Save the plot
+#set your working directory with setwd()
+ggsave("Gen.Distal.end.morpho.tiff", plot = Gen.Distal.end.morpho, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw") 
+ggsave("SIFig21.tiff", plot = Gen.Distal.end.morpho, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw")
+```
+##distal end with Solu
+```{r}
+combinedControl_df$Distal.end.morpho_F <- factor(combinedControl_df$Distal.end.morpho, levels=c("Feathered", "Plunging", "ND"))
+
+library(RColorBrewer)
+# Get unique values in the Distal.end.morpho_F column
+Distal.end.morpho_values <- unique(combinedControl_df$Distal.end.morpho_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Distal.end.morpho_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Distal.end.morpho_pal <- setNames(color_palette, Distal.end.morpho_values)
+
+library(dplyr)
+library(ggplot2)
+
+filtered_data <- combinedControl_df %>%
+  filter(Blank.type2 != "Flake", Distal.end.morpho_F != "ND", !is.na(Distal.end.morpho_F))  
+
+Gen.Distal.end.morpho.Solu <- ggplot(filtered_data, aes(x = Technocomplex, fill = Distal.end.morpho_F)) +
+  geom_bar(position = "fill", stat = "count", show.legend = TRUE) +  
+  facet_wrap(~ Blank.type2) +  
+  scale_fill_manual(values = Distal.end.morpho_pal) +  
+  scale_y_continuous(
+    labels = scales::percent_format(),  
+    breaks = seq(0, 1, by = 0.1)  
+  ) +
+  theme_minimal() +  
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),  
+    panel.background = element_rect(fill = "white", color = NA), 
+    axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8, family = "Arial"),  
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),  
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  )
+Gen.Distal.end.morpho.Solu
+
+#set your working directory with setwd()
+ggsave("Gen.Distal.end.morpho.Solu.tiff", plot = Gen.Distal.end.morpho.Solu, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw") 
+ggsave("SIFig22.tiff", plot = Gen.Distal.end.morpho.Solu, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw")
+```
+
+##torsion
+```{r}
+library(RColorBrewer)
+# Get unique values in the Torsion column
+Torsion_values <- unique(Blanks_Main_merged$Torsion)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Torsion_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Torsion_pal <- setNames(color_palette, Torsion_values)
+
+library(dplyr)
+library(ggplot2)
+# Create grouped bar plot
+filtered_data <- Blanks_Main_merged %>%
+filter(Blank.type2_F !="Flake", Torsion != "ND", Torsion != "NA", !is.na(Torsion))
+
+Gen.Torsion <- ggplot(filtered_data, aes(x = Site_F, fill = Torsion)) +
+  geom_bar(position = "fill", stat = "count", show.legend = TRUE) +  
+  facet_wrap(~ Blank.type2_F) +  
+  scale_fill_manual(values = Torsion_pal) +  
+  scale_y_continuous(
+    labels = scales::percent_format(),  
+    breaks = seq(0, 1, by = 0.1)  
+  ) +
+  theme_minimal() +  
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),  
+    panel.background = element_rect(fill = "white", color = NA), 
+    axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8, family = "Arial"),  
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),  
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  )
+Gen.Torsion
+
+# Save the plot
+#set your working directory with setwd()
+ggsave("Gen.Torsion.tiff", plot = Gen.Torsion, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw") 
+ggsave("SIFig23.tiff", plot = Gen.Torsion, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw")
+```
+##Torsion with solu
+```{r}
+
+library(RColorBrewer)
+# Get unique values in the Distal.end.morpho_F column
+Torsion_values <- unique(combinedControl_df$Torsion)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Torsion_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Torsion_pal <- setNames(color_palette, Torsion_values)
+
+library(dplyr)
+library(ggplot2)
+
+filtered_data <- combinedControl_df %>%
+  filter(Blank.type2 != "Flake", Torsion != "ND", Torsion != "NA", !is.na(Torsion))  
+
+Gen.Torsion.Solu <- ggplot(filtered_data, aes(x = Technocomplex, fill = Torsion)) +
+  geom_bar(position = "fill", stat = "count", show.legend = TRUE) +  
+  facet_wrap(~ Blank.type2) +  
+  scale_fill_manual(values = Torsion_pal) +  
+  scale_y_continuous(
+    labels = scales::percent_format(),  
+    breaks = seq(0, 1, by = 0.1)  
+  ) +
+  theme_minimal() +  
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),  
+    panel.background = element_rect(fill = "white", color = NA), 
+    axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8, family = "Arial"),  
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),  
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  )
+Gen.Torsion.Solu
+
+#set your working directory with setwd()
+ggsave("Gen.Torsion.Solu.tiff", plot = Gen.Torsion.Solu, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw") 
+ggsave("SIFig24.tiff", plot = Gen.Torsion.Solu, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw")
+```
+
+##dorsal scar pattern
+```{r}
+Blanks_Main_merged$Dorsal.scar.1_F <- factor(Blanks_Main_merged$Dorsal.scar.1, levels=c( "Unidirectional",  "Unidirectional+Other direction", "Bidirectional" , "Bidirectional+Other direction" , "Orthogonal" ,   "Centripetal", "Crossed" , "ND", "Other" ))
+library(RColorBrewer)
+# Get unique values in the Platform.Simpl column
+Dorsal.scar.1_values <- unique(Blanks_Main_merged$Dorsal.scar.1_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Dorsal.scar.1_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Dorsal.scar.1_pal <- setNames(color_palette, Dorsal.scar.1_values)
+library(dplyr)
+library(ggplot2)
+# Create grouped bar plot
+filtered_data <- Blanks_Main_merged %>%
+filter(Dorsal.scar.1_F != "ND", Dorsal.scar.1_F != "NA", !is.na(Dorsal.scar.1_F))
+
+Gen.Dorsal.scar.1 <- ggplot(filtered_data, aes(x = Site_F, fill = Dorsal.scar.1_F)) +
+  geom_bar(position = "fill", stat = "count", show.legend = TRUE) +  
+  facet_wrap(~ Blank.type2_F) +  
+  scale_fill_manual(values = Dorsal.scar.1_pal) +  
+  scale_y_continuous(
+    labels = scales::percent_format(),  
+    breaks = seq(0, 1, by = 0.1)  
+  ) +
+  theme_minimal() +  
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),  
+    panel.background = element_rect(fill = "white", color = NA), 
+    axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8, family = "Arial"),  
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),  
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  )
+Gen.Dorsal.scar.1
+
+# Save the plot
+#set your working directory with setwd()
+ggsave("Gen.Dorsal.scar.1.tiff", plot = Gen.Dorsal.scar.1, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw") 
+ggsave("SIFig25.tiff", plot = Gen.Dorsal.scar.1, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw")
+```
+##dorsal scar pattern with Solu
+```{r}
+
+combinedControl_df$Dorsal.scar.1_F <- factor(combinedControl_df$Dorsal.scar.1, levels=c( "Unidirectional",  "Unidirectional+Other direction", "Bidirectional" , "Bidirectional+Other direction" , "Orthogonal" ,   "Centripetal", "Crossed" , "ND", "Other" ))
+
+library(RColorBrewer)
+# Get unique values in the Distal.end.morpho_F column
+Dorsal.scar.1_values <- unique(combinedControl_df$Dorsal.scar.1)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Dorsal.scar.1_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Dorsal.scar.1_pal <- setNames(color_palette, Dorsal.scar.1_values)
+
+library(dplyr)
+library(ggplot2)
+
+filtered_data <- combinedControl_df %>%
+  filter(Blank.type2 !="Flake",  Dorsal.scar.1_F != "ND", Dorsal.scar.1_F != "NA", !is.na(Dorsal.scar.1_F))  
+
+Gen.Dorsal.scar.1.Solu <- ggplot(filtered_data, aes(x = Technocomplex, fill = Dorsal.scar.1)) +
+  geom_bar(position = "fill", stat = "count", show.legend = TRUE) +  
+  facet_wrap(~ Blank.type2) +  
+  scale_fill_manual(values = Dorsal.scar.1_pal) +  
+  scale_y_continuous(
+    labels = scales::percent_format(),  
+    breaks = seq(0, 1, by = 0.1)  
+  ) +
+  theme_minimal() +  
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),  
+    panel.background = element_rect(fill = "white", color = NA), 
+    axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8, family = "Arial"),  
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),  
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  )
+Gen.Dorsal.scar.1.Solu
+
+#set your working directory with setwd()
+ggsave("Gen.Dorsal.scar.1.Solu.tiff", plot = Gen.Dorsal.scar.1.Solu, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw") 
+ggsave("SIFig26.tiff", plot = Gen.Dorsal.scar.1.Solu, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw")
+```
+
+
+##retouch position
+```{r}
+
+Blanks_Main_merged$Retouch.Position_F <- factor(Blanks_Main_merged$Retouch.Position, levels=c( "Direct", "Inverse", "Alternate", "Crossed"))
+library(RColorBrewer)
+# Get unique values in the Retouch.Position column
+Retouch.Position_values <- unique(Blanks_Main_merged$Retouch.Position_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Retouch.Position_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Retouch.Position_pal <- setNames(color_palette, Retouch.Position_values)
+library(dplyr)
+library(ggplot2)
+# Create grouped bar plot
+filtered_data <- Blanks_Main_merged %>%
+filter(Blank.type2_F !="Flake",   Retouch.Position_F != "ND", Retouch.Position_F != "NA", !is.na(Retouch.Position_F))
+
+Gen.Retouch.Position <- ggplot(filtered_data, aes(x = Site_F, fill = Retouch.Position_F)) +
+  geom_bar(position = "fill", stat = "count", show.legend = TRUE) +  
+  facet_wrap(~ Blank.type2_F) +  
+  scale_fill_manual(values = Retouch.Position_pal) +  
+  scale_y_continuous(
+    labels = scales::percent_format(),  
+    breaks = seq(0, 1, by = 0.1)  
+  ) +
+  theme_minimal() +  
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),  
+    panel.background = element_rect(fill = "white", color = NA), 
+    axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8, family = "Arial"),  
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),  
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  )
+Gen.Retouch.Position
+
+# Save the plot
+#set your working directory with setwd()
+ggsave("Gen.Retouch.Position.tiff", plot = Gen.Retouch.Position, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw") 
+ggsave("SIFig27.tiff", plot = Gen.Retouch.Position, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw")
+```
+##retouch location
+```{r}
+
+Blanks_Main_merged$Retouch.Location_F <- factor(Blanks_Main_merged$Retouch.Location, levels=c( "-", "Bilateral", "Right","Distal","Proximal" , "Left" ,"Right Proximal" , "Distal+Mesial","Left Distal", "Lateral" , "Distal+Right","NA" ,"Proximal+Left", "Distal+Left", "Proximal+Right"  ,"Undetermined" ,   "Distal+Proximal","Right + Mesial" ))
+library(viridis)
+# Get unique values in the Retouch.Location column
+Retouch.Location_values <- unique(Blanks_Main_merged$Retouch.Location_F)
+
+# Generate a palette with the same number of colours as Retouch.Location_values
+color_palette <- viridis(length(Retouch.Location_values))
+
+# Assign colours to the unique Retouch.Location values
+Retouch.Location_pal <- setNames(color_palette, Retouch.Location_values)
+library(dplyr)
+library(ggplot2)
+# Create grouped bar plot
+filtered_data <- Blanks_Main_merged %>%
+filter(Blank.type2_F !="Flake",   Retouch.Location_F != "ND", Retouch.Location_F != "NA",Retouch.Location_F != "Undetermined",Retouch.Location_F != "-",!is.na(Retouch.Location_F))
+
+Gen.Retouch.Location <- ggplot(filtered_data, aes(x = Site_F, fill = Retouch.Location_F)) +
+  geom_bar(position = "fill", stat = "count", show.legend = TRUE) +  
+  facet_wrap(~ Blank.type2_F) +  
+  scale_fill_manual(values = Retouch.Location_pal) +  
+  scale_y_continuous(
+    labels = scales::percent_format(),  
+    breaks = seq(0, 1, by = 0.1)  
+  ) +
+  theme_minimal() +  
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),  
+    panel.background = element_rect(fill = "white", color = NA), 
+    axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8, family = "Arial"),  
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),  
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  )
+Gen.Retouch.Location
+
+# Save the plot
+#set your working directory with setwd()
+ggsave("Gen.Retouch.Location.tiff", plot = Gen.Retouch.Location, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw") 
+ggsave("SIFig28.tiff", plot = Gen.Retouch.Location, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw")
+```
+
+
+##retouch distribution
+```{r}
+Blanks_Main_merged$Retouch.Distribution_F <- factor(Blanks_Main_merged$Retouch.Distribution, levels=c( "-" , "Continuous","Partial"  , "NA",  "Undetermined"  ,"Continuous + Discontinuous"))
+library(RColorBrewer)
+# Get unique values in the Retouch.Distribution column
+Retouch.Distribution_values <- unique(Blanks_Main_merged$Retouch.Distribution_F)
+
+# Use the ColorBrewer Set3 palette
+color_palette <- brewer.pal(n = length(Retouch.Distribution_values), name = "Set3")
+
+# Create a color dictionary mapping each unique value to a color
+Retouch.Distribution_pal <- setNames(color_palette, Retouch.Distribution_values)
+library(dplyr)
+library(ggplot2)
+# Create grouped bar plot
+filtered_data <- Blanks_Main_merged %>%
+filter(Blank.type2_F !="Flake",   Retouch.Distribution_F != "-", Retouch.Distribution_F != "Undetermined", Retouch.Distribution_F != "NA", !is.na(Retouch.Distribution_F))
+
+Gen.Retouch.Distribution <- ggplot(filtered_data, aes(x = Site_F, fill = Retouch.Distribution_F)) +
+  geom_bar(position = "fill", stat = "count", show.legend = TRUE) +  
+  facet_wrap(~ Blank.type2_F) +  
+  scale_fill_manual(values = Retouch.Distribution_pal) +  
+  scale_y_continuous(
+    labels = scales::percent_format(),  
+    breaks = seq(0, 1, by = 0.1)  
+  ) +
+  theme_minimal() +  
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),  
+    panel.background = element_rect(fill = "white", color = NA), 
+    axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8, family = "Arial"),  
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),  
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  )
+Gen.Retouch.Distribution
+
+# Save the plot
+#set your working directory with setwd()
+ggsave("Gen.Retouch.Distribution.tiff", plot = Gen.Retouch.Distribution, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw") 
+ggsave("SIFig29.tiff", plot = Gen.Retouch.Distribution, width = 13.2, height = 20.02, units = "cm", dpi = 300, compression = "lzw")
+```
+
+##Dimensions
+```{r}
+library(ggplot2)
+library(ggstatsplot)
+library(dplyr)
+```
+###Length
+```{r}
+Length <- grouped_ggbetweenstats(
+  data = filter(Blanks_Main_merged, Blank.type2 != "Flake", Preservation == "Complete", Length !="NA", Tool != "Yes"),
+  x = Site_F,     
+  y = Length, 
+  grouping.var = Blank.type2_F,
+  ylab = "mm",
+  nonparametric = TRUE,  # Perform non-parametric tests
+  results.subtitle = FALSE,
+  centrality.plotting = TRUE,
+  centrality.type = "nonparametric",
+  violin.args = list(width = 0.5, alpha = 0.2, na.rm = TRUE),
+  ggplot.component = list(
+    theme(
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8, family = "Arial"),  
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),  
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    axis.title.x = element_blank()
+    ),
+    scale_y_continuous(limits = c(0, 125))  # Start y-axis at 0
+  )
+)
+Length
+# Save the plot
+#set your working directory with setwd()
+
+ggsave("Length.tiff", plot = Length, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+ggsave("SIFig30.tiff", plot = Length, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw") 
+
+```
+###Lenght with Solu
+
+```{r}
+Length.Solu <- grouped_ggbetweenstats(
+  data = filter(combinedControl_df, Blank.type2 != "Flake", Length !="NA"),
+  x = Technocomplex,     
+  y = Length, 
+  grouping.var = Blank.type2,
+  ylab = "mm",
+  nonparametric = TRUE,  # Perform non-parametric tests
+  results.subtitle = FALSE,
+  centrality.plotting = TRUE,
+  centrality.type = "nonparametric",
+  violin.args = list(width = 0.5, alpha = 0.2, na.rm = TRUE),
+  ggplot.component = list(
+    theme(
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8, family = "Arial"),  
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),  
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    axis.title.x = element_blank()
+    ),
+    scale_y_continuous(limits = c(0, 130))  # Start y-axis at 0
+  )
+)
+Length.Solu
+# Save the plot
+#set your working directory with setwd()
+
+ggsave("Length.Solu.tiff", plot = Length.Solu, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+ggsave("SIFig31.tiff", plot = Length.Solu, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw") 
+```
+
+
+###Width
+```{r}
+
+Width <- grouped_ggbetweenstats(
+  data = filter(Blanks_Main_merged, Blank.type2 != "Flake", Width !="NA", Tool != "Yes"),
+  x = Site_F,     
+  y = Width, 
+  grouping.var = Blank.type2,
+  ylab = "mm",
+  nonparametric = TRUE,  # Perform non-parametric tests
+  results.subtitle = FALSE,
+  centrality.plotting = TRUE,
+  centrality.type = "nonparametric",
+  violin.args = list(width = 0.5, alpha = 0.2, na.rm = TRUE),
+  ggplot.component = list(
+    theme(
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8, family = "Arial"),  
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),  
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    axis.title.x = element_blank()
+    ),
+    geom_hline(yintercept = 12, linetype = "dashed", color = "red"),
+    scale_y_continuous(limits = c(0, 45))  # Start y-axis at 0
+  ))
+Width
+
+ggsave("Width.tiff", plot = Width, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+ggsave("SIFig32.tiff", plot = Width, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+```
+###Width with Solu
+```{r}
+Width.Solu <- grouped_ggbetweenstats(
+  data = filter(combinedControl_df, Blank.type2 != "Flake", Width !="NA"),
+  x = Technocomplex,     
+  y = Width, 
+  grouping.var = Blank.type2,
+  ylab = "mm",
+  nonparametric = TRUE,  # Perform non-parametric tests
+  results.subtitle = FALSE,
+  centrality.plotting = TRUE,
+  centrality.type = "nonparametric",
+  violin.args = list(width = 0.5, alpha = 0.2, na.rm = TRUE),
+  ggplot.component = list(
+    theme(
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8, family = "Arial"),  
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),  
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    axis.title.x = element_blank()
+    ),
+    scale_y_continuous(limits = c(0, 60))  # Start y-axis at 0
+  )
+)
+Width.Solu
+# Save the plot
+#set your working directory with setwd()
+
+ggsave("Width.Solu.tiff", plot = Width.Solu, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+ggsave("SIFig33.tiff", plot = Width.Solu, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw") 
+```
+
+###Thickness
+```{r}
+Elongation <- grouped_ggbetweenstats(
+  data = filter(Blanks_Main_merged, Blank.type2 != "Flake", Width !="NA", Tool != "Yes"),
+  x = Site_F,          
+  y = Thickness, 
+  grouping.var = Blank.type2,
+  ylab = "mm",
+  nonparametric = TRUE,  # Perform non-parametric tests
+  results.subtitle = FALSE,
+  centrality.plotting = TRUE,
+  centrality.type = "nonparametric",
+  violin.args = list(width = 0.5, alpha = 0.2, na.rm = TRUE),
+  ggplot.component = list(
+    theme(
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8, family = "Arial"),  
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),  
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    axis.title.x = element_blank()
+    ),
+    scale_y_continuous(limits = c(0, 45))  # Start y-axis at 0
+  )
+)
+Thickness
+#set your working directory with setwd()
+ggsave("Thickness.tiff", plot = Thickness, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+ggsave("SIFig34.tiff", plot = Thickness, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw") 
+```
+###Thickness with Solu
+```{r}
+Thickness.Solu <- grouped_ggbetweenstats(
+  data = filter(combinedControl_df, Blank.type2 != "Flake", Thickness !="NA"),
+  x = Technocomplex,     
+  y = Thickness, 
+  grouping.var = Blank.type2,
+  ylab = "mm",
+  nonparametric = TRUE,  # Perform non-parametric tests
+  results.subtitle = FALSE,
+  centrality.plotting = TRUE,
+  centrality.type = "nonparametric",
+  violin.args = list(width = 0.5, alpha = 0.2, na.rm = TRUE),
+  ggplot.component = list(
+    theme(
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8, family = "Arial"),  
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),  
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    axis.title.x = element_blank()
+    ),
+    scale_y_continuous(limits = c(0, 45))  # Start y-axis at 0
+  )
+)
+Thickness.Solu
+# Save the plot
+#set your working directory with setwd()
+
+ggsave("Thickness.Solu.tiff", plot = Thickness.Solu, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+ggsave("SIFig35.tiff", plot = Thickness.Solu, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+```
+
+###Elongation
+```{r}
+Elongation <- grouped_ggbetweenstats(
+  data = filter(Blanks_Main_merged, Blank.type2_F != "Flake", Elongation !="NA", Elongation !="0", Tool != "Yes"),
+  x = Site_F,     
+  y = Elongation, 
+  grouping.var = Blank.type2_F,
+  nonparametric = TRUE,  # Perform non-parametric tests
+  results.subtitle = FALSE,
+  centrality.plotting = TRUE,
+  centrality.type = "nonparametric",
+  violin.args = list(width = 0.5, alpha = 0.2, na.rm = TRUE),
+  ggplot.component = list(
+    theme(
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8, family = "Arial"),  
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),  
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    axis.title.x = element_blank()
+    ),
+    scale_y_continuous(limits = c(0, 10))  # Start y-axis at 0
+  )
+)
+Elongation
+#set your working directory with setwd(
+ggsave("Elongation.tiff", plot = Elongation, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw") 
+ggsave("SIFig36.tiff", plot = Elongation, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+```
+###Elongation width Solu
+```{r}
+Elongation.Solu <- grouped_ggbetweenstats(
+  data = filter(combinedControl_df, Blank.type2 != "Flake", Elongation !="NA", Elongation !="0"),
+  x = Technocomplex,     
+  y = Elongation, 
+  grouping.var = Blank.type2,
+  nonparametric = TRUE,  # Perform non-parametric tests
+  results.subtitle = FALSE,
+  centrality.plotting = TRUE,
+  centrality.type = "nonparametric",
+  violin.args = list(width = 0.5, alpha = 0.2, na.rm = TRUE),
+  ggplot.component = list(
+    theme(
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8, family = "Arial"),  
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),  
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    axis.title.x = element_blank()
+    ),
+    scale_y_continuous(limits = c(0, 15))  # Start y-axis at 0
+  )
+)
+Elongation.Solu
+# Save the plot
+#set your working directory with setwd()
+
+ggsave("Elongation.Solu.tiff", plot = Elongation.Solu, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+ggsave("SIFig37.tiff", plot = Elongation.Solu, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+```
+
+###Robustness
+```{r}
+Robustness <- grouped_ggbetweenstats(
+  data = filter(Blanks_Main_merged, Blank.type2_F != "Flake", Robustness !="NA", Tool != "Yes"),
+  x = Site_F,     
+  y = Robustness, 
+  grouping.var = Blank.type2_F,
+  xlab = "Site",
+  nonparametric = TRUE,  # Perform non-parametric tests
+  results.subtitle = FALSE,
+  centrality.plotting = TRUE,
+  centrality.type = "nonparametric",
+  violin.args = list(width = 0.5, alpha = 0.2, na.rm = TRUE),
+  ggplot.component = list(
+    theme(
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8, family = "Arial"),  
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),  
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    axis.title.x = element_blank()
+    ),
+    scale_y_continuous(limits = c(0, 15))  # Start y-axis at 0
+  )
+)
+Robustness
+#set your working directory with setwd()
+ggsave("Robustness.tiff", plot = Robustness, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+ggsave("SIFig38.tiff", plot = Robustness, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw") 
+```
+###Robustness with Solu
+```{r}
+Robustness.Solu <- grouped_ggbetweenstats(
+  data = filter(combinedControl_df, Blank.type2 != "Flake", Robustness !="NA", Robustness !="0"),
+  x = Technocomplex,     
+  y = Robustness, 
+  grouping.var = Blank.type2,
+  nonparametric = TRUE,  # Perform non-parametric tests
+  results.subtitle = FALSE,
+  centrality.plotting = TRUE,
+  centrality.type = "nonparametric",
+  violin.args = list(width = 0.5, alpha = 0.2, na.rm = TRUE),
+  ggplot.component = list(
+    theme(
+      axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8, family = "Arial"),  
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),  
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    axis.title.x = element_blank()
+    ),
+    scale_y_continuous(limits = c(0, 15))  # Start y-axis at 0
+  )
+)
+Robustness.Solu
+# Save the plot
+#set your working directory with setwd()
+
+ggsave("Robustness.Solu.tiff", plot = Robustness.Solu, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+ggsave("SIFig39.tiff", plot = Robustness.Solu, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+```
+
+###Width histogram
+```{r}
+install.packages("dplyr")
+  library(dplyr)
+
+filtered_data <- filter(Blanks_Main_merged, 
+                        Blank.type2_F %in% c("Blade", "Bladelet") & 
+!is.na(Width) & 
+Tool == "No")
+filtered_data$Width <- as.numeric(filtered_data$Width)
+
+# Create the plot
+install.packages("ggplot2")
+  library(ggplot2)
+
+# Calculate the number of observations for each site
+site_counts <- filtered_data %>%
+  group_by(Site_F) %>%
+  summarise(count = n())
+site_counts
+
+min_count <- min(site_counts$count)
+# Calculate the number of samples for each type within each site to maintain proportions
+proportional_sample <- filtered_data %>%
+  group_by(Site_F, Blank.type2_F) %>%
+  summarise(count = n()) %>%
+  mutate(proportion = count / sum(count)) %>%
+  mutate(samples_needed = round(proportion * min_count)) %>%
+  select(Site_F, Blank.type2_F, samples_needed)
+
+balanced_data <- filtered_data %>%
+  inner_join(proportional_sample, by = c("Site_F", "Blank.type2_F")) %>%
+  group_by(Site_F, Blank.type2_F) %>%
+  sample_n(size = min(samples_needed[1], n()), replace = FALSE) %>%
+  ungroup() %>%
+  select(-samples_needed)
+
+histowidthLaminar <- ggplot(balanced_data, aes(x = Width, color = "Medians and Threshold")) +
+  geom_histogram(aes(y = after_stat(count)), color = "grey", fill = "grey", binwidth = 1) +  # Added aes(y = ..count..) to specify count
+  geom_density() +
+  facet_wrap(~Site_F, ncol = 2) +
+  geom_vline(xintercept = 12, aes(color = "Threshold"), linetype = "dashed", linewidth = 1) +
+  scale_x_continuous(breaks = seq(0, max(filtered_data$Width, na.rm = TRUE), by = 2)) +
+  theme(axis.title.y = element_blank(),
+        axis.text.x = element_text(size = 4),
+        legend.position = "top",
+        legend.title = element_text(size = 6, face = "bold"),
+        legend.text = element_text(size = 4)) +
+  labs(x = "Width (mm)", y = "N") +
+  scale_color_manual(values = c("red", "black"), 
+                     name = "Medians and Threshold", 
+                     labels = c("Blade and Bladelet", "Threshold"))
+
+histowidthLaminar
+
+#mode
+calculate_mode_bin <- function(data) {
+  hist_info <- hist(data$Width, breaks = 30, plot = FALSE)
+  max_bin_index <- which.max(hist_info$counts)
+  bin_start <- hist_info$breaks[max_bin_index]
+  bin_end <- hist_info$breaks[max_bin_index + 1]
+  mode_value <- (bin_start + bin_end) / 2
+  return(data.frame(Site_F = unique(data$Site_F), Mode = mode_value))
+}
+
+# Calculate the mode bin for each site
+mode_data <- balanced_data %>%
+  group_by(Site_F) %>%
+  group_split() %>%
+  lapply(calculate_mode_bin) %>%
+  bind_rows()
+
+# Group by site and calculate median width for Blade
+median_blade <- balanced_data %>%
+  filter(Blank.type2_F == "Blade") %>%
+  group_by(Site_F) %>%
+  summarise(median_width = median(Width, na.rm = TRUE))
+
+print(median_blade)
+
+# Group by site and calculate median width for Bladelet
+median_bladelet <- balanced_data %>%
+  filter(Blank.type2_F == "Bladelet") %>%
+  group_by(Site_F) %>%
+  summarise(median_width = median(Width, na.rm = TRUE))
+
+print(median_bladelet)
+
+# Group by site and calculate median width excluding Blade and Bladelet
+median_laminar<- balanced_data %>%
+  filter(Blank.type2_F %in% c("Blade", "Bladelet")) %>%
+  group_by(Site_F) %>%
+  summarise(median_width = median(Width, na.rm = TRUE))
+
+print(median_laminar)
+
+histolaminarwidth <- histowidthLaminar + 
+  geom_vline(data = median_blade, aes(xintercept = median_width, color = "Blade"), linetype = "dashed") +
+  geom_vline(data = median_bladelet, aes(xintercept = median_width, color = "Bladelet"), linetype = "dashed") +
+  geom_vline(data = median_laminar, aes(xintercept = median_width, color = "Blade and Bladelet"), linetype = "dashed") +
+  geom_vline(aes(xintercept = 12, color = "Blade and Bladelet Threshold"), linetype = "dashed", size = 1) +
+  theme(axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8, family = "Arial"),  
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),  
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    axis.title.x = element_blank()) +
+  scale_color_manual(values = c("Blade" = "blue", 
+                                 "Bladelet" = "green", 
+                                 "Blade and Bladelet" = "#FFA500",  # Correct color for "Blade and Bladelet"
+                                 "Blade and Bladelet Threshold" = "red"),
+                     name = "Medians and Threshold",
+                     breaks = c("Blade", "Bladelet", "Blade and Bladelet", "Blade and Bladelet Threshold"),
+                     labels = c("Blade", "Bladelet",  "Blade and\nBladelet", "Blade and\nBladelet Threshold")) +
+  guides(color = guide_legend(title = "Medians and\nThreshold"))
+histolaminarwidth
+#set your working directory with setwd()
+ggsave("histolaminarwidth.tiff", plot = histolaminarwidth, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw") 
+ggsave("Fig06.tiff", plot = histolaminarwidth, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw") 
+  
+```
+###Width histogram MNF
+```{r}
+# Load necessary libraries
+install.packages("dplyr")
+library(dplyr)
+install.packages("ggplot2")
+library(ggplot2)
+
+# Filter the dataset
+filtered_dataMNF <- Blanks_Main_merged %>%
+  filter(Blank.type2_F %in% c("Blade", "Bladelet"), 
+         !is.na(Width), 
+         Tool == "No", 
+         Preservation != "Mesiodistal")
+
+filtered_dataMNF$Width <- as.numeric(filtered_dataMNF$Width)
+
+# Load necessary libraries
+install.packages("dplyr")
+library(dplyr)
+install.packages("ggplot2")
+library(ggplot2)
+
+# Filter the dataset
+filtered_dataMNF <- Blanks_Main_merged %>%
+  filter(Blank.type2_F %in% c("Blade", "Bladelet"), 
+         !is.na(Width), 
+         Tool == "No", 
+         Preservation != "Mesiodistal")
+
+filtered_dataMNF$Width <- as.numeric(filtered_dataMNF$Width)
+
+# Calculate the number of observations for each site
+site_countsMNF <- filtered_dataMNF %>%
+  group_by(Site_F) %>%
+  summarise(count = n())
+
+# Calculate the number of observations for each site
+site_countsMNF <- filtered_dataMNF %>%
+  group_by(Site_F) %>%
+  summarise(count = n())
+site_countsMNF
+
+min_countMNF <- min(site_countsMNF$count)
+# Calculate the number of samples for each type within each site to maintain proportions
+proportional_sampleMNF <- filtered_dataMNF %>%
+  group_by(Site_F, Blank.type2_F) %>%
+  summarise(count = n()) %>%
+  mutate(proportion = count / sum(count)) %>%
+  mutate(samples_needed = round(proportion * min_count)) %>%
+  select(Site_F, Blank.type2_F, samples_needed)
+
+# Sample the data proportionally
+balanced_dataMNF <- filtered_dataMNF %>%
+  inner_join(proportional_sample, by = c("Site_F", "Blank.type2_F")) %>%
+  group_by(Site_F, Blank.type2_F) %>%
+  sample_n(size = min(samples_needed[1], n()), replace = FALSE) %>%
+  ungroup() %>%
+  select(-samples_needed)
+
+# Calculate the number of samples for each type within each site to maintain proportions
+proportional_sampleMNF <- filtered_dataMNF %>%
+  group_by(Site_F, Blank.type2_F) %>%
+  summarise(count = n()) %>%
+  mutate(proportion = count / sum(count)) %>%
+  mutate(samples_needed = round(proportion * min_countMNF)) %>%
+  select(Site_F, Blank.type2_F, samples_needed)
+
+# Sample the data proportionally
+balanced_dataMNF <- filtered_dataMNF %>%
+  inner_join(proportional_sample, by = c("Site_F", "Blank.type2_F")) %>%
+  group_by(Site_F, Blank.type2_F) %>%
+  sample_n(size = min(samples_needed[1], n()), replace = FALSE) %>%
+  ungroup() %>%
+  select(-samples_needed)
+
+# Create histogram with density plot
+histowidthLaminarMNF <- ggplot(balanced_dataMNF, aes(x = Width)) +
+  geom_histogram(aes(y = after_stat(count)), color = "grey", fill = "grey", binwidth = 1) +
+  geom_density() +
+  facet_wrap(~Site_F, ncol = 2) +
+  geom_vline(xintercept = 12, linetype = "dashed", color = "red", linewidth = 1) +
+  scale_x_continuous(breaks = seq(0, max(filtered_data$Width, na.rm = TRUE), by = 2)) +
+  theme(axis.title.y = element_blank(),
+        axis.text.x = element_text(size = 4),
+        legend.position = "top",
+        legend.title = element_text(size = 6, face = "bold"),
+        legend.text = element_text(size = 4)) +
+  labs(x = "Width (mm)", y = "N")
+
+# Mode calculation function
+calculate_mode_binMNF <- function(data) {
+  hist_info <- hist(data$Width, breaks = 30, plot = FALSE)
+  max_bin_index <- which.max(hist_info$counts)
+  bin_start <- hist_info$breaks[max_bin_index]
+  bin_end <- hist_info$breaks[max_bin_index + 1]
+  mode_value <- (bin_start + bin_end) / 2
+  return(data.frame(Site_F = unique(data$Site_F), Mode = mode_value))
+}
+
+# Calculate mode for each site
+mode_dataMNF <- balanced_dataMNF %>%
+  group_by(Site_F) %>%
+  group_split() %>%
+  lapply(calculate_mode_bin) %>%
+  bind_rows()
+
+# Calculate median width for Blade and Bladelet
+median_bladeMNF <- balanced_dataMNF %>%
+  filter(Blank.type2_F == "Blade") %>%
+  group_by(Site_F) %>%
+  summarise(median_width = median(Width, na.rm = TRUE))
+
+median_bladeletMNF <- balanced_data %>%
+  filter(Blank.type2_F == "Bladelet") %>%
+  group_by(Site_F) %>%
+  summarise(median_width = median(Width, na.rm = TRUE))
+
+# Group by site and calculate median width excluding Blade and Bladelet
+median_laminarMNF<- balanced_dataMNF %>%
+  filter(Blank.type2_F %in% c("Blade", "Bladelet")) %>%
+  group_by(Site_F) %>%
+  summarise(median_width = median(Width, na.rm = TRUE))
+            
+# Add median lines to histogram
+histolaminarwidthMNF <- histowidthLaminarMNF + 
+  geom_vline(data = median_bladeMNF, aes(xintercept = median_width, color = "Blade"), linetype = "dashed") +
+  geom_vline(data = median_bladeletMNF, aes(xintercept = median_width, color = "Bladelet"), linetype = "dashed") +
+  geom_vline(data = median_laminarMNF, aes(xintercept = median_width, color = "Blade and Bladelet"), linetype = "dashed") +
+  geom_vline(aes(xintercept = 12, color = "Blade and Bladelet Threshold"), linetype = "dashed", size = 1) +
+  theme(axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8, family = "Arial"),  
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),  
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    axis.title.x = element_blank()) +
+  scale_color_manual(values = c("Blade" = "blue", 
+                                 "Bladelet" = "green", 
+                                 "Blade and Bladelet" = "#FFA500",  # Correct color for "Blade and Bladelet"
+                                 "Blade and Bladelet Threshold" = "red"),
+                     name = "Medians and Threshold",
+                     breaks = c("Blade", "Bladelet", "Blade and Bladelet", "Blade and Bladelet Threshold"),
+                     labels = c("Blade", "Bladelet",  "Blade and\nBladelet", "Blade and\nBladelet Threshold")) +
+  guides(color = guide_legend(title = "Medians and\nThreshold"))
+histolaminarwidthMNF
+
+#set your working directory with setwd()
+ggsave("histolaminarwidthMNF.tiff", plot = histolaminarwidthMNF, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw") 
+ggsave("SIFig40.tiff", plot = histolaminarwidthMNF, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+```
+
+
+
+###Width histogram with Solu
+```{r}
+# load required packages
+library(dplyr)
+library(ggplot2)
+
+# Filter the data
+filtered_data <- filter(combinedControl_df, 
+                        Blank.type2 %in% c("Blade", "Bladelet") & 
+                        !is.na(Width))
+filtered_data$Width <- as.numeric(filtered_data$Width)
+
+# Calculate the number of observations for each technocomplex
+techno_counts <- filtered_data %>%
+  group_by(Technocomplex) %>%
+  summarise(count = n())
+
+min_count <- min(techno_counts$count)
+
+# Calculate proportional samples
+proportional_sample <- filtered_data %>%
+  group_by(Technocomplex, Blank.type2) %>%
+  summarise(count = n()) %>%
+  mutate(proportion = count / sum(count)) %>%
+  mutate(samples_needed = round(proportion * min_count)) %>%
+  select(Technocomplex, Blank.type2, samples_needed)
+
+# Sample the data proportionally
+balanced_data <- filtered_data %>%
+  inner_join(proportional_sample, by = c("Technocomplex", "Blank.type2")) %>%
+  group_by(Technocomplex, Blank.type2) %>%
+  sample_n(samples_needed[1], replace = FALSE) %>%
+  ungroup() %>%
+  select(-samples_needed)
+
+# Create the histogram plot
+histowidthSolu <- ggplot(balanced_data, aes(x = Width, color = "Medians and Threshold")) +
+  geom_histogram(aes(y = after_stat(count)), color = "grey", fill = "grey", binwidth = 1) +
+  geom_density() +
+  facet_wrap(~Technocomplex, ncol = 2) +
+  geom_vline(xintercept = 12, aes(color = "Threshold"), linetype = "dashed", linewidth = 1) +
+  scale_x_continuous(breaks = seq(0, max(filtered_data$Width, na.rm = TRUE), by = 2)) +
+  theme(axis.title.y = element_blank(),
+        axis.text.x = element_text(size = 4),
+        legend.position = "top",
+        legend.title = element_text(size = 6, face = "bold"),
+        legend.text = element_text(size = 4)) +
+  labs(x = "Width (mm)", y = "N") +
+  scale_color_manual(values = c("red", "black"), 
+                     name = "Medians and Threshold", 
+                     labels = c("Blade and Bladelet", "Threshold"))
+
+# Calculate mode bins for each technocomplex
+calculate_mode_bin <- function(data) {
+  hist_info <- hist(data$Width, breaks = 30, plot = FALSE)
+  max_bin_index <- which.max(hist_info$counts)
+  bin_start <- hist_info$breaks[max_bin_index]
+  bin_end <- hist_info$breaks[max_bin_index + 1]
+  mode_value <- (bin_start + bin_end) / 2
+  return(data.frame(Technocomplex = unique(data$Technocomplex), Mode = mode_value))
+}
+
+mode_data <- filtered_data %>%
+  group_by(Technocomplex) %>%
+  group_split() %>%
+  lapply(calculate_mode_bin) %>%
+  bind_rows()
+
+# Calculate median widths
+median_blade <- balanced_data %>%
+  filter(Blank.type2 == "Blade") %>%
+  group_by(Technocomplex) %>%
+  summarise(median_width = median(Width, na.rm = TRUE))
+
+median_bladelet <- balanced_data %>%
+  filter(Blank.type2 == "Bladelet") %>%
+  group_by(Technocomplex) %>%
+  summarise(median_width = median(Width, na.rm = TRUE))
+
+median_laminar <- balanced_data %>%
+  filter(Blank.type2 %in% c("Blade", "Bladelet")) %>%
+  group_by(Technocomplex) %>%
+  summarise(median_width = median(Width, na.rm = TRUE))
+
+# Add medians and thresholds to the plot
+histowidthSolu <- histowidthSolu + 
+  geom_vline(data = median_blade, aes(xintercept = median_width, color = "Blade"), linetype = "dashed") +
+  geom_vline(data = median_bladelet, aes(xintercept = median_width, color = "Bladelet"), linetype = "dashed") +
+  geom_vline(data = median_laminar, aes(xintercept = median_width, color = "Blade and Bladelet"), linetype = "dashed") +
+  geom_vline(aes(xintercept = 12, color = "Blade and Bladelet Threshold"), linetype = "dashed", size = 1) +
+  theme(axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8, family = "Arial"),  
+        axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 8, family = "Arial"),  
+        axis.ticks.x = element_blank(),
+        strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+        axis.title.x = element_blank()) +
+  scale_color_manual(values = c("Blade" = "blue", 
+                                 "Bladelet" = "green", 
+                                 "Blade and Bladelet" = "#FFA500",  # Correct colour for "Blade and Bladelet"
+                                 "Blade and Bladelet Threshold" = "red"),
+                     name = "Medians and Threshold",
+                     breaks = c("Blade", "Bladelet", "Blade and Bladelet", "Blade and Bladelet Threshold"),
+                     labels = c("Blade", "Bladelet",  "Blade and\nBladelet", "Blade and\nBladelet Threshold")) +
+  guides(color = guide_legend(title = "Medians and\nThreshold"))
+histowidthSolu
+
+# Save the plot
+
+ggsave("histolaminarwidth_Solu.tiff", plot = histowidthSolu, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw") 
+ggsave("SIFig41_Solu.tiff", plot = histowidthSolu, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+```
+

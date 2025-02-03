@@ -1,4 +1,4 @@
-## Research Compendium for 'Early Upper Palaeolithic: A First Pan Western Eurasian Technological Set'
+## Research Compendium for 'Tracking the emergence of the Upper Palaeolithic with Multiple Correspondence Analysis of Protoaurignacian and southern Ahmarian lithic assemblages '
 
 ### Compendium DOI (TO BE UPDATED)
 
@@ -14,11 +14,11 @@ The content available at the provided DOI reproduces the results as documented i
 
 ### Published Paper
 
-**Jacopo Gennai, Armando Falcucci, Vincent Niochet, Marco Peresani, Jürgen Richter, Marie Soressi.** *Early Upper Palaeolithic: A First Pan Western Eurasian Technological Set.* _Journal Name, Volume Number, Page Numbers_ (in preparation). DOI: [Insert DOI]
+**Jacopo Gennai, Armando Falcucci, Vincent Niochet, Marco Peresani, Jürgen Richter, Marie Soressi.** *Tracking the emergence of the Upper Palaeolithic with Multiple Correspondence Analysis of Protoaurignacian and southern Ahmarian lithic assemblages.* _Journal Name, Volume Number, Page Numbers_ (in preparation). DOI: [Insert DOI]
 
 ### Abstract
 
-To do
+Reconstructing changes in human behaviour during the Pleistocene, particularly when based on lithic or other artefact types, is often hindered by the traditional categorisation of these materials into discrete entities. The Early Upper Paleolithic of Mediterranean Eurasia – comprising the Protoaurignacian, Early Aurignacian, Northern Ahmarian, and Southern Ahmarian technocomplexes – represents the first emergence of a pan-European cultural unit. However, this conventional categorisation into discrete entities likely obscures a deeper understanding of the dynamics of Homo sapiens' dispersal across Eurasia during this period. In this study, we apply Multiple Correspondence Analysis to assess patterns of reduction processes, technological variability, and inter-assemblage homogeneity across technocomplexes. Using the comprehensive dataset provided in this paper, we analyse variability by grouping it into three key domains: platform preparation, convexity management, and retouch. Solutrean Upper Paleolithic assemblages from the Iberian Peninsula are used as an outgroup. Our results confirm the distinctiveness of Early Upper Paleolithic technologies relative to Solutrean ones. More importantly, they reveal strong technological similarities between the Southern Ahmarian and the Protoaurignacian, particularly in bladelet production—a defining feature of Early Upper Paleolithic technology—and reinforce the role of bladelets as a primary production target. This study aims to establish a foundation for renewed efforts to understand hominin dispersal and interaction during this pivotal phase of prehistory, leveraging open-access databases, standardised protocols and continuous variability analysis in artefact manufacture.
 
 ### Keywords
 
@@ -40,6 +40,8 @@ This repository contains data, code, and output files associated with the paper.
 - **`data`**: Includes the complete datasets of the blanks.
 - **`script`**: Contains the R scripts for data analysis and visualization.
 - **`output`**: Houses the generated outputs from the analysis, including figures and tables.
+- **`supplementary-information`**: ...
+- **`preprint`**: ...
 
 To replicate the results from the paper, follow these steps:
 
@@ -51,5 +53,5 @@ For consistent results, the `renv` package (v. 1.0.3) was used, following the pr
 
 ### Licenses
 
-- **Code**: MIT License ([https://opensource.org/licenses/MIT](https://opensource.org/licenses/MIT)), copyright holders: **Jacopo Gennai** & **Armando Falcucci** (2024).
-- **Data and Intellectual Work**: Creative Commons Attribution 4.0 International License ([https://creativecommons.org/licenses/by/4.0/](https://creativecommons.org/licenses/by/4.0/)), copyright holder: **the authors** (2024).
+- **Code**: MIT License ([https://opensource.org/licenses/MIT](https://opensource.org/licenses/MIT)), copyright holders: **Jacopo Gennai** & **Armando Falcucci** (2025).
+- **Data and Intellectual Work**: Creative Commons Attribution 4.0 International License ([https://creativecommons.org/licenses/by/4.0/](https://creativecommons.org/licenses/by/4.0/)), copyright holder: **the authors** (2025).

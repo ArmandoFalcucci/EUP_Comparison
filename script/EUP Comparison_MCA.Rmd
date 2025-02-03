@@ -1,0 +1,2786 @@
+---
+title: "Comparison EUP_MCA"
+author: "Jacopo Gennai"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(eval = FALSE)
+```
+#Introduction
+
+This is an R Markdown document containing the Rcode and workflow for the "reference_article". This section is dedicated to Multiple Correspondance Analysis
+
+#Datasets
+
+the datasets contain raw data about technological analysis of four Early Upper Palaeolithic assemblages:
+
+-   Ansab AH1 (Jordan)
+-   Romanesti-Dumbravita GH3 (Romania)
+-   Fumane A1-A2 (Italy)
+-   Les Cottés 04inf (France)
+
+the assemblages are stratified and radiometrically dated to the period 41-38 ka cal BP.
+
+Datasets are available singularly at the Zenodo repository "insert link or reference". Datasets are divided in "Blanks", debitage products, and "Cores", exhausted blocks of raw material from which debitage products have been struck. The division is due to the different attributes recorded for the two categories.
+
+```{r}
+install.packages("FactoMineR")
+install.packages("factoextra")
+install.packages("ggplot2")
+install.packages("dplyr")
+install.packages("readxl")
+install.packages("writexl")
+install.packages("RcmdrMisc")
+install.packages("ggrepel")
+library(FactoMineR)
+library(factoextra)
+library(dplyr)
+library(ggplot2)
+library(readxl)
+library(writexl)
+library(RcmdrMisc)
+library(ggrepel)
+```
+
+
+#Getting the merged datasets and adding two new specifications
+first of all we create two Supplementary qualitative variables one that sums up the Site and the Blank.type2 info, and one that sums up Site and the Blank.type2 info 
+
+
+```{r}
+library(readxl)
+library(dplyr)
+Blanks_Main_merged <- read_excel(file.choose()) #get the Ans_Rom_Fum_CTS_Blanks_merged.xlsx
+
+Blanks_Main_merged_MCA <- Blanks_Main_merged %>%
+  mutate(SiteBlank.type2 = Site, .after = Site) %>%
+  mutate(SiteBlank.type2 = case_when(
+    Site == "AN" & Blank.type2 == "Blade" ~ "AN.Blade",
+    Site == "CTS04inf" & Blank.type2 == "Blade" ~ "CTS04inf.Blade",
+    Site == "FUM" & Blank.type2 == "Blade" ~ "FUM.Blade",
+    Site == "ROM" & Blank.type2 == "Blade" ~ "ROM.Blade",
+    Site == "AN" & Blank.type2 == "Bladelet" ~ "AN.bladlt",
+    Site == "CTS04inf" & Blank.type2 == "Bladelet" ~ "CTS04inf.bladlt",
+    Site == "FUM" & Blank.type2 == "Bladelet" ~ "FUM.bladlt",
+    Site == "ROM" & Blank.type2 == "Bladelet" ~ "ROM.bladlt",
+    Site == "AN" & Blank.type2 == "Flake" ~ "AN.Flake",
+    Site == "CTS" & Blank.type2 == "Flake" ~ "CTS.Flake",
+    Site == "FUM" & Blank.type2 == "Flake" ~ "FUM.Flake",
+    Site == "ROM" & Blank.type2 == "Flake" ~ "ROM.Flake"
+  )) %>%
+mutate(SiteLaminar = SiteBlank.type2, .after = SiteBlank.type2) %>%
+mutate(SiteLaminar = case_when(
+    Site == "AN" & Blank.type1 == "Laminar"  ~ "AN",
+    Site == "CTS" & Blank.type1 == "Laminar"  ~ "CTS04inf",
+    Site == "FUM" & Blank.type1 == "Laminar" ~ "FUM",
+    Site == "ROM" & Blank.type1 == "Laminar" ~ "ROM")) %>%
+mutate(
+    Length = as.numeric(Length), 
+    Width = as.numeric(Width),
+    Thickness = as.numeric(Thickness),
+    Elongation = as.numeric(Elongation),
+    Robustness = as.numeric(Robustness))
+    
+str(Blanks_Main_merged_MCA)
+library(writexl)
+write_xlsx(Blanks_Main_merged_MCA, "Ans_Rom_Fum_CTS_Blanks_mergedMCA.xlsx")
+```
+#New dataframe for testing attributes association with dimensional indexes
+```{r}
+library(dplyr)
+library(RcmdrMisc)
+Laminar_Blanks_Merged_MCA <- Blanks_Main_merged_MCA %>%
+  filter(Blank.type1 == "Laminar") %>% # Filter the data to include only rows where Blank.Type1 is 'Laminar'
+  filter(Robustness != 0) %>%
+mutate(Robustness_binned = binVariable(Robustness, bins = 3, method = "natural", labels = c("low", "medium", "high")))  # Bin 'Robustness' into three categories: "low", "medium", and "high"
+  
+head(Laminar_Blanks_Merged_MCA)
+str(Laminar_Blanks_Merged_MCA)
+write_xlsx(Laminar_Blanks_Merged_MCA, "Ans_Rom_Fum_CTS_LaminarBlanks_mergedMCA.xlsx")
+
+#numerical values corresponding to the labels
+robustness_intervals <- cut(Laminar_Blanks_Merged_MCA$Robustness, breaks = 3)
+robustness_levels <- levels(robustness_intervals)
+
+# Print the breakpoints
+cat("Robustness Intervals:\n", robustness_levels, "\n\n")
+
+```
+#Control Dataframe
+```{r}
+combinedControl_df <- read_excel(file.choose()) #get the Control_Blanks.xlsx
+
+combinedControl_MCA <- combinedControl_df %>%
+  filter(Blank.type1=="Laminar")%>%
+  mutate(SiteBlank.type2 = Site, .after = Site) %>%
+  mutate(SiteBlank.type2 = case_when(
+    Site == "AN" & Blank.type2 == "Blade" ~ "AN.Blade",
+    Site == "CTS04inf" & Blank.type2 == "Blade" ~ "CTSinf.Blade",
+    Site == "FUM" & Blank.type2 == "Blade" ~ "FUM.Blade",
+    Site == "ROM" & Blank.type2 == "Blade" ~ "ROM.Blade",
+    Site == "AN" & Blank.type2 == "Bladelet" ~ "AN.bladlt",
+    Site == "CTS04inf" & Blank.type2 == "Bladelet" ~ "CTSinf.bladlt",
+    Site == "FUM" & Blank.type2 == "Bladelet" ~ "FUM.bladlt",
+    Site == "ROM" & Blank.type2 == "Bladelet" ~ "ROM.bladlt",
+    Technocomplex=="Solu" & Blank.type2 == "Bladelet" ~ "Solu.bladlt",
+    Technocomplex=="Solu" & Blank.type2 == "Blade" ~ "Solu.Blade",
+  )) %>%
+  mutate(TechBlank = SiteBlank.type2, .after = SiteBlank.type2) %>%
+mutate(TechBlank = case_when(
+    Technocomplex == "S.Ahm" & Blank.type2 == "Blade" ~ "SAhm.Blade",
+    Technocomplex == "Proto" & Blank.type2 == "Blade" ~ "Proto.Blade",
+    Technocomplex == "S.Ahm" & Blank.type2 == "Bladelet" ~ "SAhm.bladlt",
+    Technocomplex == "Proto" & Blank.type2 == "Bladelet" ~ "Proto.bladlt",
+    TRUE ~ SiteBlank.type2))%>%
+  filter(Robustness != 0) %>%
+mutate(Robustness_binned = binVariable(Robustness, bins = 3, method = "natural", labels = c("low", "medium", "high")))# Bin 'Robustness' into three categories: "low", "medium", and "high"
+
+str(combinedControl_MCA)
+library(writexl)
+write_xlsx(combinedControl_MCA, "Control_Blanks_MCA.xlsx")
+```
+
+#MCA
+
+first of all we are checking internal variablity within sites
+#Platform
+
+##AN
+```{r}
+
+
+# Select relevant columns and remove missing values
+platform_maintenanceAN <- Laminar_Blanks_Merged_MCA %>%
+  filter(Preservation != "Mesiodistal") %>% #only blanks with a Proximal part
+  filter(!Platform %in% c("ND", NA)) %>% #removing blanks without clear info
+  filter(!Abrasion %in% c(NA, "ND")) %>% #removing blanks without clear info
+  filter(Site == "AN") %>% #getting only Ansab
+  select(SiteBlank.type2, Abrasion, Platform, Robustness_binned) %>%
+  na.omit()
+  
+summary(platform_maintenanceAN)
+
+# Run MCA
+res.mca_PlatformAN <- MCA(platform_maintenanceAN, graph = FALSE, quali.sup =1, method = "Burt") # SiteBlank.type1 is not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in platform_maintenanceAN, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
+
+summary(res.mca_PlatformAN)
+
+# Extract and clean supplementary category coordinates
+quali_sup_coords <- as.data.frame(res.mca_PlatformAN$quali.sup$coord)[, c(1, 2)]
+colnames(quali_sup_coords) <- c("Dim1", "Dim2")
+quali_sup_coords$name <- rownames(quali_sup_coords)
+
+# Extract and clean active variables (Dim1, Dim2) for active variables
+active_vars <- as.data.frame(res.mca_PlatformAN$var$coord) %>%
+  rename(Dim1 = `Dim 1`, Dim2 = `Dim 2`) %>%
+  mutate(type = "active", name = rownames(res.mca_PlatformAN$var$coord)) %>%
+  select(Dim1, Dim2, name, type)  # Keep only Dim1, Dim2, name, and type for active variables
+
+# Add contributions to Dim1 and Dim2 (contribution is a sum for these two dimensions)
+active_vars$contrib <- res.mca_PlatformAN$var$contrib[, 1] + res.mca_PlatformAN$var$contrib[, 2]  # Sum of contributions
+
+# Ensure supplementary variables have the same column names and structure as active_vars
+supplementary_vars <- quali_sup_coords %>%
+  mutate(type = "supplementary", name = rownames(quali_sup_coords)) %>%
+  mutate(contrib = NA)  # Add a column for 'contrib' with NA values for supplementary variables
+
+# Now both data frames have the same columns: Dim1, Dim2, name, contrib, type
+combined_vars <- rbind(active_vars, supplementary_vars)
+
+# Extract variance for Dim 1 and Dim 2
+dim1_variance <- res.mca_PlatformAN$eig["dim 1", "percentage of variance"]
+dim2_variance <- res.mca_PlatformAN$eig["dim 2", "percentage of variance"]
+
+# Round the variance percentages to 1 decimal place
+dim1_variance_percent <- round(dim1_variance, 1)
+dim2_variance_percent <- round(dim2_variance, 1)
+
+# MCA plot
+MCA_PlatformAN_plot <- ggplot() +
+  # Active variables: color based on contribution
+  geom_point(data = active_vars, 
+             aes(x = Dim1, y = Dim2, color = contrib), 
+             size = 4) +  # Adjust point size
+  geom_text_repel(data = active_vars, 
+                  aes(x = Dim1, y = Dim2, label = name, color = contrib), 
+                  size = 2.5,  # Smaller text size to prevent overlap
+                  fontface = "bold", 
+                  box.padding = 1,  # Increase padding around the label
+                  point.padding = 0.5,  # Adjust padding around the points
+                  max.overlaps = 100,  # Allow more overlap adjustments
+                  segment.size = 0.5,  # Thinner segments for repelling
+                  show.legend = FALSE) +  # Avoid legend for text
+  # Supplementary variables: points and text in black
+  geom_point(data = supplementary_vars, 
+             aes(x = Dim1, y = Dim2), 
+             size = 4, 
+             color = "black") +  # Points for supplementary in black
+  geom_text_repel(data = supplementary_vars, 
+                  aes(x = Dim1, y = Dim2, label = name), 
+                  size = 3,  # Adjust text size for supplementary vars
+                  color = "black",  # Set supplementary labels to black
+                  fontface = "bold", 
+                  point.padding = 0.5, 
+                  max.overlaps = 100,  # Allow more overlap adjustments
+                  segment.size = 0.5,  # Thinner segments for repelling
+                  show.legend = FALSE,
+                  box.padding = 0.3) +  # Adjust padding of supplementary text labels
+  # Add horizontal and vertical dashed lines at x = 0 and y = 0
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black") + 
+  geom_vline(xintercept = 0, linetype = "dashed", color = "black") +
+  # Customize colors for the gradient based on contribution
+  scale_color_gradientn(colors = c("#00AFBB", "#E7B800", "#FC4E07")) +
+  # Customize the plot appearance
+  scale_x_continuous(name = paste("Dim 1 (", dim1_variance_percent, "%)", sep = "")) +
+  scale_y_continuous(name = paste("Dim 2 (", dim2_variance_percent, "%)", sep = "")) +
+  theme_classic() +
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),
+    panel.background = element_rect(fill = "white", color = NA),
+    axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(size = 8, family = "Arial"),
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    plot.title = element_blank()
+  )
+
+# Display the plot
+MCA_PlatformAN_plot
+
+
+ggsave("MCAPlatformAN.tiff", plot = MCA_PlatformAN_plot, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+ggsave("SIFig42.tiff", plot = MCA_PlatformAN_plot, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+
+#variance explained by each Dimension
+res.mca_PlatformAN$eig
+fviz_screeplot(res.mca_PlatformAN, addlabels = TRUE, ylim = c(0, 45)) 
+#contribution to Dim 1 and Dim 2
+fviz_contrib(res.mca_PlatformAN, choice = "var", axes = 1, top = 15) #contribution to Dim 1. above the threshold are No, Other, Punctiform 
+
+fviz_contrib(res.mca_PlatformAN, choice = "var", axes = 2, top = 15) #contribution to Dim 2. above the threshold is only Plain, Punctiform, Linear
+
+#check and visualise association of variables to Dim 1
+cos2_values_dim1 <- res.mca_PlatformAN$var$cos2[, 1]
+
+threshold_percentile <- quantile(cos2_values_dim1, 0.75)
+
+print(threshold_percentile)
+
+plot <- fviz_cos2(res.mca_PlatformAN, choice = "var", axes = 1)
+
+plot + geom_hline(yintercept = threshold_percentile, linetype = "dashed", color = "red")
+
+#check and visualise association of variables to Dim 2
+cos2_values_dim2 <- res.mca_PlatformAN$var$cos2[, 2]
+threshold_percentile <- quantile(cos2_values_dim2, 0.75)
+
+print(threshold_percentile)
+
+plot <- fviz_cos2(res.mca_PlatformAN, choice = "var", axes = 2)
+
+plot + geom_hline(yintercept = threshold_percentile, linetype = "dashed", color = "red")
+
+#association of supplementary categories
+cos2_values_supdim1 <- res.mca_PlatformAN$quali.sup$cos2[, 1]
+
+threshold_percentilesup1 <- quantile(cos2_values_supdim1, 0.75)
+
+print(threshold_percentilesup1)
+
+filtered_cos2_supdim1 <- cos2_values_supdim1[cos2_values_supdim1 > threshold_percentilesup1]
+print(filtered_cos2_supdim1)
+
+cos2_values_supdim2 <- res.mca_PlatformAN$quali.sup$cos2[, 2]
+
+threshold_percentilesup2 <- quantile(cos2_values_supdim2, 0.75)
+
+print(threshold_percentilesup2)
+
+filtered_cos2_supdim2 <- cos2_values_supdim2[cos2_values_supdim2 > threshold_percentilesup2]
+print(filtered_cos2_supdim2)
+
+```
+##ROM
+```{r}
+
+# Select relevant columns and remove missing values
+platform_maintenanceROM <- Laminar_Blanks_Merged_MCA %>%
+  filter(Preservation != "Mesiodistal") %>% #only blanks with a Proximal part
+  filter(!Platform %in% c("ND", NA)) %>% #removing blanks without clear info
+  filter(!Abrasion %in% c(NA, "ND")) %>% #removing blanks without clear info
+  filter(Site == "ROM") %>% #getting only Ansab
+  select(SiteBlank.type2, Abrasion, Platform, Robustness_binned) %>%
+  na.omit()
+  
+summary(platform_maintenanceROM)
+
+# Run MCA
+res.mca_PlatformROM <- MCA(platform_maintenanceROM, graph = FALSE, quali.sup =1, method = "Burt") # SiteBlank.type1 is not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in platform_maintenanceROM, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
+
+# Summarize the MCA result
+summary(res.mca_PlatformROM)
+
+# Extract and clean supplementary category coordinates
+quali_sup_coords <- as.data.frame(res.mca_PlatformROM$quali.sup$coord)[, c(1, 2)]
+colnames(quali_sup_coords) <- c("Dim1", "Dim2")
+quali_sup_coords$name <- rownames(quali_sup_coords)
+
+# Extract and clean active variables (Dim1, Dim2) for active variables
+active_vars <- as.data.frame(res.mca_PlatformROM$var$coord) %>%
+  rename(Dim1 = `Dim 1`, Dim2 = `Dim 2`) %>%
+  mutate(type = "active", name = rownames(res.mca_PlatformROM$var$coord)) %>%
+  select(Dim1, Dim2, name, type)  # Keep only Dim1, Dim2, name, and type for active variables
+
+# Add contributions to Dim1 and Dim2 (contribution is a sum for these two dimensions)
+active_vars$contrib <- res.mca_PlatformROM$var$contrib[, 1] + res.mca_PlatformROM$var$contrib[, 2]  # Sum of contributions
+
+# Ensure supplementary variables have the same column names and structure as active_vars
+supplementary_vars <- quali_sup_coords %>%
+  mutate(type = "supplementary", name = rownames(quali_sup_coords)) %>%
+  mutate(contrib = NA)  # Add a column for 'contrib' with NA values for supplementary variables
+
+# Now both data frames have the same columns: Dim1, Dim2, name, contrib, type
+combined_vars <- rbind(active_vars, supplementary_vars)
+
+# Extract variance for Dim 1 and Dim 2
+dim1_variance <- res.mca_PlatformROM$eig["dim 1", "percentage of variance"]
+dim2_variance <- res.mca_PlatformROM$eig["dim 2", "percentage of variance"]
+
+# Round the variance percentages to 1 decimal place
+dim1_variance_percent <- round(dim1_variance, 1)
+dim2_variance_percent <- round(dim2_variance, 1)
+
+# MCA plot
+MCA_PlatformROM_plot <- ggplot() +
+  # Active variables: color based on contribution
+  geom_point(data = active_vars, 
+             aes(x = Dim1, y = Dim2, color = contrib), 
+             size = 4) +  # Adjust point size
+  geom_text_repel(data = active_vars, 
+                  aes(x = Dim1, y = Dim2, label = name, color = contrib), 
+                  size = 2.5,  # Smaller text size to prevent overlap
+                  fontface = "bold", 
+                  box.padding = 1,  # Increase padding around the label
+                  point.padding = 0.5,  # Adjust padding around the points
+                  max.overlaps = 100,  # Allow more overlap adjustments
+                  segment.size = 0.5,  # Thinner segments for repelling
+                  show.legend = FALSE) +  # Avoid legend for text
+  # Supplementary variables: points and text in black
+  geom_point(data = supplementary_vars, 
+             aes(x = Dim1, y = Dim2), 
+             size = 4, 
+             color = "black") +  # Points for supplementary in black
+  geom_text_repel(data = supplementary_vars, 
+                  aes(x = Dim1, y = Dim2, label = name), 
+                  size = 3,  # Adjust text size for supplementary vars
+                  color = "black",  # Set supplementary labels to black
+                  fontface = "bold", 
+                  point.padding = 0.5, 
+                  max.overlaps = 100,  # Allow more overlap adjustments
+                  segment.size = 0.5,  # Thinner segments for repelling
+                  show.legend = FALSE,
+                  box.padding = 0.3) +  # Adjust padding of supplementary text labels
+  # Add horizontal and vertical dashed lines at x = 0 and y = 0
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black") + 
+  geom_vline(xintercept = 0, linetype = "dashed", color = "black") +
+  # Customize colors for the gradient based on contribution
+  scale_color_gradientn(colors = c("#00AFBB", "#E7B800", "#FC4E07")) +
+  # Customize the plot appearance
+  scale_x_continuous(name = paste("Dim 1 (", dim1_variance_percent, "%)", sep = "")) +
+  scale_y_continuous(name = paste("Dim 2 (", dim2_variance_percent, "%)", sep = "")) +
+  theme_classic() +
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),
+    panel.background = element_rect(fill = "white", color = NA),
+    axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(size = 8, family = "Arial"),
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    plot.title = element_blank()
+  )
+
+# Display the plot
+MCA_PlatformROM_plot
+ggsave("MCAPlatformROM.tiff", plot = MCA_PlatformROM_plot, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+ggsave("SIFig43.tiff", plot = MCA_PlatformROM_plot, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+
+#variance explained by each Dimension
+res.mca_PlatformROM$eig
+fviz_screeplot(res.mca_PlatformROM, addlabels = TRUE, ylim = c(0, 45)) 
+#contribution to Dim 1 and Dim 2
+fviz_contrib(res.mca_PlatformROM, choice = "var", axes = 1, top = 15) #contribution to Dim 1. above the threshold are No, Other, Punctiform 
+
+fviz_contrib(res.mca_PlatformROM, choice = "var", axes = 2, top = 15) #contribution to Dim 2. above the threshold is only Plain, Punctiform, Linear
+
+#check and visualise association of variables to Dim 1
+cos2_values_dim1 <- res.mca_PlatformROM$var$cos2[, 1]
+
+threshold_percentile <- quantile(cos2_values_dim1, 0.75)
+
+print(threshold_percentile)
+
+plot <- fviz_cos2(res.mca_PlatformROM, choice = "var", axes = 1)
+
+plot + geom_hline(yintercept = threshold_percentile, linetype = "dashed", color = "red")
+
+#check and visualise association of variables to Dim 2
+cos2_values_dim2 <- res.mca_PlatformROM$var$cos2[, 2]
+threshold_percentile <- quantile(cos2_values_dim2, 0.75)
+
+print(threshold_percentile)
+
+plot <- fviz_cos2(res.mca_PlatformROM, choice = "var", axes = 2)
+
+plot + geom_hline(yintercept = threshold_percentile, linetype = "dashed", color = "red")
+
+#association of supplementary categories
+cos2_values_supdim1 <- res.mca_PlatformROM$quali.sup$cos2[, 1]
+
+threshold_percentilesup1 <- quantile(cos2_values_supdim1, 0.75)
+
+print(threshold_percentilesup1)
+
+filtered_cos2_supdim1 <- cos2_values_supdim1[cos2_values_supdim1 > threshold_percentilesup1]
+print(filtered_cos2_supdim1)
+
+cos2_values_supdim2 <- res.mca_PlatformROM$quali.sup$cos2[, 2]
+
+threshold_percentilesup2 <- quantile(cos2_values_supdim2, 0.75)
+
+print(threshold_percentilesup2)
+
+filtered_cos2_supdim2 <- cos2_values_supdim2[cos2_values_supdim2 > threshold_percentilesup2]
+print(filtered_cos2_supdim2)
+```
+
+##FUM
+```{r}
+library(FactoMineR)
+library(factoextra)
+library(dplyr)
+library(ggplot2)
+
+# Select relevant columns and remove missing values
+platform_maintenanceFUM <- Laminar_Blanks_Merged_MCA %>%
+  filter(Preservation != "Mesiodistal") %>% #only blanks with a Proximal part
+  filter(!Platform %in% c("ND", NA)) %>% #removing blanks without clear info
+  filter(!Abrasion %in% c(NA, "ND")) %>% #removing blanks without clear info
+  filter(Site == "FUM") %>% #getting only Ansab
+  select(SiteBlank.type2, Abrasion, Platform, Robustness_binned) %>%
+  na.omit()
+  
+summary(platform_maintenanceFUM)
+
+# Run MCA
+res.mca_PlatformFUM <- MCA(platform_maintenanceFUM, graph = FALSE, method = "Burt", quali.sup =1) # SiteBlank.type1 is not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in platform_maintenanceFUM, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
+
+# Summarize the MCA result
+summary(res.mca_PlatformFUM)
+
+# Extract and clean supplementary category coordinates
+quali_sup_coords <- as.data.frame(res.mca_PlatformFUM$quali.sup$coord)[, c(1, 2)]
+colnames(quali_sup_coords) <- c("Dim1", "Dim2")
+quali_sup_coords$name <- rownames(quali_sup_coords)
+
+# Extract and clean active variables (Dim1, Dim2) for active variables
+active_vars <- as.data.frame(res.mca_PlatformFUM$var$coord) %>%
+  rename(Dim1 = `Dim 1`, Dim2 = `Dim 2`) %>%
+  mutate(type = "active", name = rownames(res.mca_PlatformFUM$var$coord)) %>%
+  select(Dim1, Dim2, name, type)  # Keep only Dim1, Dim2, name, and type for active variables
+
+# Add contributions to Dim1 and Dim2 (contribution is a sum for these two dimensions)
+active_vars$contrib <- res.mca_PlatformFUM$var$contrib[, 1] + res.mca_PlatformFUM$var$contrib[, 2]  # Sum of contributions
+
+# Ensure supplementary variables have the same column names and structure as active_vars
+supplementary_vars <- quali_sup_coords %>%
+  mutate(type = "supplementary", name = rownames(quali_sup_coords)) %>%
+  mutate(contrib = NA)  # Add a column for 'contrib' with NA values for supplementary variables
+
+# Now both data frames have the same columns: Dim1, Dim2, name, contrib, type
+combined_vars <- rbind(active_vars, supplementary_vars)
+
+# Extract variance for Dim 1 and Dim 2
+dim1_variance <- res.mca_PlatformFUM$eig["dim 1", "percentage of variance"]
+dim2_variance <- res.mca_PlatformFUM$eig["dim 2", "percentage of variance"]
+
+# Round the variance percentages to 1 decimal place
+dim1_variance_percent <- round(dim1_variance, 1)
+dim2_variance_percent <- round(dim2_variance, 1)
+
+# MCA plot
+MCA_PlatformFUM_plot <- ggplot() +
+  # Active variables: color based on contribution
+  geom_point(data = active_vars, 
+             aes(x = Dim1, y = Dim2, color = contrib), 
+             size = 4) +  # Adjust point size
+  geom_text_repel(data = active_vars, 
+                  aes(x = Dim1, y = Dim2, label = name, color = contrib), 
+                  size = 2.5,  # Smaller text size to prevent overlap
+                  fontface = "bold", 
+                  box.padding = 1,  # Increase padding around the label
+                  point.padding = 0.5,  # Adjust padding around the points
+                  max.overlaps = 100,  # Allow more overlap adjustments
+                  segment.size = 0.5,  # Thinner segments for repelling
+                  show.legend = FALSE) +  # Avoid legend for text
+  # Supplementary variables: points and text in black
+  geom_point(data = supplementary_vars, 
+             aes(x = Dim1, y = Dim2), 
+             size = 4, 
+             color = "black") +  # Points for supplementary in black
+  geom_text_repel(data = supplementary_vars, 
+                  aes(x = Dim1, y = Dim2, label = name), 
+                  size = 3,  # Adjust text size for supplementary vars
+                  color = "black",  # Set supplementary labels to black
+                  fontface = "bold", 
+                  point.padding = 0.5, 
+                  max.overlaps = 100,  # Allow more overlap adjustments
+                  segment.size = 0.5,  # Thinner segments for repelling
+                  show.legend = FALSE,
+                  box.padding = 0.3) +  # Adjust padding of supplementary text labels
+  # Add horizontal and vertical dashed lines at x = 0 and y = 0
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black") + 
+  geom_vline(xintercept = 0, linetype = "dashed", color = "black") +
+  # Customize colors for the gradient based on contribution
+  scale_color_gradientn(colors = c("#00AFBB", "#E7B800", "#FC4E07")) +
+  # Customize the plot appearance
+  scale_x_continuous(name = paste("Dim 1 (", dim1_variance_percent, "%)", sep = "")) +
+  scale_y_continuous(name = paste("Dim 2 (", dim2_variance_percent, "%)", sep = "")) +
+  theme_classic() +
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),
+    panel.background = element_rect(fill = "white", color = NA),
+    axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(size = 8, family = "Arial"),
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    plot.title = element_blank()
+  )
+
+# Display the plot
+MCA_PlatformFUM_plot
+
+ggsave("MCAPlatformFUM.tiff", plot = MCA_PlatformFUM_plot, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+ggsave("SIFig44.tiff", plot = MCA_PlatformFUM_plot, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+
+#variance explained by each Dimension
+res.mca_PlatformFUM$eig
+fviz_screeplot(res.mca_PlatformFUM, addlabels = TRUE, ylim = c(0, 45)) 
+#contribution to Dim 1 and Dim 2
+fviz_contrib(res.mca_PlatformFUM, choice = "var", axes = 1, top = 15) #contribution to Dim 1. above the threshold are No, Other, Punctiform 
+
+fviz_contrib(res.mca_PlatformFUM, choice = "var", axes = 2, top = 15) #contribution to Dim 2. above the threshold is only Plain, Punctiform, Linear
+
+#check and visualise association of variables to Dim 1
+cos2_values_dim1 <- res.mca_PlatformFUM$var$cos2[, 1]
+
+threshold_percentile <- quantile(cos2_values_dim1, 0.75)
+
+print(threshold_percentile)
+
+plot <- fviz_cos2(res.mca_PlatformFUM, choice = "var", axes = 1)
+
+plot + geom_hline(yintercept = threshold_percentile, linetype = "dashed", color = "red")
+
+#check and visualise association of variables to Dim 2
+cos2_values_dim2 <- res.mca_PlatformFUM$var$cos2[, 2]
+threshold_percentile <- quantile(cos2_values_dim2, 0.75)
+
+print(threshold_percentile)
+
+plot <- fviz_cos2(res.mca_PlatformFUM, choice = "var", axes = 2)
+
+plot + geom_hline(yintercept = threshold_percentile, linetype = "dashed", color = "red")
+
+#association of supplementary categories
+cos2_values_supdim1 <- res.mca_PlatformFUM$quali.sup$cos2[, 1]
+
+threshold_percentilesup1 <- quantile(cos2_values_supdim1, 0.75)
+
+print(threshold_percentilesup1)
+
+filtered_cos2_supdim1 <- cos2_values_supdim1[cos2_values_supdim1 > threshold_percentilesup1]
+print(filtered_cos2_supdim1)
+
+cos2_values_supdim2 <- res.mca_PlatformFUM$quali.sup$cos2[, 2]
+
+threshold_percentilesup2 <- quantile(cos2_values_supdim2, 0.75)
+
+print(threshold_percentilesup2)
+
+filtered_cos2_supdim2 <- cos2_values_supdim2[cos2_values_supdim2 > threshold_percentilesup2]
+print(filtered_cos2_supdim2)
+```
+
+
+##CTS
+```{r}
+
+# Select relevant columns and remove missing values
+platform_maintenanceCTS <- Laminar_Blanks_Merged_MCA %>%
+  filter(Preservation != "Mesiodistal") %>% #only blanks with a Proximal part
+  filter(!Platform %in% c("ND", NA)) %>% #removing blanks without clear info
+  filter(!Abrasion %in% c(NA, "ND")) %>% #removing blanks without clear info
+  filter(Site == "CTS04inf") %>% #getting only CTS
+  select(SiteBlank.type2, Abrasion, Platform, Robustness_binned) %>%
+  na.omit()
+  
+summary(platform_maintenanceCTS)
+
+# Run MCA
+res.mca_PlatformCTS <- MCA(platform_maintenanceCTS, graph = FALSE, quali.sup =1, method = "Burt") # SiteBlank.type1 is not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in platform_maintenanceCTS, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
+
+# Summarize the MCA result
+summary(res.mca_PlatformCTS)
+
+# Extract and clean supplementary category coordinates
+quali_sup_coords <- as.data.frame(res.mca_PlatformCTS$quali.sup$coord)[, c(1, 2)]
+colnames(quali_sup_coords) <- c("Dim1", "Dim2")
+quali_sup_coords$name <- rownames(quali_sup_coords)
+
+# Extract and clean active variables (Dim1, Dim2) for active variables
+active_vars <- as.data.frame(res.mca_PlatformCTS$var$coord) %>%
+  rename(Dim1 = `Dim 1`, Dim2 = `Dim 2`) %>%
+  mutate(type = "active", name = rownames(res.mca_PlatformCTS$var$coord)) %>%
+  select(Dim1, Dim2, name, type)  # Keep only Dim1, Dim2, name, and type for active variables
+
+# Add contributions to Dim1 and Dim2 (contribution is a sum for these two dimensions)
+active_vars$contrib <- res.mca_PlatformCTS$var$contrib[, 1] + res.mca_PlatformCTS$var$contrib[, 2]  # Sum of contributions
+
+# Ensure supplementary variables have the same column names and structure as active_vars
+supplementary_vars <- quali_sup_coords %>%
+  mutate(type = "supplementary", name = rownames(quali_sup_coords)) %>%
+  mutate(contrib = NA)  # Add a column for 'contrib' with NA values for supplementary variables
+
+# Now both data frames have the same columns: Dim1, Dim2, name, contrib, type
+combined_vars <- rbind(active_vars, supplementary_vars)
+
+# Extract variance for Dim 1 and Dim 2
+dim1_variance <- res.mca_PlatformCTS$eig["dim 1", "percentage of variance"]
+dim2_variance <- res.mca_PlatformCTS$eig["dim 2", "percentage of variance"]
+
+# Round the variance percentages to 1 decimal place
+dim1_variance_percent <- round(dim1_variance, 1)
+dim2_variance_percent <- round(dim2_variance, 1)
+
+# MCA plot
+MCA_PlatformCTS_plot <- ggplot() +
+  # Active variables: color based on contribution
+  geom_point(data = active_vars, 
+             aes(x = Dim1, y = Dim2, color = contrib), 
+             size = 4) +  # Adjust point size
+  geom_text_repel(data = active_vars, 
+                  aes(x = Dim1, y = Dim2, label = name, color = contrib), 
+                  size = 2.5,  # Smaller text size to prevent overlap
+                  fontface = "bold", 
+                  box.padding = 1,  # Increase padding around the label
+                  point.padding = 0.5,  # Adjust padding around the points
+                  max.overlaps = 100,  # Allow more overlap adjustments
+                  segment.size = 0.5,  # Thinner segments for repelling
+                  show.legend = FALSE) +  # Avoid legend for text
+  # Supplementary variables: points and text in black
+  geom_point(data = supplementary_vars, 
+             aes(x = Dim1, y = Dim2), 
+             size = 4, 
+             color = "black") +  # Points for supplementary in black
+  geom_text_repel(data = supplementary_vars, 
+                  aes(x = Dim1, y = Dim2, label = name), 
+                  size = 3,  # Adjust text size for supplementary vars
+                  color = "black",  # Set supplementary labels to black
+                  fontface = "bold", 
+                  point.padding = 0.5, 
+                  max.overlaps = 100,  # Allow more overlap adjustments
+                  segment.size = 0.5,  # Thinner segments for repelling
+                  show.legend = FALSE,
+                  box.padding = 0.3) +  # Adjust padding of supplementary text labels
+  # Add horizontal and vertical dashed lines at x = 0 and y = 0
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black") + 
+  geom_vline(xintercept = 0, linetype = "dashed", color = "black") +
+  # Customize colors for the gradient based on contribution
+  scale_color_gradientn(colors = c("#00AFBB", "#E7B800", "#FC4E07")) +
+  # Customize the plot appearance
+  scale_x_continuous(name = paste("Dim 1 (", dim1_variance_percent, "%)", sep = "")) +
+  scale_y_continuous(name = paste("Dim 2 (", dim2_variance_percent, "%)", sep = "")) +
+  theme_classic() +
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),
+    panel.background = element_rect(fill = "white", color = NA),
+    axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(size = 8, family = "Arial"),
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    plot.title = element_blank()
+  )
+
+# Display the plot
+MCA_PlatformCTS_plot
+ggsave("MCAPlatformCTS.tiff", plot = MCA_PlatformCTS_plot, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+ggsave("SIFig45.tiff", plot = MCA_PlatformCTS_plot, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw") 
+
+#variance explained by each Dimension
+res.mca_PlatformCTS$eig
+fviz_screeplot(res.mca_PlatformCTS, addlabels = TRUE, ylim = c(0, 45)) 
+#contribution to Dim 1 and Dim 2
+fviz_contrib(res.mca_PlatformCTS, choice = "var", axes = 1, top = 15) #contribution to Dim 1. above the threshold are No, Other, Punctiform 
+
+fviz_contrib(res.mca_PlatformCTS, choice = "var", axes = 2, top = 15) #contribution to Dim 2. above the threshold is only Plain, Punctiform, Linear
+
+#check and visualise association of variables to Dim 1
+cos2_values_dim1 <- res.mca_PlatformCTS$var$cos2[, 1]
+
+threshold_percentile <- quantile(cos2_values_dim1, 0.75)
+
+print(threshold_percentile)
+
+plot <- fviz_cos2(res.mca_PlatformCTS, choice = "var", axes = 1)
+
+plot + geom_hline(yintercept = threshold_percentile, linetype = "dashed", color = "red")
+
+#check and visualise association of variables to Dim 2
+cos2_values_dim2 <- res.mca_PlatformCTS$var$cos2[, 2]
+threshold_percentile <- quantile(cos2_values_dim2, 0.75)
+
+print(threshold_percentile)
+
+plot <- fviz_cos2(res.mca_PlatformCTS, choice = "var", axes = 2)
+
+plot + geom_hline(yintercept = threshold_percentile, linetype = "dashed", color = "red")
+
+#association of supplementary categories
+cos2_values_supdim1 <- res.mca_PlatformCTS$quali.sup$cos2[, 1]
+
+threshold_percentilesup1 <- quantile(cos2_values_supdim1, 0.75)
+
+print(threshold_percentilesup1)
+
+filtered_cos2_supdim1 <- cos2_values_supdim1[cos2_values_supdim1 > threshold_percentilesup1]
+print(filtered_cos2_supdim1)
+
+cos2_values_supdim2 <- res.mca_PlatformCTS$quali.sup$cos2[, 2]
+
+threshold_percentilesup2 <- quantile(cos2_values_supdim2, 0.75)
+
+print(threshold_percentilesup2)
+
+filtered_cos2_supdim2 <- cos2_values_supdim2[cos2_values_supdim2 > threshold_percentilesup2]
+print(filtered_cos2_supdim2)
+```
+##EUP - SOLU 
+```{r}
+
+# Select relevant columns and remove missing values
+platform_maintenance_CONTROL <- combinedControl_MCA %>%
+  filter(Blank.type1 != "Flake") %>% #check only laminar
+  filter(!Platform %in% c("ND", NA, "Other", "Crushed")) %>% #removing blanks without clear info
+  select(Technocomplex, SiteBlank.type2, Platform, Robustness_binned) %>%
+  na.omit()
+  
+summary(platform_maintenance_CONTROL)
+
+# Run MCA
+# Perform MCA on the CONTROL platform data
+res.mca_PlatformCTS <- MCA(platform_maintenance_CONTROL, graph = FALSE, quali.sup = 1:2, method = "Burt")
+
+# Summarize the MCA result
+summary(res.mca_PlatformCTS)
+
+# Extract and clean supplementary category coordinates
+quali_sup_coords <- as.data.frame(res.mca_PlatformCTS$quali.sup$coord)[, c(1, 2)]
+colnames(quali_sup_coords) <- c("Dim1", "Dim2")
+quali_sup_coords$name <- rownames(quali_sup_coords)
+
+# Extract and clean active variables (Dim1, Dim2) for active variables
+active_vars <- as.data.frame(res.mca_PlatformCTS$var$coord) %>%
+  rename(Dim1 = `Dim 1`, Dim2 = `Dim 2`) %>%
+  mutate(type = "active", name = rownames(res.mca_PlatformCTS$var$coord)) %>%
+  select(Dim1, Dim2, name, type)  # Keep only Dim1, Dim2, name, and type for active variables
+
+# Add contributions to Dim1 and Dim2 (contribution is a sum for these two dimensions)
+active_vars$contrib <- res.mca_PlatformCTS$var$contrib[, 1] + res.mca_PlatformCTS$var$contrib[, 2]  # Sum of contributions
+
+# Ensure supplementary variables have the same column names and structure as active_vars
+supplementary_vars <- quali_sup_coords %>%
+  mutate(type = "supplementary", name = rownames(quali_sup_coords)) %>%
+  mutate(contrib = NA)  # Add a column for 'contrib' with NA values for supplementary variables
+
+# Now both data frames have the same columns: Dim1, Dim2, name, contrib, type
+combined_vars <- rbind(active_vars, supplementary_vars)
+
+# Extract variance for Dim 1 and Dim 2
+dim1_variance <- res.mca_PlatformCTS$eig["dim 1", "percentage of variance"]
+dim2_variance <- res.mca_PlatformCTS$eig["dim 2", "percentage of variance"]
+
+# Round the variance percentages to 1 decimal place
+dim1_variance_percent <- round(dim1_variance, 1)
+dim2_variance_percent <- round(dim2_variance, 1)
+
+# MCA plot
+MCA_PlatformCONTROL_plot <- ggplot() +
+  # Active variables: color based on contribution
+  geom_point(data = active_vars, 
+             aes(x = Dim1, y = Dim2, color = contrib), 
+             size = 4) +  # Adjust point size
+  geom_text_repel(data = active_vars, 
+                  aes(x = Dim1, y = Dim2, label = name, color = contrib), 
+                  size = 2.5,  # Smaller text size to prevent overlap
+                  fontface = "bold", 
+                  box.padding = 1,  # Increase padding around the label
+                  point.padding = 0.5,  # Adjust padding around the points
+                  max.overlaps = 100,  # Allow more overlap adjustments
+                  segment.size = 0.5,  # Thinner segments for repelling
+                  show.legend = FALSE) +  # Avoid legend for text
+  # Supplementary variables: points and text in black
+  geom_point(data = supplementary_vars, 
+             aes(x = Dim1, y = Dim2), 
+             size = 4, 
+             color = "black") +  # Points for supplementary in black
+  geom_text_repel(data = supplementary_vars, 
+                  aes(x = Dim1, y = Dim2, label = name), 
+                  size = 3,  # Adjust text size for supplementary vars
+                  color = "black",  # Set supplementary labels to black
+                  fontface = "bold", 
+                  point.padding = 0.5, 
+                  max.overlaps = 100,  # Allow more overlap adjustments
+                  segment.size = 0.5,  # Thinner segments for repelling
+                  show.legend = FALSE,
+                  box.padding = 0.3) +  # Adjust padding of supplementary text labels
+  # Add horizontal and vertical dashed lines at x = 0 and y = 0
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black") + 
+  geom_vline(xintercept = 0, linetype = "dashed", color = "black") +
+  # Customize colors for the gradient based on contribution
+  scale_color_gradientn(colors = c("#00AFBB", "#E7B800", "#FC4E07")) +
+  # Customize the plot appearance
+  scale_x_continuous(name = paste("Dim 1 (", dim1_variance_percent, "%)", sep = "")) +
+  scale_y_continuous(name = paste("Dim 2 (", dim2_variance_percent, "%)", sep = "")) +
+  theme_classic() +
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),
+    panel.background = element_rect(fill = "white", color = NA),
+    axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(size = 8, family = "Arial"),
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    plot.title = element_blank()
+  )
+
+# Display the plot
+MCA_PlatformCONTROL_plot
+
+# Save the plot as SVG
+ggsave("MCA_PlatformCONTROL_plot.svg", plot = MCA_PlatformCONTROL_plot, width = 19.05, height = 22.23, units = "cm", dpi = 300)
+ggsave("Fig07.svg", plot = MCA_PlatformCONTROL_plot, width = 19.05, height = 22.23, units = "cm", dpi = 300)
+
+
+#variance explained by each Dimension
+res.mca_PlatformCONTROL$eig
+fviz_screeplot(res.mca_PlatformCONTROL, addlabels = TRUE, ylim = c(0, 45)) 
+#contribution to Dim 1 and Dim 2
+fviz_contrib(res.mca_PlatformCONTROL, choice = "var", axes = 1, top = 15) #contribution to Dim 1. above the threshold are No, Other, Punctiform 
+
+fviz_contrib(res.mca_PlatformCONTROL, choice = "var", axes = 2, top = 15) #contribution to Dim 2. above the threshold is only Plain, Punctiform, Linear
+
+#check and visualise association of variables to Dim 1
+cos2_values_dim1 <- res.mca_PlatformCONTROL$var$cos2[, 1]
+
+threshold_percentile <- quantile(cos2_values_dim1, 0.75)
+
+print(threshold_percentile)
+
+plot <- fviz_cos2(res.mca_PlatformCONTROL, choice = "var", axes = 1)
+
+plot + geom_hline(yintercept = threshold_percentile, linetype = "dashed", color = "red")
+
+#check and visualise association of variables to Dim 2
+cos2_values_dim2 <- res.mca_PlatformCONTROL$var$cos2[, 2]
+threshold_percentile <- quantile(cos2_values_dim2, 0.75)
+
+print(threshold_percentile)
+
+plot <- fviz_cos2(res.mca_PlatformCONTROL, choice = "var", axes = 2)
+
+plot + geom_hline(yintercept = threshold_percentile, linetype = "dashed", color = "red")
+
+#association of supplementary categories
+cos2_values_supdim1 <- res.mca_PlatformCONTROL$quali.sup$cos2[, 1]
+
+threshold_percentilesup1 <- quantile(cos2_values_supdim1, 0.75)
+
+print(threshold_percentilesup1)
+
+filtered_cos2_supdim1 <- cos2_values_supdim1[cos2_values_supdim1 > threshold_percentilesup1]
+print(filtered_cos2_supdim1)
+
+cos2_values_supdim2 <- res.mca_PlatformCONTROL$quali.sup$cos2[, 2]
+
+threshold_percentilesup2 <- quantile(cos2_values_supdim2, 0.75)
+
+print(threshold_percentilesup2)
+
+filtered_cos2_supdim2 <- cos2_values_supdim2[cos2_values_supdim2 > threshold_percentilesup2]
+print(filtered_cos2_supdim2)
+
+
+```
+###correlation
+```{r}
+
+library(factoextra)
+
+coord_var2 <- as.data.frame(res.mca_PlatformCONTROL$var$coord[, 1:2])
+
+coord_sup2 <- as.data.frame(res.mca_PlatformCONTROL$quali.sup$coord[, 1:2])
+
+# Combine both for distance calculation
+coord_sup2.2 <- coord_sup2 %>% filter(row.names(coord_sup2) %in% c("Proto", "S.Ahm", "Solu")) 
+coord_sup2.3 <- coord_sup2 %>% filter(!(row.names(coord_sup2) %in% c("Proto", "S.Ahm", "Solu")))
+
+
+coord_combined2 <- rbind(coord_var2, coord_sup2)
+coord_combined2.2 <-rbind(coord_var2, coord_sup2.2)
+coord_combined2.3 <-rbind(coord_var2, coord_sup2.3)
+
+
+# Calculate the distance matrix using euclidean correlation distance
+data.cor4 <- get_dist(coord_var2, method = "euclidean")
+data.cor4_df <- as.data.frame(as.matrix(data.cor4))
+write_xlsx(data.cor4_df, "CorrelationAttributesPlatformCONTROL1.xlsx")
+
+
+#heatmap
+corPlat4 <- fviz_dist(dist.obj = data.cor4, 
+                     order = TRUE, 
+                     show_labels = TRUE)+
+    theme_classic() +
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),
+    panel.background = element_rect(fill = "white", color = NA),
+    axis.text = element_text(size = 8, face = "bold", color = "black", family = "Arial"), 
+    axis.text.x = element_text(size = 8, family = "Arial", angle = 90, hjust = 1, vjust = 0.5), 
+    axis.text.y = element_text(size = 8, face = "bold", family = "Arial"), 
+    legend.text = element_text(size = 8, family = "Arial"), 
+    legend.title = element_blank(), 
+    axis.title.x = element_blank(), 
+    axis.title.y = element_blank()  
+  ) + 
+  scale_x_discrete(labels = function(x) gsub("-", "", x)) +
+  scale_y_discrete(labels = function(y) gsub("-", "", y)) 
+corPlat4
+
+ggsave("CORRPlatformCONTROL.tiff", plot = corPlat4, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+ggsave("SIFig46.tiff", plot = corPlat4, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+
+data.cor5 <- get_dist(coord_combined2.2, method = "euclidean")
+data.cor5_df <- as.data.frame(as.matrix(data.cor5))
+write_xlsx(data.cor5_df, "CorrelationAttributesPlatformCONTROL2.xlsx")
+
+#heatmap
+corPlat5 <- fviz_dist(dist.obj = data.cor5, 
+                     order = TRUE, 
+                     show_labels = TRUE)+
+    theme_classic() +
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),
+    panel.background = element_rect(fill = "white", color = NA),
+    axis.text = element_text(size = 8, face = "bold", color = "black", family = "Arial"), 
+    axis.text.x = element_text(size = 8, family = "Arial", angle = 90, hjust = 1, vjust = 0.5), 
+    axis.text.y = element_text(size = 8, face = "bold", family = "Arial"), 
+    legend.text = element_text(size = 8, family = "Arial"), 
+    legend.title = element_blank(), 
+    axis.title.x = element_blank(), 
+    axis.title.y = element_blank()  
+  ) + 
+  scale_x_discrete(labels = function(x) gsub("-", "", x)) +   
+  scale_y_discrete(labels = function(y) gsub("-", "", y)) 
+corPlat5
+
+ggsave("CORRPlatformCONTROL_withquali.tiff", plot = corPlat5, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+ggsave("SIFig47.tiff", plot = corPlat5, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+
+data.cor6 <- get_dist(coord_combined2.3, method = "euclidean")
+data.cor6_df <- as.data.frame(as.matrix(data.cor6))
+write_xlsx(data.cor6_df, "CorrelationAttributesPlatformCONTROL3.xlsx")
+
+
+#heatmap
+corPlat6 <- fviz_dist(dist.obj = data.cor6, 
+                     order = TRUE, 
+                     show_labels = TRUE) +
+    theme_classic() +
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),
+    panel.background = element_rect(fill = "white", color = NA),
+    axis.text = element_text(size = 8, face = "bold", color = "black", family = "Arial"), 
+    axis.text.x = element_text(size = 8, family = "Arial", angle = 90, hjust = 1, vjust = 0.5), 
+    axis.text.y = element_text(size = 8, face = "bold", family = "Arial"), 
+    legend.text = element_text(size = 8, family = "Arial"), 
+    legend.title = element_blank(), 
+    axis.title.x = element_blank(), 
+    axis.title.y = element_blank()  
+  ) + 
+  scale_x_discrete(labels = function(x) gsub("-", "", x)) +   
+  scale_y_discrete(labels = function(y) gsub("-", "", y)) 
+corPlat6
+
+
+ggsave("CORRPlatformCONTROL_withquali_2.tiff", plot = corPlat6, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+ggsave("SIFig48.tiff", plot = corPlat6, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+
+```
+
+##ONLY EUP
+```{r}
+
+# Select relevant columns and remove missing values
+platform_maintenanceALL2 <- Laminar_Blanks_Merged_MCA %>%
+  filter(Preservation != "Mesiodistal") %>% #only blanks with a Proximal part
+  filter(!Platform %in% c("ND", NA)) %>% #removing blanks without clear info
+  filter(!Abrasion %in% c(NA, "ND")) %>% #removing blanks without clear info
+  select(SiteBlank.type2, Blank.type2, Abrasion, Platform, Robustness_binned) %>%
+  na.omit()
+  
+summary(platform_maintenanceALL2)
+
+# Run MCA on the ALL2 platform data
+res.mca_PlatformALL2 <- MCA(platform_maintenanceALL2, graph = FALSE, quali.sup = 1:2, method = "Burt") # SiteBlank.type2, Blank.type2 supplementary categories
+
+# Summarize the MCA result
+summary(res.mca_PlatformALL2)
+
+# Extract and clean supplementary category coordinates
+quali_sup_coords <- as.data.frame(res.mca_PlatformALL2$quali.sup$coord)[, c(1, 2)]
+colnames(quali_sup_coords) <- c("Dim1", "Dim2")
+quali_sup_coords$name <- rownames(quali_sup_coords)
+
+# Extract only Dim1 and Dim2 for active variables and rename columns
+active_vars <- as.data.frame(res.mca_PlatformALL2$var$coord) %>%
+     rename(Dim1 = `Dim 1`, Dim2 = `Dim 2`) %>%  # Rename columns
+     mutate(type = "active", name = rownames(res.mca_PlatformALL2$var$coord)) %>%
+     select(Dim1, Dim2, name, type)  # Keep only Dim1, Dim2, name, and type for active variables
+
+# Add contributions to Dim1 and Dim2 (contribution is a sum for these two dimensions)
+active_vars$contrib <- res.mca_PlatformALL2$var$contrib[, 1] + res.mca_PlatformALL2$var$contrib[, 2]  # Sum of contributions
+
+# Ensure supplementary variables have the same column names and structure as active_vars
+supplementary_vars <- quali_sup_coords %>%
+    mutate(type = "supplementary", name = rownames(quali_sup_coords)) %>%
+    mutate(contrib = NA)  # Add a column for 'contrib' with NA values for supplementary variables
+
+# Now both data frames have the same columns: Dim1, Dim2, name, contrib, type
+combined_vars <- rbind(active_vars, supplementary_vars)
+
+# Extract variance for Dim 1 and Dim 2
+dim1_variance <- res.mca_PlatformALL2$eig["dim 1", "percentage of variance"]
+dim2_variance <- res.mca_PlatformALL2$eig["dim 2", "percentage of variance"]
+
+# Round the variance percentages to 1 decimal place
+dim1_variance_percent <- round(dim1_variance, 1)
+dim2_variance_percent <- round(dim2_variance, 1)
+
+# MCA plot
+MCA_PlatformALL2_plot <- ggplot() +
+    # Active variables: color based on contribution
+    geom_point(data = active_vars, 
+               aes(x = Dim1, y = Dim2, color = contrib), 
+               size = 4) +  # Adjust point size
+    geom_text_repel(data = active_vars, 
+                    aes(x = Dim1, y = Dim2, label = name, color = contrib), 
+                    size = 2.5,  # Smaller text size to prevent overlap
+                    fontface = "bold", 
+                    box.padding = 1,  # Increase padding around the label
+                    point.padding = 0.5,  # Adjust padding around the points
+                    max.overlaps = 100,  # Allow more overlap adjustments
+                    segment.size = 0.5,  # Thinner segments for repelling
+                    show.legend = FALSE) +  # Avoid legend for text
+    # Supplementary variables: points and text in black
+    geom_point(data = supplementary_vars, 
+               aes(x = Dim1, y = Dim2), 
+               size = 4, 
+               color = "black") +  # Points for supplementary in black
+    geom_text_repel(data = supplementary_vars, 
+                    aes(x = Dim1, y = Dim2, label = name), 
+                    size = 3,  # Adjust text size for supplementary vars
+                    color = "black",  # Set supplementary labels to black
+                    fontface = "bold", 
+                    point.padding = 0.5, 
+                    max.overlaps = 100,  # Allow more overlap adjustments
+                    segment.size = 0.5,  # Thinner segments for repelling
+                    show.legend = FALSE,
+                    box.padding = 0.3) +  # Adjust padding of supplementary text labels
+    # Add horizontal and vertical dashed lines at x = 0 and y = 0
+    geom_hline(yintercept = 0, linetype = "dashed", color = "black") + 
+    geom_vline(xintercept = 0, linetype = "dashed", color = "black") +
+    # Customize colors for the gradient based on contribution
+    scale_color_gradientn(colors = c("#00AFBB", "#E7B800", "#FC4E07")) +
+    # Customize the plot appearance
+    scale_x_continuous(name = paste("Dim 1 (", dim1_variance_percent, "%)", sep = "")) +
+    scale_y_continuous(name = paste("Dim 2 (", dim2_variance_percent, "%)", sep = "")) +
+    theme_classic() +
+    theme(
+        plot.background = element_rect(fill = "white", color = NA),
+        panel.background = element_rect(fill = "white", color = NA),
+        axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+        axis.text.x = element_text(size = 8, family = "Arial"),
+        axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 8, family = "Arial"),
+        axis.ticks.x = element_blank(),
+        strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+        plot.title = element_blank()
+    )
+
+# Display the plot
+MCA_PlatformALL2_plot
+
+# Save the plot as SVG
+ggsave("MCA_PlatformALL2_plot.svg", plot = MCA_PlatformALL2_plot, width = 19.05, height = 22.23, units = "cm", dpi = 300)
+ggsave("Fig08.svg", plot = MCA_PlatformALL2_plot, width = 19.05, height = 22.23, units = "cm", dpi = 300)
+
+
+#variance explained by each Dimension
+res.mca_PlatformALL2$eig
+fviz_screeplot(res.mca_PlatformALL2, addlabels = TRUE, ylim = c(0, 45)) 
+#contribution to Dim 1 and Dim 2
+fviz_contrib(res.mca_PlatformALL2, choice = "var", axes = 1, top = 15) #contribution to Dim 1.
+
+fviz_contrib(res.mca_PlatformALL2, choice = "var", axes = 2, top = 15) #contribution to Dim 2. 
+
+#check and visualise association of variables to Dim 1
+cos2_values_dim1 <- res.mca_PlatformALL2$var$cos2[, 1]
+
+threshold_percentile <- quantile(cos2_values_dim1, 0.75)
+
+print(threshold_percentile)
+
+plot <- fviz_cos2(res.mca_PlatformALL2, choice = "var", axes = 1)
+
+plot + geom_hline(yintercept = threshold_percentile, linetype = "dashed", color = "red")
+
+#check and visualise association of variables to Dim 2
+cos2_values_dim2 <- res.mca_PlatformALL2$var$cos2[, 2]
+threshold_percentile <- quantile(cos2_values_dim2, 0.75)
+
+print(threshold_percentile)
+
+plot <- fviz_cos2(res.mca_PlatformALL2, choice = "var", axes = 2)
+
+plot + geom_hline(yintercept = threshold_percentile, linetype = "dashed", color = "red")
+
+#association of supplementary categories
+cos2_values_supdim1 <- res.mca_PlatformALL2$quali.sup$cos2[, 1]
+
+threshold_percentilesup1 <- quantile(cos2_values_supdim1, 0.75)
+
+print(threshold_percentilesup1)
+
+filtered_cos2_supdim1 <- cos2_values_supdim1[cos2_values_supdim1 > threshold_percentilesup1]
+print(filtered_cos2_supdim1)
+
+cos2_values_supdim2 <- res.mca_PlatformALL2$quali.sup$cos2[, 2]
+
+threshold_percentilesup2 <- quantile(cos2_values_supdim2, 0.75)
+
+print(threshold_percentilesup2)
+
+filtered_cos2_supdim2 <- cos2_values_supdim2[cos2_values_supdim2 > threshold_percentilesup2]
+print(filtered_cos2_supdim2)
+
+
+```
+###correlation
+```{r}
+
+library(factoextra)
+
+coord_var1 <- as.data.frame(res.mca_PlatformALL2$var$coord[, 1:2])
+
+coord_sup1 <- as.data.frame(res.mca_PlatformALL2$quali.sup$coord[, 1:2])
+
+# Subset only rows where the categories are "Blade" or "Bladelet"
+coord_sup1.2 <- coord_sup1 %>% filter(row.names(coord_sup1) %in% c("Blade", "Bladelet")) 
+coord_sup1.3 <- coord_sup1 %>% filter(!(row.names(coord_sup1) %in% c("Blade", "Bladelet")))
+
+# Print the subsetted dataframe
+print(coord_sup1.2)
+
+coord_combined1 <- rbind(coord_var1, coord_sup1)
+coord_combined1.2 <-rbind(coord_var1, coord_sup1.2)
+coord_combined1.3 <-rbind(coord_var1, coord_sup1.3)
+
+# Calculate distance matrix and visualize using VAT
+data.cor1 <- get_dist(coord_var1, method = "euclidean")
+print(data.cor1)
+# Export matrix in excel
+data.cor1_df <- as.data.frame(as.matrix(data.cor1))
+write_xlsx(data.cor1_df, "CorrelationAttributesPlatform1.xlsx")
+
+#heatmap
+corPlat1 <- fviz_dist(dist.obj = data.cor1, 
+                     order = TRUE, 
+                     show_labels = TRUE) +
+    theme_classic() +
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),
+    panel.background = element_rect(fill = "white", color = NA),
+    axis.text = element_text(size = 8, face = "bold", color = "black", family = "Arial"), 
+    axis.text.x = element_text(size = 8, family = "Arial", angle = 90, hjust = 1, vjust = 0.5), 
+    axis.text.y = element_text(size = 8, face = "bold", family = "Arial"), 
+    legend.text = element_text(size = 8, family = "Arial"), 
+    legend.title = element_blank(), 
+    axis.title.x = element_blank(), 
+    axis.title.y = element_blank()  
+  ) + 
+  scale_x_discrete(labels = function(x) gsub("-", "", x)) +   
+  scale_y_discrete(labels = function(y) gsub("-", "", y)) 
+corPlat1
+
+ggsave("CORRPlatformALL.tiff", plot = corPlat1, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+ggsave("SIFig49.tiff", plot = corPlat1, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")  
+
+data.cor2 <- get_dist(coord_combined1.2, method = "euclidean")
+data.cor2_df <- as.data.frame(as.matrix(data.cor2))
+write_xlsx(data.cor2_df, "CorrelationAttributesPlatform2.xlsx")
+
+#heatmap
+corPlat2 <- fviz_dist(dist.obj = data.cor2, 
+                     order = TRUE, 
+                     show_labels = TRUE) +
+    theme_classic() +
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),
+    panel.background = element_rect(fill = "white", color = NA),
+    axis.text = element_text(size = 8, face = "bold", color = "black", family = "Arial"), 
+    axis.text.x = element_text(size = 8, family = "Arial", angle = 90, hjust = 1, vjust = 0.5), 
+    axis.text.y = element_text(size = 8, face = "bold", family = "Arial"), 
+    legend.text = element_text(size = 8, family = "Arial"), 
+    legend.title = element_blank(), 
+    axis.title.x = element_blank(), 
+    axis.title.y = element_blank()  
+  ) + 
+  scale_x_discrete(labels = function(x) gsub("-", "", x)) +
+  scale_y_discrete(labels = function(y) gsub("-", "", y)) 
+corPlat2 
+
+ggsave("CORRPlatformALL_withquali.tiff", plot = corPlat2, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+ggsave("SIFig50.tiff", plot = corPlat2, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+
+data.cor3 <- get_dist(coord_combined1.3, method = "euclidean")
+print(data.cor3)
+
+data.cor3_df <- as.data.frame(as.matrix(data.cor3))
+write_xlsx(data.cor3_df, "CorrelationAttributesPlatform3.xlsx")
+
+
+#heatmap
+corPlat3 <- fviz_dist(dist.obj = data.cor3, 
+                     order = TRUE, 
+                     show_labels = TRUE
+) +
+    theme_classic() +
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),
+    panel.background = element_rect(fill = "white", color = NA),
+    axis.text = element_text(size = 8, face = "bold", color = "black", family = "Arial"), 
+    axis.text.x = element_text(size = 8, family = "Arial", angle = 90, hjust = 1, vjust = 0.5), 
+    axis.text.y = element_text(size = 8, face = "bold", family = "Arial"), 
+    legend.text = element_text(size = 8, family = "Arial"), 
+    legend.title = element_blank(), 
+    axis.title.x = element_blank(), 
+    axis.title.y = element_blank()  
+  ) + 
+  scale_x_discrete(labels = function(x) gsub("-", "", x)) +   
+  scale_y_discrete(labels = function(y) gsub("-", "", y)) 
+corPlat3
+
+ggsave("CORRPlatformALL_withquali_2.tiff", plot = corPlat3, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+ggsave("SIFig51.tiff", plot = corPlat3, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+```
+
+
+
+#Convexity shaping
+##AN
+```{r}
+library(FactoMineR)
+library(factoextra)
+library(dplyr)
+library(ggplot2)
+
+
+
+# Select relevant columns and remove missing values
+convexity_maintenanceAN <- Blanks_Main_merged_MCA %>%
+  filter(!Axiality %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Symmetry %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Outline.morphology %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Profile %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Cross.section %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Torsion %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Distal.end.morpho %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(Site == "AN") %>% #only Ansab
+  select(SiteBlank.type2, Axiality, Outline.morphology, Symmetry, Cross.section, Profile, Torsion, Distal.end.morpho) %>%
+  na.omit()
+
+summary(convexity_maintenanceAN)
+# Run MCA
+res.mca_ConvexityAN <- MCA(convexity_maintenanceAN, graph = FALSE, quali.sup =1, method = "Burt") # SiteBlank.type1 is not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in convexity_maintenanceAN, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
+
+# Summarize the MCA result
+summary(res.mca_ConvexityAN)
+
+# Extract and clean supplementary category coordinates
+quali_sup_coords <- as.data.frame(res.mca_ConvexityAN$quali.sup$coord)[, c(1, 2)]
+colnames(quali_sup_coords) <- c("Dim1", "Dim2")
+quali_sup_coords$name <- rownames(quali_sup_coords)
+
+# Extract and clean active variables (Dim1, Dim2) for active variables
+active_vars <- as.data.frame(res.mca_ConvexityAN$var$coord) %>%
+  rename(Dim1 = `Dim 1`, Dim2 = `Dim 2`) %>%
+  mutate(type = "active", name = rownames(res.mca_ConvexityAN$var$coord)) %>%
+  select(Dim1, Dim2, name, type)  # Keep only Dim1, Dim2, name, and type for active variables
+
+# Add contributions to Dim1 and Dim2 (contribution is a sum for these two dimensions)
+active_vars$contrib <- res.mca_ConvexityAN$var$contrib[, 1] + res.mca_ConvexityAN$var$contrib[, 2]  # Sum of contributions
+
+# Ensure supplementary variables have the same column names and structure as active_vars
+supplementary_vars <- quali_sup_coords %>%
+  mutate(type = "supplementary", name = rownames(quali_sup_coords)) %>%
+  mutate(contrib = NA)  # Add a column for 'contrib' with NA values for supplementary variables
+
+# Now both data frames have the same columns: Dim1, Dim2, name, contrib, type
+combined_vars <- rbind(active_vars, supplementary_vars)
+
+# Extract variance for Dim 1 and Dim 2
+dim1_variance <- res.mca_ConvexityAN$eig["dim 1", "percentage of variance"]
+dim2_variance <- res.mca_ConvexityAN$eig["dim 2", "percentage of variance"]
+
+# Round the variance percentages to 1 decimal place
+dim1_variance_percent <- round(dim1_variance, 1)
+dim2_variance_percent <- round(dim2_variance, 1)
+
+# MCA plot
+MCA_ConvexityAN_plot <- ggplot() +
+  # Active variables: color based on contribution
+  geom_point(data = active_vars, 
+             aes(x = Dim1, y = Dim2, color = contrib), 
+             size = 4) +  # Adjust point size
+  geom_text_repel(data = active_vars, 
+                  aes(x = Dim1, y = Dim2, label = name, color = contrib), 
+                  size = 2.5,  # Smaller text size to prevent overlap
+                  fontface = "bold", 
+                  box.padding = 1,  # Increase padding around the label
+                  point.padding = 0.5,  # Adjust padding around the points
+                  max.overlaps = 100,  # Allow more overlap adjustments
+                  segment.size = 0.5,  # Thinner segments for repelling
+                  show.legend = FALSE) +  # Avoid legend for text
+  # Supplementary variables: points and text in black
+  geom_point(data = supplementary_vars, 
+             aes(x = Dim1, y = Dim2), 
+             size = 4, 
+             color = "black") +  # Points for supplementary in black
+  geom_text_repel(data = supplementary_vars, 
+                  aes(x = Dim1, y = Dim2, label = name), 
+                  size = 3,  # Adjust text size for supplementary vars
+                  color = "black",  # Set supplementary labels to black
+                  fontface = "bold", 
+                  point.padding = 0.5, 
+                  max.overlaps = 100,  # Allow more overlap adjustments
+                  segment.size = 0.5,  # Thinner segments for repelling
+                  show.legend = FALSE,
+                  box.padding = 0.3) +  # Adjust padding of supplementary text labels
+  # Add horizontal and vertical dashed lines at x = 0 and y = 0
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black") + 
+  geom_vline(xintercept = 0, linetype = "dashed", color = "black") +
+  # Customize colors for the gradient based on contribution
+  scale_color_gradientn(colors = c("#00AFBB", "#E7B800", "#FC4E07")) +
+  # Customize the plot appearance
+  scale_x_continuous(name = paste("Dim 1 (", dim1_variance_percent, "%)", sep = "")) +
+  scale_y_continuous(name = paste("Dim 2 (", dim2_variance_percent, "%)", sep = "")) +
+  theme_classic() +
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),
+    panel.background = element_rect(fill = "white", color = NA),
+    axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(size = 8, family = "Arial"),
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    plot.title = element_blank()
+  )
+
+# Display the plot
+MCA_ConvexityAN_plot
+
+
+ggsave("MCAConvexityAN.tiff", plot = MCA_ConvexityAN_plot, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+ggsave("SIFig52.tiff", plot = MCA_ConvexityAN_plot, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")  
+
+#variance explained by each Dimension
+res.mca_ConvexityAN$eig
+fviz_screeplot(res.mca_ConvexityAN, addlabels = TRUE, ylim = c(0, 45)) 
+#contribution to Dim 1 and Dim 2
+fviz_contrib(res.mca_ConvexityAN, choice = "var", axes = 1, top = 15) #contribution to Dim 1. above the threshold are No, Other, Punctiform 
+
+fviz_contrib(res.mca_ConvexityAN, choice = "var", axes = 2, top = 15) #contribution to Dim 2. above the threshold is only Plain, Punctiform, Linear
+
+#check and visualise association of variables to Dim 1
+cos2_values_dim1 <- res.mca_ConvexityAN$var$cos2[, 1]
+
+threshold_percentile <- quantile(cos2_values_dim1, 0.75)
+
+print(threshold_percentile)
+
+plot <- fviz_cos2(res.mca_ConvexityAN, choice = "var", axes = 1)
+
+plot + geom_hline(yintercept = threshold_percentile, linetype = "dashed", color = "red")
+
+#check and visualise association of variables to Dim 2
+cos2_values_dim2 <- res.mca_ConvexityAN$var$cos2[, 2]
+threshold_percentile <- quantile(cos2_values_dim2, 0.75)
+
+print(threshold_percentile)
+
+plot <- fviz_cos2(res.mca_ConvexityAN, choice = "var", axes = 2)
+
+plot + geom_hline(yintercept = threshold_percentile, linetype = "dashed", color = "red")
+
+#association of supplementary categories
+cos2_values_supdim1 <- res.mca_ConvexityAN$quali.sup$cos2[, 1]
+
+threshold_percentilesup1 <- quantile(cos2_values_supdim1, 0.75)
+
+print(threshold_percentilesup1)
+
+filtered_cos2_supdim1 <- cos2_values_supdim1[cos2_values_supdim1 > threshold_percentilesup1]
+print(filtered_cos2_supdim1)
+
+cos2_values_supdim2 <- res.mca_ConvexityAN$quali.sup$cos2[, 2]
+
+threshold_percentilesup2 <- quantile(cos2_values_supdim2, 0.75)
+
+print(threshold_percentilesup2)
+
+filtered_cos2_supdim2 <- cos2_values_supdim2[cos2_values_supdim2 > threshold_percentilesup2]
+print(filtered_cos2_supdim2)
+```
+
+##ROM
+```{r}
+library(FactoMineR)
+library(factoextra)
+library(dplyr)
+library(ggplot2)
+
+
+
+# Select relevant columns and remove missing values
+convexity_maintenanceROM <- Blanks_Main_merged_MCA %>%
+  filter(Blank.type1 != "Flake") %>% #check only laminar
+  filter(!Axiality %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Symmetry %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Outline.morphology %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Profile %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Cross.section %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Torsion %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Distal.end.morpho %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(Site == "ROM") %>% #only Romanesti
+  select(SiteBlank.type2, Axiality, Outline.morphology, Symmetry, Cross.section, Profile, Torsion, Distal.end.morpho) %>%
+  na.omit()
+
+summary(convexity_maintenanceROM)
+# Run MCA
+res.mca_ConvexityROM <- MCA(convexity_maintenanceROM, graph = FALSE, quali.sup =1, method = "Burt") # SiteBlank.type1 is not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in convexity_maintenanceROM, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
+
+# Summarize the MCA result
+summary(res.mca_ConvexityROM)
+
+# Extract and clean supplementary category coordinates
+quali_sup_coords <- as.data.frame(res.mca_ConvexityROM$quali.sup$coord)[, c(1, 2)]
+colnames(quali_sup_coords) <- c("Dim1", "Dim2")
+quali_sup_coords$name <- rownames(quali_sup_coords)
+
+# Extract and clean active variables (Dim1, Dim2) for active variables
+active_vars <- as.data.frame(res.mca_ConvexityROM$var$coord) %>%
+  rename(Dim1 = `Dim 1`, Dim2 = `Dim 2`) %>%
+  mutate(type = "active", name = rownames(res.mca_ConvexityROM$var$coord)) %>%
+  select(Dim1, Dim2, name, type)  # Keep only Dim1, Dim2, name, and type for active variables
+
+# Add contributions to Dim1 and Dim2 (contribution is a sum for these two dimensions)
+active_vars$contrib <- res.mca_ConvexityROM$var$contrib[, 1] + res.mca_ConvexityROM$var$contrib[, 2]  # Sum of contributions
+
+# Ensure supplementary variables have the same column names and structure as active_vars
+supplementary_vars <- quali_sup_coords %>%
+  mutate(type = "supplementary", name = rownames(quali_sup_coords)) %>%
+  mutate(contrib = NA)  # Add a column for 'contrib' with NA values for supplementary variables
+
+# Now both data frames have the same columns: Dim1, Dim2, name, contrib, type
+combined_vars <- rbind(active_vars, supplementary_vars)
+
+# Extract variance for Dim 1 and Dim 2
+dim1_variance <- res.mca_ConvexityROM$eig["dim 1", "percentage of variance"]
+dim2_variance <- res.mca_ConvexityROM$eig["dim 2", "percentage of variance"]
+
+# Round the variance percentages to 1 decimal place
+dim1_variance_percent <- round(dim1_variance, 1)
+dim2_variance_percent <- round(dim2_variance, 1)
+
+# MCA plot
+MCA_ConvexityROM_plot <- ggplot() +
+  # Active variables: color based on contribution
+  geom_point(data = active_vars, 
+             aes(x = Dim1, y = Dim2, color = contrib), 
+             size = 4) +  # Adjust point size
+  geom_text_repel(data = active_vars, 
+                  aes(x = Dim1, y = Dim2, label = name, color = contrib), 
+                  size = 2.5,  # Smaller text size to prevent overlap
+                  fontface = "bold", 
+                  box.padding = 1,  # Increase padding around the label
+                  point.padding = 0.5,  # Adjust padding around the points
+                  max.overlaps = 100,  # Allow more overlap adjustments
+                  segment.size = 0.5,  # Thinner segments for repelling
+                  show.legend = FALSE) +  # Avoid legend for text
+  # Supplementary variables: points and text in black
+  geom_point(data = supplementary_vars, 
+             aes(x = Dim1, y = Dim2), 
+             size = 4, 
+             color = "black") +  # Points for supplementary in black
+  geom_text_repel(data = supplementary_vars, 
+                  aes(x = Dim1, y = Dim2, label = name), 
+                  size = 3,  # Adjust text size for supplementary vars
+                  color = "black",  # Set supplementary labels to black
+                  fontface = "bold", 
+                  point.padding = 0.5, 
+                  max.overlaps = 100,  # Allow more overlap adjustments
+                  segment.size = 0.5,  # Thinner segments for repelling
+                  show.legend = FALSE,
+                  box.padding = 0.3) +  # Adjust padding of supplementary text labels
+  # Add horizontal and vertical dashed lines at x = 0 and y = 0
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black") + 
+  geom_vline(xintercept = 0, linetype = "dashed", color = "black") +
+  # Customize colors for the gradient based on contribution
+  scale_color_gradientn(colors = c("#00AFBB", "#E7B800", "#FC4E07")) +
+  # Customize the plot appearance
+  scale_x_continuous(name = paste("Dim 1 (", dim1_variance_percent, "%)", sep = "")) +
+  scale_y_continuous(name = paste("Dim 2 (", dim2_variance_percent, "%)", sep = "")) +
+  theme_classic() +
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),
+    panel.background = element_rect(fill = "white", color = NA),
+    axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(size = 8, family = "Arial"),
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    plot.title = element_blank()
+  )
+
+# Display the plot
+MCA_ConvexityROM_plot
+
+
+ggsave("MCAConvexityROM.tiff", plot = MCA_ConvexityROM_plot, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+ggsave("SIFig53.tiff", plot = MCA_ConvexityROM_plot, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")   
+
+#variance explained by each Dimension
+res.mca_ConvexityROM$eig
+fviz_screeplot(res.mca_ConvexityROM, addlabels = TRUE, ylim = c(0, 45)) 
+#contribution to Dim 1 and Dim 2
+fviz_contrib(res.mca_ConvexityROM, choice = "var", axes = 1, top = 15) #contribution to Dim 1. above the threshold are No, Other, Punctiform 
+
+fviz_contrib(res.mca_ConvexityROM, choice = "var", axes = 2, top = 15) #contribution to Dim 2. above the threshold is only Plain, Punctiform, Linear
+
+#check and visualise association of variables to Dim 1
+cos2_values_dim1 <- res.mca_ConvexityROM$var$cos2[, 1]
+
+threshold_percentile <- quantile(cos2_values_dim1, 0.75)
+
+print(threshold_percentile)
+
+plot <- fviz_cos2(res.mca_ConvexityROM, choice = "var", axes = 1)
+
+plot + geom_hline(yintercept = threshold_percentile, linetype = "dashed", color = "red")
+
+#check and visualise association of variables to Dim 2
+cos2_values_dim2 <- res.mca_ConvexityROM$var$cos2[, 2]
+threshold_percentile <- quantile(cos2_values_dim2, 0.75)
+
+print(threshold_percentile)
+
+plot <- fviz_cos2(res.mca_ConvexityROM, choice = "var", axes = 2)
+
+plot + geom_hline(yintercept = threshold_percentile, linetype = "dashed", color = "red")
+
+#association of supplementary categories
+cos2_values_supdim1 <- res.mca_ConvexityROM$quali.sup$cos2[, 1]
+
+threshold_percentilesup1 <- quantile(cos2_values_supdim1, 0.75)
+
+print(threshold_percentilesup1)
+
+filtered_cos2_supdim1 <- cos2_values_supdim1[cos2_values_supdim1 > threshold_percentilesup1]
+print(filtered_cos2_supdim1)
+
+cos2_values_supdim2 <- res.mca_ConvexityROM$quali.sup$cos2[, 2]
+
+threshold_percentilesup2 <- quantile(cos2_values_supdim2, 0.75)
+
+print(threshold_percentilesup2)
+
+filtered_cos2_supdim2 <- cos2_values_supdim2[cos2_values_supdim2 > threshold_percentilesup2]
+print(filtered_cos2_supdim2)
+
+
+```
+
+##FUM
+```{r}
+library(FactoMineR)
+library(factoextra)
+library(dplyr)
+library(ggplot2)
+
+
+
+# Select relevant columns and remove missing values
+convexity_maintenanceFUM <- Blanks_Main_merged_MCA %>%
+  filter(Blank.type1 != "Flake") %>% #check only laminar
+  filter(!Axiality %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Symmetry %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Outline.morphology %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Profile %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Cross.section %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Torsion %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Distal.end.morpho %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(Site == "FUM") %>% #only Fumane
+  select(SiteBlank.type2, Axiality, Outline.morphology, Symmetry, Cross.section, Profile, Torsion, Distal.end.morpho) %>%
+  na.omit()
+
+summary(convexity_maintenanceFUM)
+# Run MCA
+res.mca_ConvexityFUM <- MCA(convexity_maintenanceFUM, graph = FALSE, quali.sup =1, method = "Burt") # SiteBlank.type1 is not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in convexity_maintenanceFUM, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
+
+
+# Summarize the MCA result
+summary(res.mca_ConvexityFUM)
+
+# Extract and clean supplementary category coordinates
+quali_sup_coords <- as.data.frame(res.mca_ConvexityFUM$quali.sup$coord)[, c(1, 2)]
+colnames(quali_sup_coords) <- c("Dim1", "Dim2")
+quali_sup_coords$name <- rownames(quali_sup_coords)
+
+# Extract and clean active variables (Dim1, Dim2) for active variables
+active_vars <- as.data.frame(res.mca_ConvexityFUM$var$coord) %>%
+  rename(Dim1 = `Dim 1`, Dim2 = `Dim 2`) %>%
+  mutate(type = "active", name = rownames(res.mca_ConvexityFUM$var$coord)) %>%
+  select(Dim1, Dim2, name, type)  # Keep only Dim1, Dim2, name, and type for active variables
+
+# Add contributions to Dim1 and Dim2 (contribution is a sum for these two dimensions)
+active_vars$contrib <- res.mca_ConvexityFUM$var$contrib[, 1] + res.mca_ConvexityFUM$var$contrib[, 2]  # Sum of contributions
+
+# Ensure supplementary variables have the same column names and structure as active_vars
+supplementary_vars <- quali_sup_coords %>%
+  mutate(type = "supplementary", name = rownames(quali_sup_coords)) %>%
+  mutate(contrib = NA)  # Add a column for 'contrib' with NA values for supplementary variables
+
+# Now both data frames have the same columns: Dim1, Dim2, name, contrib, type
+combined_vars <- rbind(active_vars, supplementary_vars)
+
+# Extract variance for Dim 1 and Dim 2
+dim1_variance <- res.mca_ConvexityFUM$eig["dim 1", "percentage of variance"]
+dim2_variance <- res.mca_ConvexityFUM$eig["dim 2", "percentage of variance"]
+
+# Round the variance percentages to 1 decimal place
+dim1_variance_percent <- round(dim1_variance, 1)
+dim2_variance_percent <- round(dim2_variance, 1)
+
+# MCA plot
+MCA_ConvexityFUM_plot <- ggplot() +
+  # Active variables: color based on contribution
+  geom_point(data = active_vars, 
+             aes(x = Dim1, y = Dim2, color = contrib), 
+             size = 4) +  # Adjust point size
+  geom_text_repel(data = active_vars, 
+                  aes(x = Dim1, y = Dim2, label = name, color = contrib), 
+                  size = 2.5,  # Smaller text size to prevent overlap
+                  fontface = "bold", 
+                  box.padding = 1,  # Increase padding around the label
+                  point.padding = 0.5,  # Adjust padding around the points
+                  max.overlaps = 100,  # Allow more overlap adjustments
+                  segment.size = 0.5,  # Thinner segments for repelling
+                  show.legend = FALSE) +  # Avoid legend for text
+  # Supplementary variables: points and text in black
+  geom_point(data = supplementary_vars, 
+             aes(x = Dim1, y = Dim2), 
+             size = 4, 
+             color = "black") +  # Points for supplementary in black
+  geom_text_repel(data = supplementary_vars, 
+                  aes(x = Dim1, y = Dim2, label = name), 
+                  size = 3,  # Adjust text size for supplementary vars
+                  color = "black",  # Set supplementary labels to black
+                  fontface = "bold", 
+                  point.padding = 0.5, 
+                  max.overlaps = 100,  # Allow more overlap adjustments
+                  segment.size = 0.5,  # Thinner segments for repelling
+                  show.legend = FALSE,
+                  box.padding = 0.3) +  # Adjust padding of supplementary text labels
+  # Add horizontal and vertical dashed lines at x = 0 and y = 0
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black") + 
+  geom_vline(xintercept = 0, linetype = "dashed", color = "black") +
+  # Customize colors for the gradient based on contribution
+  scale_color_gradientn(colors = c("#00AFBB", "#E7B800", "#FC4E07")) +
+  # Customize the plot appearance
+  scale_x_continuous(name = paste("Dim 1 (", dim1_variance_percent, "%)", sep = "")) +
+  scale_y_continuous(name = paste("Dim 2 (", dim2_variance_percent, "%)", sep = "")) +
+  theme_classic() +
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),
+    panel.background = element_rect(fill = "white", color = NA),
+    axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(size = 8, family = "Arial"),
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    plot.title = element_blank()
+  )
+
+# Display the plot
+MCA_ConvexityFUM_plot
+
+
+
+ggsave("MCAConvexityFUM.tiff", plot = MCA_ConvexityFUM_plot, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+ggsave("SIFig54.tiff", plot = MCA_ConvexityFUM_plot, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+
+#variance explained by each Dimension
+res.mca_ConvexityfFUM$eig
+fviz_screeplot(res.mca_ConvexityFUM, addlabels = TRUE, ylim = c(0, 45)) 
+#contribution to Dim 1 and Dim 2
+fviz_contrib(res.mca_ConvexityFUM, choice = "var", axes = 1, top = 15) #contribution to Dim 1. 
+fviz_contrib(res.mca_ConvexityFUM, choice = "var", axes = 2, top = 15) #contribution to Dim 2. 
+
+#check and visualise association of variables to Dim 1
+cos2_values_dim1 <- res.mca_ConvexityFUM$var$cos2[, 1]
+
+threshold_percentile <- quantile(cos2_values_dim1, 0.75)
+
+print(threshold_percentile)
+
+plot <- fviz_cos2(res.mca_ConvexityFUM, choice = "var", axes = 1)
+
+plot + geom_hline(yintercept = threshold_percentile, linetype = "dashed", color = "red")
+
+#check and visualise association of variables to Dim 2
+cos2_values_dim2 <- res.mca_ConvexityFUM$var$cos2[, 2]
+threshold_percentile <- quantile(cos2_values_dim2, 0.75)
+
+print(threshold_percentile)
+
+plot <- fviz_cos2(res.mca_ConvexityFUM, choice = "var", axes = 2)
+
+plot + geom_hline(yintercept = threshold_percentile, linetype = "dashed", color = "red")
+
+#association of supplementary categories
+cos2_values_supdim1 <- res.mca_ConvexityFUM$quali.sup$cos2[, 1]
+
+threshold_percentilesup1 <- quantile(cos2_values_supdim1, 0.75)
+
+print(threshold_percentilesup1)
+
+filtered_cos2_supdim1 <- cos2_values_supdim1[cos2_values_supdim1 > threshold_percentilesup1]
+print(filtered_cos2_supdim1)
+
+cos2_values_supdim2 <- res.mca_ConvexityFUM$quali.sup$cos2[, 2]
+
+threshold_percentilesup2 <- quantile(cos2_values_supdim2, 0.75)
+
+print(threshold_percentilesup2)
+
+filtered_cos2_supdim2 <- cos2_values_supdim2[cos2_values_supdim2 > threshold_percentilesup2]
+print(filtered_cos2_supdim2)
+
+
+```
+
+##CTS
+```{r}
+library(FactoMineR)
+library(factoextra)
+library(dplyr)
+library(ggplot2)
+
+
+
+# Select relevant columns and remove missing values
+convexity_maintenanceCTS <- Blanks_Main_merged_MCA %>%
+  filter(Blank.type1 != "Flake") %>% #check only laminar
+  filter(!Axiality %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Symmetry %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Outline.morphology %in% c("NA", "ND", "Other")) %>% #removing blanks without clear info
+  filter(!Profile %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Cross.section %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Torsion %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Distal.end.morpho %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(Site == "CTS04inf") %>% #only CTS
+  select(SiteBlank.type2, Axiality, Outline.morphology, Symmetry, Cross.section, Profile, Torsion, Distal.end.morpho) %>%
+  na.omit()
+
+summary(convexity_maintenanceCTS)
+# Run MCA
+res.mca_ConvexityCTS <- MCA(convexity_maintenanceCTS, graph = FALSE, quali.sup =1, method = "Burt") # SiteBlank.type1 is not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in convexity_maintenanceCTS, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
+
+# Summarize the MCA result
+summary(res.mca_ConvexityCTS)
+
+# Extract and clean supplementary category coordinates
+quali_sup_coords <- as.data.frame(res.mca_ConvexityCTS$quali.sup$coord)[, c(1, 2)]
+colnames(quali_sup_coords) <- c("Dim1", "Dim2")
+quali_sup_coords$name <- rownames(quali_sup_coords)
+
+# Extract and clean active variables (Dim1, Dim2) for active variables
+active_vars <- as.data.frame(res.mca_ConvexityCTS$var$coord) %>%
+  rename(Dim1 = `Dim 1`, Dim2 = `Dim 2`) %>%
+  mutate(type = "active", name = rownames(res.mca_ConvexityCTS$var$coord)) %>%
+  select(Dim1, Dim2, name, type)  # Keep only Dim1, Dim2, name, and type for active variables
+
+# Add contributions to Dim1 and Dim2 (contribution is a sum for these two dimensions)
+active_vars$contrib <- res.mca_ConvexityCTS$var$contrib[, 1] + res.mca_ConvexityCTS$var$contrib[, 2]  # Sum of contributions
+
+# Ensure supplementary variables have the same column names and structure as active_vars
+supplementary_vars <- quali_sup_coords %>%
+  mutate(type = "supplementary", name = rownames(quali_sup_coords)) %>%
+  mutate(contrib = NA)  # Add a column for 'contrib' with NA values for supplementary variables
+
+# Now both data frames have the same columns: Dim1, Dim2, name, contrib, type
+combined_vars <- rbind(active_vars, supplementary_vars)
+
+# Extract variance for Dim 1 and Dim 2
+dim1_variance <- res.mca_ConvexityCTS$eig["dim 1", "percentage of variance"]
+dim2_variance <- res.mca_ConvexityCTS$eig["dim 2", "percentage of variance"]
+
+# Round the variance percentages to 1 decimal place
+dim1_variance_percent <- round(dim1_variance, 1)
+dim2_variance_percent <- round(dim2_variance, 1)
+
+# MCA plot
+MCA_ConvexityCTS_plot <- ggplot() +
+  # Active variables: color based on contribution
+  geom_point(data = active_vars, 
+             aes(x = Dim1, y = Dim2, color = contrib), 
+             size = 4) +  # Adjust point size
+  geom_text_repel(data = active_vars, 
+                  aes(x = Dim1, y = Dim2, label = name, color = contrib), 
+                  size = 2.5,  # Smaller text size to prevent overlap
+                  fontface = "bold", 
+                  box.padding = 1,  # Increase padding around the label
+                  point.padding = 0.5,  # Adjust padding around the points
+                  max.overlaps = 100,  # Allow more overlap adjustments
+                  segment.size = 0.5,  # Thinner segments for repelling
+                  show.legend = FALSE) +  # Avoid legend for text
+  # Supplementary variables: points and text in black
+  geom_point(data = supplementary_vars, 
+             aes(x = Dim1, y = Dim2), 
+             size = 4, 
+             color = "black") +  # Points for supplementary in black
+  geom_text_repel(data = supplementary_vars, 
+                  aes(x = Dim1, y = Dim2, label = name), 
+                  size = 3,  # Adjust text size for supplementary vars
+                  color = "black",  # Set supplementary labels to black
+                  fontface = "bold", 
+                  point.padding = 0.5, 
+                  max.overlaps = 100,  # Allow more overlap adjustments
+                  segment.size = 0.5,  # Thinner segments for repelling
+                  show.legend = FALSE,
+                  box.padding = 0.3) +  # Adjust padding of supplementary text labels
+  # Add horizontal and vertical dashed lines at x = 0 and y = 0
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black") + 
+  geom_vline(xintercept = 0, linetype = "dashed", color = "black") +
+  # Customize colors for the gradient based on contribution
+  scale_color_gradientn(colors = c("#00AFBB", "#E7B800", "#FC4E07")) +
+  # Customize the plot appearance
+  scale_x_continuous(name = paste("Dim 1 (", dim1_variance_percent, "%)", sep = "")) +
+  scale_y_continuous(name = paste("Dim 2 (", dim2_variance_percent, "%)", sep = "")) +
+  theme_classic() +
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),
+    panel.background = element_rect(fill = "white", color = NA),
+    axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(size = 8, family = "Arial"),
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    plot.title = element_blank()
+  )
+
+# Display the plot
+MCA_ConvexityCTS_plot
+
+ggsave("MCAConvexityCTS.tiff", plot = MCA_ConvexityCTS_plot, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+ggsave("SIFig55.tiff", plot = MCA_ConvexityCTS_plot, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")  
+
+#variance explained by each Dimension
+res.mca_ConvexityCTS$eig
+fviz_screeplot(res.mca_ConvexityCTS, addlabels = TRUE, ylim = c(0, 45)) 
+#contribution to Dim 1 and Dim 2
+fviz_contrib(res.mca_ConvexityCTS, choice = "var", axes = 1, top = 15) #contribution to Dim 1. above the threshold are No, Other, Punctiform 
+
+fviz_contrib(res.mca_ConvexityCTS, choice = "var", axes = 2, top = 15) #contribution to Dim 2. above the threshold is only Plain, Punctiform, Linear
+
+#check and visualise association of variables to Dim 1
+cos2_values_dim1 <- res.mca_ConvexityCTS$var$cos2[, 1]
+
+threshold_percentile <- quantile(cos2_values_dim1, 0.75)
+
+print(threshold_percentile)
+
+plot <- fviz_cos2(res.mca_ConvexityCTS, choice = "var", axes = 1)
+
+plot + geom_hline(yintercept = threshold_percentile, linetype = "dashed", color = "red")
+
+#check and visualise association of variables to Dim 2
+cos2_values_dim2 <- res.mca_ConvexityCTS$var$cos2[, 2]
+threshold_percentile <- quantile(cos2_values_dim2, 0.75)
+
+print(threshold_percentile)
+
+plot <- fviz_cos2(res.mca_ConvexityCTS, choice = "var", axes = 2)
+
+plot + geom_hline(yintercept = threshold_percentile, linetype = "dashed", color = "red")
+
+#association of supplementary categories
+cos2_values_supdim1 <- res.mca_ConvexityCTS$quali.sup$cos2[, 1]
+
+threshold_percentilesup1 <- quantile(cos2_values_supdim1, 0.75)
+
+print(threshold_percentilesup1)
+
+filtered_cos2_supdim1 <- cos2_values_supdim1[cos2_values_supdim1 > threshold_percentilesup1]
+print(filtered_cos2_supdim1)
+
+cos2_values_supdim2 <- res.mca_ConvexityCTS$quali.sup$cos2[, 2]
+
+threshold_percentilesup2 <- quantile(cos2_values_supdim2, 0.75)
+
+print(threshold_percentilesup2)
+
+filtered_cos2_supdim2 <- cos2_values_supdim2[cos2_values_supdim2 > threshold_percentilesup2]
+print(filtered_cos2_supdim2)
+
+
+```
+
+##EUP - SOLU
+```{r}
+library(FactoMineR)
+library(factoextra)
+library(dplyr)
+library(ggplot2)
+
+
+
+# Select relevant columns and remove missing values
+convexity_maintenance_CONTROL <- combinedControl_MCA %>%
+  filter(Blank.type1 != "Flake") %>% #check only laminar
+  filter(!Axiality %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Outline.morphology %in% c("NA", "ND", "Divergent", "Biconvex")) %>% #removing blanks without clear info
+  filter(!Profile %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Cross.section %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Torsion %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Distal.end.morpho %in% c("NA", "ND")) %>% #removing blanks without clear info
+  select(Technocomplex, SiteBlank.type2,Axiality, Outline.morphology, Cross.section, Profile, Torsion, Distal.end.morpho) %>%
+  na.omit()
+  
+summary(convexity_maintenance_CONTROL)
+
+# Run MCA
+# Perform MCA for convexity maintenance control
+res.mca_convexityCONTROL <- MCA(convexity_maintenance_CONTROL, graph = FALSE, quali.sup = 1:2, method = "Burt")
+
+# Summarize the MCA result
+summary(res.mca_convexityCONTROL)
+
+# Extract and clean supplementary category coordinates
+quali_sup_coords <- as.data.frame(res.mca_convexityCONTROL$quali.sup$coord)[, c(1, 2)]
+colnames(quali_sup_coords) <- c("Dim1", "Dim2")
+quali_sup_coords$name <- rownames(quali_sup_coords)
+
+# Extract and clean active variables (Dim1, Dim2) for active variables
+active_vars <- as.data.frame(res.mca_convexityCONTROL$var$coord) %>%
+  rename(Dim1 = `Dim 1`, Dim2 = `Dim 2`) %>%
+  mutate(type = "active", name = rownames(res.mca_convexityCONTROL$var$coord)) %>%
+  select(Dim1, Dim2, name, type)  # Keep only Dim1, Dim2, name, and type for active variables
+
+# Add contributions to Dim1 and Dim2 (contribution is a sum for these two dimensions)
+active_vars$contrib <- res.mca_convexityCONTROL$var$contrib[, 1] + res.mca_convexityCONTROL$var$contrib[, 2]  # Sum of contributions
+
+# Ensure supplementary variables have the same column names and structure as active_vars
+supplementary_vars <- quali_sup_coords %>%
+  mutate(type = "supplementary", name = rownames(quali_sup_coords)) %>%
+  mutate(contrib = NA)  # Add a column for 'contrib' with NA values for supplementary variables
+
+# Now both data frames have the same columns: Dim1, Dim2, name, contrib, type
+combined_vars <- rbind(active_vars, supplementary_vars)
+
+# Extract variance for Dim 1 and Dim 2
+dim1_variance <- res.mca_convexityCONTROL$eig["dim 1", "percentage of variance"]
+dim2_variance <- res.mca_convexityCONTROL$eig["dim 2", "percentage of variance"]
+
+# Round the variance percentages to 1 decimal place
+dim1_variance_percent <- round(dim1_variance, 1)
+dim2_variance_percent <- round(dim2_variance, 1)
+
+# MCA plot for convexity maintenance control
+MCA_convexityCONTROL_plot <- ggplot() +
+  # Active variables: color based on contribution
+  geom_point(data = active_vars, 
+             aes(x = Dim1, y = Dim2, color = contrib), 
+             size = 4) +  # Adjust point size
+  geom_text_repel(data = active_vars, 
+                  aes(x = Dim1, y = Dim2, label = name, color = contrib), 
+                  size = 2.5,  # Smaller text size to prevent overlap
+                  fontface = "bold", 
+                  box.padding = 1,  # Increase padding around the label
+                  point.padding = 0.5,  # Adjust padding around the points
+                  max.overlaps = 100,  # Allow more overlap adjustments
+                  segment.size = 0.5,  # Thinner segments for repelling
+                  show.legend = FALSE) +  # Avoid legend for text
+  # Supplementary variables: points and text in black
+  geom_point(data = supplementary_vars, 
+             aes(x = Dim1, y = Dim2), 
+             size = 4, 
+             color = "black") +  # Points for supplementary in black
+  geom_text_repel(data = supplementary_vars, 
+                  aes(x = Dim1, y = Dim2, label = name), 
+                  size = 3,  # Adjust text size for supplementary vars
+                  color = "black",  # Set supplementary labels to black
+                  fontface = "bold", 
+                  point.padding = 0.5, 
+                  max.overlaps = 100,  # Allow more overlap adjustments
+                  segment.size = 0.5,  # Thinner segments for repelling
+                  show.legend = FALSE,
+                  box.padding = 0.3) +  # Adjust padding of supplementary text labels
+  # Add horizontal and vertical dashed lines at x = 0 and y = 0
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black") + 
+  geom_vline(xintercept = 0, linetype = "dashed", color = "black") +
+  # Customize colors for the gradient based on contribution
+  scale_color_gradientn(colors = c("#00AFBB", "#E7B800", "#FC4E07")) +
+  # Customize the plot appearance
+  scale_x_continuous(name = paste("Dim 1 (", dim1_variance_percent, "%)", sep = "")) +
+  scale_y_continuous(name = paste("Dim 2 (", dim2_variance_percent, "%)", sep = "")) +
+  theme_classic() +
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),
+    panel.background = element_rect(fill = "white", color = NA),
+    axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+    axis.text.x = element_text(size = 8, family = "Arial"),
+    axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8, family = "Arial"),
+    axis.ticks.x = element_blank(),
+    strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+    plot.title = element_blank()
+  )
+
+# Display the plot
+MCA_convexityCONTROL_plot
+
+# Save the plot as SVG
+ggsave("MCA_convexityCONTROL_plot.svg", plot = MCA_convexityCONTROL_plot, width = 19.05, height = 22.23, units = "cm", dpi = 300)
+ggsave("Fig09.svg", plot = MCA_convexityCONTROL_plot, width = 19.05, height = 22.23, units = "cm", dpi = 300)
+
+
+#variance explained by each Dimension
+res.mca_convexityCONTROL$eig
+fviz_screeplot(res.mca_convexityCONTROL, addlabels = TRUE, ylim = c(0, 45)) 
+#contribution to Dim 1 and Dim 2
+fviz_contrib(res.mca_convexityCONTROL, choice = "var", axes = 1, top = 15) 
+
+fviz_contrib(res.mca_convexityCONTROL, choice = "var", axes = 2, top = 15) 
+
+#check and visualise association of variables to Dim 1
+cos2_values_dim1 <- res.mca_convexityCONTROL$var$cos2[, 1]
+
+threshold_percentile <- quantile(cos2_values_dim1, 0.75)
+
+print(threshold_percentile)
+
+plot <- fviz_cos2(res.mca_convexityCONTROL, choice = "var", axes = 1)
+
+plot + geom_hline(yintercept = threshold_percentile, linetype = "dashed", color = "red")
+
+#check and visualise association of variables to Dim 2
+cos2_values_dim2 <- res.mca_convexityCONTROL$var$cos2[, 2]
+threshold_percentile <- quantile(cos2_values_dim2, 0.75)
+
+print(threshold_percentile)
+
+plot <- fviz_cos2(res.mca_convexityCONTROL, choice = "var", axes = 2)
+
+plot + geom_hline(yintercept = threshold_percentile, linetype = "dashed", color = "red")
+
+#association of supplementary categories
+cos2_values_supdim1 <- res.mca_convexityCONTROL$quali.sup$cos2[, 1]
+
+threshold_percentilesup1 <- quantile(cos2_values_supdim1, 0.75)
+
+print(threshold_percentilesup1)
+
+filtered_cos2_supdim1 <- cos2_values_supdim1[cos2_values_supdim1 > threshold_percentilesup1]
+print(filtered_cos2_supdim1)
+
+cos2_values_supdim2 <- res.mca_convexityCONTROL$quali.sup$cos2[, 2]
+
+threshold_percentilesup2 <- quantile(cos2_values_supdim2, 0.75)
+
+print(threshold_percentilesup2)
+
+filtered_cos2_supdim2 <- cos2_values_supdim2[cos2_values_supdim2 > threshold_percentilesup2]
+print(filtered_cos2_supdim2)
+
+
+
+ 
+```
+###correlation
+```{r}
+library(factoextra)
+
+coord_var4 <- as.data.frame(res.mca_convexityCONTROL$var$coord[, 1:2])
+
+coord_sup4 <- as.data.frame(res.mca_convexityCONTROL$quali.sup$coord[, 1:2])
+
+# Combine both for distance calculation
+coord_sup4.2 <- coord_sup4 %>% filter(row.names(coord_sup4) %in% c("Proto", "S.Ahm", "Solu")) 
+coord_sup4.3 <- coord_sup4 %>% filter(!(row.names(coord_sup4) %in% c("Proto", "S.Ahm", "Solu")))
+
+
+coord_combined4 <- rbind(coord_var4, coord_sup4)
+coord_combined4.2 <-rbind(coord_var4, coord_sup4.2)
+coord_combined4.3 <-rbind(coord_var4, coord_sup4.3)
+
+
+# Calculate the distance matrix using euclidean correlation distance
+data.cor10 <- get_dist(coord_var4, method = "euclidean")
+data.cor10_df <- as.data.frame(as.matrix(data.cor10))
+write_xlsx(data.cor10_df, "CorrelationAttributesConvexityCONTROL1.xlsx")
+
+#heatmap
+corConv4 <- fviz_dist(dist.obj = data.cor10, 
+                     order = TRUE, 
+                     show_labels = TRUE)+
+    theme_classic() +
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),
+    panel.background = element_rect(fill = "white", color = NA),
+    axis.text = element_text(size = 8, face = "bold", color = "black", family = "Arial"), 
+    axis.text.x = element_text(size = 8, family = "Arial", angle = 90, hjust = 1, vjust = 0.5), 
+    axis.text.y = element_text(size = 8, face = "bold", family = "Arial"), 
+    legend.text = element_text(size = 8, family = "Arial"), 
+    legend.title = element_blank(), 
+    axis.title.x = element_blank(), 
+    axis.title.y = element_blank()  
+  ) + 
+  scale_x_discrete(labels = function(x) gsub("-", "", x)) +   
+  scale_y_discrete(labels = function(y) gsub("-", "", y)) 
+corConv4 
+
+ggsave("CORRConvexityCONTROL.tiff", plot = corConv4, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+ggsave("SIFig56.tiff", plot = corConv4, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+
+data.cor11 <- get_dist(coord_combined4.2, method = "euclidean")
+data.cor11_df <- as.data.frame(as.matrix(data.cor11))
+write_xlsx(data.cor11_df, "CorrelationAttributesConvexityCONTROL2.xlsx")
+
+
+#heatmap
+corConv5 <- fviz_dist(dist.obj = data.cor11, 
+                     order = TRUE, 
+                     show_labels = TRUE)+
+    theme_classic() +
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),
+    panel.background = element_rect(fill = "white", color = NA),
+    axis.text = element_text(size = 8, face = "bold", color = "black", family = "Arial"),
+    axis.text.x = element_text(size = 8, family = "Arial", angle = 90, hjust = 1, vjust = 0.5), 
+    axis.text.y = element_text(size = 8, face = "bold", family = "Arial"), 
+    legend.text = element_text(size = 8, family = "Arial"), 
+    legend.title = element_blank(), 
+    axis.title.x = element_blank(), 
+    axis.title.y = element_blank() 
+  ) + 
+scale_x_discrete(labels = function(x) gsub("-", "", x)) +  
+scale_y_discrete(labels = function(y) gsub("-", "", y)) 
+corConv5
+
+
+ggsave("CORRConvexityCONTROL_withquali.tiff", plot = corConv5, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+ggsave("SIFig57.tiff", plot = corConv5, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+
+data.cor12 <- get_dist(coord_combined4.3, method = "euclidean")
+data.cor12_df <- as.data.frame(as.matrix(data.cor12))
+write_xlsx(data.cor12_df, "CorrelationAttributesConvexityCONTROL3.xlsx")
+
+#heatmap
+corConv6 <- fviz_dist(dist.obj = data.cor12, 
+                     order = TRUE, 
+                     show_labels = TRUE)+
+  theme_classic() +
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),
+    panel.background = element_rect(fill = "white", color = NA),
+    axis.text = element_text(size = 8, face = "bold", color = "black", family = "Arial"),
+    axis.text.x = element_text(size = 8, family = "Arial", angle = 90, hjust = 1, vjust = 0.5), 
+    axis.text.y = element_text(size = 8, face = "bold", family = "Arial"), 
+    legend.text = element_text(size = 8, family = "Arial"), 
+    legend.title = element_blank(), 
+    axis.title.x = element_blank(), 
+    axis.title.y = element_blank()  
+  ) + 
+  scale_x_discrete(labels = function(x) gsub("-", "", x)) +   
+  scale_y_discrete(labels = function(y) gsub("-", "", y))
+corConv6
+
+
+ggsave("CORRConvexityCONTROL_withquali_2.tiff", plot = corConv6, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+ggsave("SIFig58.tiff", plot = corConv6, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+
+```
+
+
+##ONLY EUP
+```{r}
+library(FactoMineR)
+library(factoextra)
+library(dplyr)
+library(ggplot2)
+
+
+
+# Select relevant columns and remove missing values
+convexity_maintenance_ALL2 <- Blanks_Main_merged_MCA %>%
+  filter(Blank.type1 != "Flake") %>% #check only laminar
+  filter(!Axiality %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Symmetry %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Outline.morphology %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Profile %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Cross.section %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Torsion %in% c("NA", "ND")) %>% #removing blanks without clear info
+  filter(!Distal.end.morpho %in% c("NA", "ND")) %>% #removing blanks without clear info
+  select(SiteBlank.type2, Blank.type2, Axiality, Outline.morphology, Symmetry, Cross.section, Profile, Torsion, Distal.end.morpho) %>%
+  na.omit()
+  
+summary(convexity_maintenance_ALL2)
+
+# Run MCA
+res.mca_convexityALL2 <- MCA(convexity_maintenance_ALL2, graph = FALSE, quali.sup =1:2, method = "Burt") # SiteBlank.type1 is not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in retouching_ALL2, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
+summary(res.mca_convexityALL2)
+
+
+# Extract and clean supplementary category coordinates
+quali_sup_coords <- as.data.frame(res.mca_convexityALL2$quali.sup$coord)[, c(1, 2)]
+colnames(quali_sup_coords) <- c("Dim1", "Dim2")
+quali_sup_coords$name <- rownames(quali_sup_coords)
+# Extract only Dim1 and Dim2 for active variables and rename columns
+active_vars <- as.data.frame(res.mca_convexityALL2$var$coord) %>%
+     rename(Dim1 = `Dim 1`, Dim2 = `Dim 2`) %>%  # Rename columns
+     mutate(type = "active", name = rownames(res.mca_convexityALL2$var$coord)) %>%
+     select(Dim1, Dim2, name, type)  # Keep only Dim1, Dim2, name, and type for active variables
+ 
+ # Add contributions to Dim1 and Dim2 (contribution is a sum for these two dimensions)
+ active_vars$contrib <- res.mca_convexityALL2$var$contrib[, 1] + res.mca_convexityALL2$var$contrib[, 2]  # Sum of contributions
+ 
+ # Ensure supplementary variables have the same column names and structure as active_vars
+ supplementary_vars <- quali_sup_coords %>%
+    mutate(type = "supplementary", name = rownames(quali_sup_coords)) %>%
+     mutate(contrib = NA)  # Add a column for 'contrib' with NA values for supplementary variables
+ 
+ # Now both data frames have the same columns: Dim1, Dim2, name, contrib, type
+ combined_vars <- rbind(active_vars, supplementary_vars)
+ 
+# Extract variance for Dim 1 and Dim 2
+dim1_variance <- res.mca_convexityALL2$eig["dim 1", "percentage of variance"]
+dim2_variance <- res.mca_convexityALL2$eig["dim 2", "percentage of variance"]
+
+# Round the variance percentages to 1 decimal place
+dim1_variance_percent <- round(dim1_variance, 1)
+dim2_variance_percent <- round(dim2_variance, 1)
+
+#MCA plot
+MCA_convexityALL2_plot <- ggplot() +
+    # Active variables: color based on contribution
+    geom_point(data = active_vars, 
+               aes(x = Dim1, y = Dim2, color = contrib), 
+               size = 4) +  # Adjust point size
+    geom_text_repel(data = active_vars, 
+                    aes(x = Dim1, y = Dim2, label = name, color = contrib), 
+                    size = 2.5,  # Smaller text size to prevent overlap
+                    fontface = "bold", 
+                    box.padding = 1,  # Increase padding around the label
+                    point.padding = 0.5,  # Adjust padding around the points
+                    max.overlaps = 100,  # Allow more overlap adjustments
+                    segment.size = 0.5,  # Thinner segments for repelling
+                    show.legend = FALSE) +  # Avoid legend for text
+    # Supplementary variables: points and text in black
+    geom_point(data = supplementary_vars, 
+               aes(x = Dim1, y = Dim2), 
+               size = 4, 
+               color = "black") +  # Points for supplementary in black
+    geom_text_repel(data = supplementary_vars, 
+                    aes(x = Dim1, y = Dim2, label = name), 
+                    size = 3,  # Adjust text size for supplementary vars
+                    color = "black",  # Set supplementary labels to black
+                    fontface = "bold", 
+                    point.padding = 0.5, 
+                    max.overlaps = 100,  # Allow more overlap adjustments
+                    segment.size = 0.5,  # Thinner segments for repelling
+                    show.legend = FALSE,
+                    box.padding = 0.3) +  # Adjust padding of supplementary text labels
+    # Add horizontal and vertical dashed lines at x = 0 and y = 0
+    geom_hline(yintercept = 0, linetype = "dashed", color = "black") + 
+    geom_vline(xintercept = 0, linetype = "dashed", color = "black") +
+    # Customize colors for the gradient based on contribution
+    scale_color_gradientn(colors = c("#00AFBB", "#E7B800", "#FC4E07")) +
+    # Customize the plot appearance
+    scale_x_continuous(name = paste("Dim 1 (", dim1_variance_percent, "%)", sep = "")) +
+    scale_y_continuous(name = paste("Dim 2 (", dim2_variance_percent, "%)", sep = "")) +
+    theme_classic() +
+    theme(
+        plot.background = element_rect(fill = "white", color = NA),
+        panel.background = element_rect(fill = "white", color = NA),
+        axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+        axis.text.x = element_text(size = 8, family = "Arial"),
+        axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 8, family = "Arial"),
+        axis.ticks.x = element_blank(),
+        strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+        plot.title = element_blank()
+    )
+
+# Display the plot
+MCA_convexityALL2_plot
+
+# Save the plot as SVG
+ggsave("MCAconvexityALLbis.svg", plot = MCA_convexityALL2_plot, width = 19.05, height = 22.23, units = "cm", dpi = 300)
+ggsave("Fig10.svg", plot = MCA_convexityALL2_plot, width = 19.05, height = 22.23, units = "cm", dpi = 300)
+
+
+#variance explained by each Dimension
+res.mca_convexityALL2$eig
+fviz_screeplot(res.mca_convexityALL2, addlabels = TRUE, ylim = c(0, 45))
+
+#contribution to Dim 1 and Dim 2
+fviz_contrib(res.mca_convexityALL2, choice = "var", axes = 1, top = 15) #contribution to Dim 1. 
+fviz_contrib(res.mca_convexityALL2, choice = "var", axes = 2, top = 15) #contribution to Dim 2. 
+
+#check and visualise association of variables to Dim 1
+cos2_values_dim1 <- res.mca_convexityALL2$var$cos2[, 1]
+
+threshold_percentile <- quantile(cos2_values_dim1, 0.75)
+
+print(threshold_percentile)
+
+plot <- fviz_cos2(res.mca_convexityALL2, choice = "var", axes = 1)
+
+plot + geom_hline(yintercept = threshold_percentile, linetype = "dashed", color = "red")
+
+#check and visualise association of variables to Dim 2
+cos2_values_dim2 <- res.mca_convexityALL2$var$cos2[, 2]
+threshold_percentile <- quantile(cos2_values_dim2, 0.75)
+
+print(threshold_percentile)
+
+plot <- fviz_cos2(res.mca_convexityALL2, choice = "var", axes = 2)
+
+plot + geom_hline(yintercept = threshold_percentile, linetype = "dashed", color = "red")
+
+#association of supplementary categories
+cos2_values_supdim1 <- res.mca_convexityALL2$quali.sup$cos2[, 1]
+
+threshold_percentilesup1 <- quantile(cos2_values_supdim1, 0.75)
+
+print(threshold_percentilesup1)
+
+filtered_cos2_supdim1 <- cos2_values_supdim1[cos2_values_supdim1 > threshold_percentilesup1]
+print(filtered_cos2_supdim1)
+
+cos2_values_supdim2 <- res.mca_convexityALL2$quali.sup$cos2[, 2]
+
+threshold_percentilesup2 <- quantile(cos2_values_supdim2, 0.75)
+
+print(threshold_percentilesup2)
+
+filtered_cos2_supdim2 <- cos2_values_supdim2[cos2_values_supdim2 > threshold_percentilesup2]
+print(filtered_cos2_supdim2)
+   
+```
+###correlation
+```{r}
+library(factoextra)
+
+coord_var3 <- as.data.frame(res.mca_convexityALL2$var$coord[, 1:2])
+
+coord_sup3 <- as.data.frame(res.mca_convexityALL2$quali.sup$coord[, 1:2])
+
+# Subset only rows where the categories are "Blade" or "Bladelet"
+coord_sup3.2 <- coord_sup3 %>% filter(row.names(coord_sup3) %in% c("Blade", "Bladelet")) 
+coord_sup3.3 <- coord_sup3 %>% filter(!(row.names(coord_sup3) %in% c("Blade", "Bladelet")))
+
+
+coord_combined3 <- rbind(coord_var3, coord_sup3)
+coord_combined3.2 <-rbind(coord_var3, coord_sup3.2)
+coord_combined3.3 <-rbind(coord_var3, coord_sup3.3)
+
+# Calculate distance matrix and visualize using VAT
+data.cor7 <- get_dist(coord_var3, method = "euclidean")
+print(data.cor7)
+data.cor7_df <- as.data.frame(as.matrix(data.cor7))
+write_xlsx(data.cor7_df, "CorrelationAttributesConvexity1.xlsx")
+
+#heatmap
+corConv1 <- fviz_dist(dist.obj = data.cor7, 
+                     order = TRUE, 
+                     show_labels = TRUE)+
+    theme_classic() +
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),
+    panel.background = element_rect(fill = "white", color = NA),
+    axis.text = element_text(size = 8, face = "bold", color = "black", family = "Arial"), 
+    axis.text.x = element_text(size = 8, family = "Arial", angle = 90, hjust = 1, vjust = 0.5), 
+    axis.text.y = element_text(size = 8, face = "bold", family = "Arial"), 
+    legend.text = element_text(size = 8, family = "Arial"), 
+    legend.title = element_blank(), 
+    axis.title.x = element_blank(), 
+    axis.title.y = element_blank()  
+  ) + 
+  scale_x_discrete(labels = function(x) gsub("-", "", x)) +   
+  scale_y_discrete(labels = function(y) gsub("-", "", y)) 
+corConv1
+
+ggsave("CORRConvexityALL.tiff", plot = corConv1, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+ggsave("SIFig59.tiff", plot = corConv1, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")  
+
+data.cor8 <- get_dist(coord_combined3.2, method = "euclidean")
+data.cor8_df <- as.data.frame(as.matrix(data.cor8))
+write_xlsx(data.cor8_df, "CorrelationAttributesConvexity2.xlsx")
+
+#heatmap
+corConv2 <- fviz_dist(dist.obj = data.cor8, 
+                     order = TRUE, 
+                     show_labels = TRUE)+
+    theme_classic() +
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),
+    panel.background = element_rect(fill = "white", color = NA),
+    axis.text = element_text(size = 8, face = "bold", color = "black", family = "Arial"), 
+    axis.text.x = element_text(size = 8, family = "Arial", angle = 90, hjust = 1, vjust = 0.5), 
+    axis.text.y = element_text(size = 8, face = "bold", family = "Arial"), 
+    legend.text = element_text(size = 8, family = "Arial"), 
+    legend.title = element_blank(), 
+    axis.title.x = element_blank(), 
+    axis.title.y = element_blank()  
+  ) + 
+  scale_x_discrete(labels = function(x) gsub("-", "", x)) +   
+  scale_y_discrete(labels = function(y) gsub("-", "", y)) 
+corConv2
+
+ggsave("CORRConvexityALL_withquali.tiff", plot = corConv2, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+ggsave("SIFig60.tiff", plot = corConv2, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+
+data.cor9 <- get_dist(coord_combined3.3, method = "euclidean")
+data.cor9_df <- as.data.frame(as.matrix(data.cor9))
+write_xlsx(data.cor9_df, "CorrelationAttributesConvexity3.xlsx")
+
+#heatmap
+corConv3 <- fviz_dist(
+  dist.obj = data.cor9,
+  order = TRUE,
+  show_labels = TRUE)+
+    theme_classic() +
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),
+    panel.background = element_rect(fill = "white", color = NA),
+    axis.text = element_text(size = 8, face = "bold", color = "black", family = "Arial"),
+    axis.text.x = element_text(size = 8, family = "Arial", angle = 90, hjust = 1, vjust = 0.5), 
+    axis.text.y = element_text(size = 8, face = "bold", family = "Arial"), 
+    legend.text = element_text(size = 8, family = "Arial"), 
+    legend.title = element_blank(), 
+    axis.title.x = element_blank(), 
+    axis.title.y = element_blank()  
+  ) + 
+  scale_x_discrete(labels = function(x) gsub("-", "", x)) +   
+  scale_y_discrete(labels = function(y) gsub("-", "", y)) 
+corConv3
+
+ggsave("CORRConvexityALL_withquali_2.tiff", plot = corConv3, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+ggsave("SIFig61.tiff", plot = corConv3, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+```
+
+
+
+#Retouching
+##ONLY EUP
+
+```{r}
+library(FactoMineR)
+library(factoextra)
+library(dplyr)
+library(ggplot2)
+
+
+
+# Select relevant columns and remove missing values
+retouching_ALL2 <- Blanks_Main_merged_MCA %>% 
+  filter(Blank.type1 != "Flake", Tool == "Yes", Typology %in% c("Blade retouched", "Bladelet retouched", "Bladelet with lateral retouch", "Blade with lateral retouch", "Dufour bladelet", "Font-Yves point", "Blade Aurignacian", "Blade pointed", "Backed bladelet", "Backed blade", "El-Wad point")  ) %>% 
+  filter(!Retouch.Location %in% c("NA", "ND"))%>%
+filter(!Retouch.Distribution %in% c("NA", "ND"))%>%
+  select(SiteBlank.type2, Retouch.Position, Retouch.Location, Retouch.Distribution) %>%
+  na.omit()
+  
+summary(retouching_ALL2)
+
+# Run MCA
+res.mca_retouchingALL2 <- MCA(retouching_ALL2, graph = FALSE, quali.sup = 1, method = "Burt") # SiteBlank.type1 is not part of the active variables used to compute the MCA but is considered as supplementary information. The MCA analysis is performed based on the active variables in retouching_ALL2, and the supplementary variables are used to provide additional information or context to the analysis. Their coordinates are predicted using only the information provided by the performed multiple correspondence analysis on active variables/individuals.
+
+summary(res.mca_retouchingALL2)
+
+# Extract and clean supplementary category coordinates
+quali_sup_coords <- as.data.frame(res.mca_retouchingALL2$quali.sup$coord)[, c(1, 2)]
+colnames(quali_sup_coords) <- c("Dim1", "Dim2")
+quali_sup_coords$name <- rownames(quali_sup_coords)
+
+# Extract only Dim1 and Dim2 for active variables and rename columns
+active_vars <- as.data.frame(res.mca_retouchingALL2$var$coord) %>%
+     rename(Dim1 = `Dim 1`, Dim2 = `Dim 2`) %>%  # Rename columns
+     mutate(type = "active", name = rownames(res.mca_retouchingALL2$var$coord)) %>%
+     select(Dim1, Dim2, name, type)  # Keep only Dim1, Dim2, name, and type for active variables
+ 
+ # Add contributions to Dim1 and Dim2 (contribution is a sum for these two dimensions)
+ active_vars$contrib <- res.mca_retouchingALL2$var$contrib[, 1] + res.mca_retouchingALL2$var$contrib[, 2]  # Sum of contributions
+ 
+ # Ensure supplementary variables have the same column names and structure as active_vars
+ supplementary_vars <- quali_sup_coords %>%
+    mutate(type = "supplementary", name = rownames(quali_sup_coords)) %>%
+     mutate(contrib = NA)  # Add a column for 'contrib' with NA values for supplementary variables
+ 
+ # Now both data frames have the same columns: Dim1, Dim2, name, contrib, type
+ combined_vars <- rbind(active_vars, supplementary_vars)
+ 
+# Extract variance for Dim 1 and Dim 2
+dim1_variance <- res.mca_retouchingALL2$eig["dim 1", "percentage of variance"]
+dim2_variance <- res.mca_retouchingALL2$eig["dim 2", "percentage of variance"]
+
+# Round the variance percentages to 1 decimal place
+dim1_variance_percent <- round(dim1_variance, 1)
+dim2_variance_percent <- round(dim2_variance, 1)
+
+# MCA plot
+MCA_retouchingALL2_plot <- ggplot() +
+    # Active variables: color based on contribution
+    geom_point(data = active_vars, 
+               aes(x = Dim1, y = Dim2, color = contrib), 
+               size = 4) +  # Adjust point size
+    geom_text_repel(data = active_vars, 
+                    aes(x = Dim1, y = Dim2, label = name, color = contrib), 
+                    size = 2.5,  # Smaller text size to prevent overlap
+                    fontface = "bold", 
+                    box.padding = 1,  # Increase padding around the label
+                    point.padding = 0.5,  # Adjust padding around the points
+                    max.overlaps = 100,  # Allow more overlap adjustments
+                    segment.size = 0.5,  # Thinner segments for repelling
+                    show.legend = FALSE) +  # Avoid legend for text
+    # Supplementary variables: points and text in black
+    geom_point(data = supplementary_vars, 
+               aes(x = Dim1, y = Dim2), 
+               size = 4, 
+               color = "black") +  # Points for supplementary in black
+    geom_text_repel(data = supplementary_vars, 
+                    aes(x = Dim1, y = Dim2, label = name), 
+                    size = 3,  # Adjust text size for supplementary vars
+                    color = "black",  # Set supplementary labels to black
+                    fontface = "bold", 
+                    point.padding = 0.5, 
+                    max.overlaps = 100,  # Allow more overlap adjustments
+                    segment.size = 0.5,  # Thinner segments for repelling
+                    show.legend = FALSE,
+                    box.padding = 0.3) +  # Adjust padding of supplementary text labels
+    # Add horizontal and vertical dashed lines at x = 0 and y = 0
+    geom_hline(yintercept = 0, linetype = "dashed", color = "black") + 
+    geom_vline(xintercept = 0, linetype = "dashed", color = "black") +
+    # Customize colors for the gradient based on contribution
+    scale_color_gradientn(colors = c("#00AFBB", "#E7B800", "#FC4E07")) +
+    # Customize the plot appearance
+    scale_x_continuous(name = paste("Dim 1 (", dim1_variance_percent, "%)", sep = "")) +
+    scale_y_continuous(name = paste("Dim 2 (", dim2_variance_percent, "%)", sep = "")) +
+    theme_classic() +
+    theme(
+        plot.background = element_rect(fill = "white", color = NA),
+        panel.background = element_rect(fill = "white", color = NA),
+        axis.text = element_text(face = "bold", size = 8, color = "black", family = "Arial"),
+        axis.text.x = element_text(size = 8, family = "Arial"),
+        axis.text.y = element_text(face = "bold", size = 8, family = "Arial"),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 8, family = "Arial"),
+        axis.ticks.x = element_blank(),
+        strip.text = element_text(face = "bold", size = 8, family = "Arial"),
+        plot.title = element_blank()
+    )
+
+# Display the plot
+MCA_retouchingALL2_plot
+
+# Save the plot as SVG
+ggsave("MCAretouchingALLbis.svg", plot = MCA_retouchingALL2_plot, width = 19.05, height = 22.23, units = "cm", dpi = 300)
+ggsave("Fig11.svg", plot = MCA_retouchingALL2_plot, width = 19.05, height = 22.23, units = "cm", dpi = 300)
+
+
+#variance explained by each Dimension
+res.mca_retouchingALL2$eig
+fviz_screeplot(res.mca_retouchingALL2, addlabels = TRUE, ylim = c(0, 45)) 
+#contribution to Dim 1 and Dim 2
+fviz_contrib(res.mca_retouchingALL2, choice = "var", axes = 1, top = 15) #contribution to Dim 1. above the threshold are No, Other, Punctiform 
+
+fviz_contrib(res.mca_retouchingALL2, choice = "var", axes = 2, top = 15) #contribution to Dim 2. above the threshold is only Plain, Punctiform, Linear
+
+#check and visualise association of variables to Dim 1
+cos2_values_dim1 <- res.mca_retouchingALL2$var$cos2[, 1]
+
+threshold_percentile <- quantile(cos2_values_dim1, 0.75)
+
+print(threshold_percentile)
+
+plot <- fviz_cos2(res.mca_retouchingALL2, choice = "var", axes = 1)
+
+plot + geom_hline(yintercept = threshold_percentile, linetype = "dashed", color = "red")
+
+#check and visualise association of variables to Dim 2
+cos2_values_dim2 <- res.mca_retouchingALL2$var$cos2[, 2]
+threshold_percentile <- quantile(cos2_values_dim2, 0.75)
+
+print(threshold_percentile)
+
+plot <- fviz_cos2(res.mca_retouchingALL2, choice = "var", axes = 2)
+
+plot + geom_hline(yintercept = threshold_percentile, linetype = "dashed", color = "red")
+
+#association of supplementary categories
+cos2_values_supdim1 <- res.mca_retouchingALL2$quali.sup$cos2[, 1]
+
+threshold_percentilesup1 <- quantile(cos2_values_supdim1, 0.75)
+
+print(threshold_percentilesup1)
+
+filtered_cos2_supdim1 <- cos2_values_supdim1[cos2_values_supdim1 > threshold_percentilesup1]
+print(filtered_cos2_supdim1)
+
+cos2_values_supdim2 <- res.mca_retouchingALL2$quali.sup$cos2[, 2]
+
+threshold_percentilesup2 <- quantile(cos2_values_supdim2, 0.75)
+
+print(threshold_percentilesup2)
+
+filtered_cos2_supdim2 <- cos2_values_supdim2[cos2_values_supdim2 > threshold_percentilesup2]
+print(filtered_cos2_supdim2)
+
+
+
+   
+```
+###correlation
+```{r}
+library(factoextra)
+
+coord_var5 <- as.data.frame(res.mca_retouchingALL2$var$coord[, 1:2])
+
+coord_sup5 <- as.data.frame(res.mca_retouchingALL2$quali.sup$coord[, 1:2])
+
+
+coord_combined5 <- rbind(coord_var5, coord_sup5)
+
+
+# Calculate distance matrix and visualize using VAT
+data.cor13 <- get_dist(coord_var5, method = "euclidean")
+print(data.cor13)
+data.cor13_df <- as.data.frame(as.matrix(data.cor13))
+write_xlsx(data.cor13_df, "CorrelationAttributesretouching1.xlsx")
+
+
+#heatmap
+corret1 <- fviz_dist(dist.obj = data.cor13, 
+                     order = TRUE, 
+                     show_labels = TRUE)+
+    theme_classic() +
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),
+    panel.background = element_rect(fill = "white", color = NA),
+    axis.text = element_text(size = 8, face = "bold", color = "black", family = "Arial"), 
+    axis.text.x = element_text(size = 8, family = "Arial", angle = 90, hjust = 1, vjust = 0.5), 
+    axis.text.y = element_text(size = 8, face = "bold", family = "Arial"), 
+    legend.text = element_text(size = 8, family = "Arial"), 
+    legend.title = element_blank(), 
+    axis.title.x = element_blank(), 
+    axis.title.y = element_blank()  
+  ) + 
+  scale_x_discrete(labels = function(x) gsub("-", "", x)) +   
+  scale_y_discrete(labels = function(y) gsub("-", "", y)) 
+corret1
+
+ggsave("CORRretouchingALL.tiff", plot = corret1, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+ggsave("SIFig62.tiff", plot = corret1, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")  
+
+data.cor14 <- get_dist(coord_combined5, method = "euclidean")
+data.cor14_df <- as.data.frame(as.matrix(data.cor14))
+write_xlsx(data.cor14_df, "CorrelationAttributesretouching2.xlsx")
+
+
+
+#heatmap
+corret2 <- fviz_dist(dist.obj = data.cor14, 
+                     order = TRUE, 
+                     show_labels = TRUE) +
+  theme_classic() +
+  theme(
+    plot.background = element_rect(fill = "white", color = NA),
+    panel.background = element_rect(fill = "white", color = NA),
+    axis.text = element_text(size = 8, face = "bold", color = "black", family = "Arial"), 
+    axis.text.x = element_text(size = 8, family = "Arial", angle = 90, hjust = 1, vjust = 0.5), 
+    axis.text.y = element_text(size = 8, face = "bold", family = "Arial"), 
+    legend.text = element_text(size = 8, family = "Arial"), 
+    legend.title = element_blank(), 
+    axis.title.x = element_blank(), 
+    axis.title.y = element_blank()  
+  ) + 
+  scale_x_discrete(labels = function(x) gsub("-", "", x)) +
+  scale_y_discrete(labels = function(y) gsub("-", "", y)) 
+
+corret2
+
+
+ggsave("CORRretouchingALL_withquali.tiff", plot = corret2, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+ggsave("SIFig63.tiff", plot = corret2, width = 19.05, height = 22.23, units = "cm", dpi = 300, compression = "lzw")
+
+
+```
+
