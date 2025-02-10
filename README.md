@@ -1,8 +1,8 @@
 ## Research Compendium for 'Tracking the emergence of the Upper Palaeolithic with Multiple Correspondence Analysis of Protoaurignacian and southern Ahmarian lithic assemblages '
 
-### Compendium DOI (TO BE UPDATED)
+### Compendium DOI
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10639552.svg)](https://doi.org/10.5281/zenodo.10639552)
+(TO BE UPDATED)
 
 The content available at the provided DOI reproduces the results as documented in the publication. The files hosted at <https://github.com/ArmandoFalcucci/EUP_Comparison> represent the developmental versions and might have undergone modifications since the paper's publication.
 
@@ -14,15 +14,11 @@ The content available at the provided DOI reproduces the results as documented i
 
 ### Published Paper
 
-**Jacopo Gennai, Armando Falcucci, Vincent Niochet, Marco Peresani, Jürgen Richter, Marie Soressi.** *Tracking the emergence of the Upper Palaeolithic with Multiple Correspondence Analysis of Protoaurignacian and southern Ahmarian lithic assemblages.* _Journal Name, Volume Number, Page Numbers_ (in preparation). DOI: [Insert DOI]
+**Jacopo Gennai, Armando Falcucci, Vincent Niochet, Marco Peresani, Jürgen Richter, Marie Soressi.** *Tracking the emergence of the Upper Palaeolithic with Multiple Correspondence Analysis of Protoaurignacian and southern Ahmarian lithic assemblages.* _Journal Name, Volume Number, Page Numbers_ (in preparation). DOI: [DOI]
 
 ### Abstract
 
-Reconstructing changes in human behaviour during the Pleistocene, particularly when based on lithic or other artefact types, is often hindered by the traditional categorisation of these materials into discrete entities. The Early Upper Paleolithic of Mediterranean Eurasia – comprising the Protoaurignacian, Early Aurignacian, Northern Ahmarian, and Southern Ahmarian technocomplexes – represents the first emergence of a pan-European cultural unit. However, this conventional categorisation into discrete entities likely obscures a deeper understanding of the dynamics of Homo sapiens' dispersal across Eurasia during this period. In this study, we apply Multiple Correspondence Analysis to assess patterns of reduction processes, technological variability, and inter-assemblage homogeneity across technocomplexes. Using the comprehensive dataset provided in this paper, we analyse variability by grouping it into three key domains: platform preparation, convexity management, and retouch. Solutrean Upper Paleolithic assemblages from the Iberian Peninsula are used as an outgroup. Our results confirm the distinctiveness of Early Upper Paleolithic technologies relative to Solutrean ones. More importantly, they reveal strong technological similarities between the Southern Ahmarian and the Protoaurignacian, particularly in bladelet production—a defining feature of Early Upper Paleolithic technology—and reinforce the role of bladelets as a primary production target. This study aims to establish a foundation for renewed efforts to understand hominin dispersal and interaction during this pivotal phase of prehistory, leveraging open-access databases, standardised protocols and continuous variability analysis in artefact manufacture.
-
-### Keywords
-
-**Early Upper Paleolithic**, **Western Eurasia**, **Lithic Technology**, **Multiple Correspondence Analysis**, **Open Science**.
+Reconstructing changes in human behaviour during the Pleistocene, particularly when based on lithic or other artefact types, is often hindered by the traditional categorisation of these materials into discrete entities. The Early Upper Paleolithic of Mediterranean Eurasia – comprising the Protoaurignacian, Early Aurignacian, Northern Ahmarian, and Southern Ahmarian technocomplexes – represents the first emergence of a pan-European cultural unit. However, this conventional categorisation into discrete entities obscures a deeper understanding of the dynamics of Homo sapiens' dispersal across Eurasia during this period. In this study, we apply Multiple Correspondence Analysis to assess patterns of reduction processes, technological variability, and inter-assemblage homogeneity across technocomplexes. Using the comprehensive dataset provided in this paper, we analyse variability by grouping it into three key domains: platform preparation, convexity management, and retouch. Solutrean Upper Paleolithic assemblages from the Iberian Peninsula are used as an outgroup. Our results confirm the distinctiveness of Early Upper Paleolithic technologies relative to Solutrean ones. More importantly, they reveal strong technological similarities between the Southern Ahmarian and the Protoaurignacian, particularly in bladelet production—a defining feature of Early Upper Paleolithic technology—and reinforce the role of bladelets as a primary production target. This study aims to establish a foundation for renewed efforts to understand hominin dispersal and interaction during this pivotal phase of prehistory, leveraging open-access databases, standardised protocols and continuous variability analysis in artefact manufacture.
 
 ### Dataset Attribution
 
@@ -37,11 +33,10 @@ The datasets used in this research come from the following sources:
 
 This repository contains data, code, and output files associated with the paper. The files are organized into the following directories:
 
-- **`data`**: Includes the complete datasets of the blanks.
-- **`script`**: Contains the R scripts for data analysis and visualization.
-- **`output`**: Houses the generated outputs from the analysis, including figures and tables.
-- **`supplementary-information`**: ...
-- **`preprint`**: ...
+- **`data`**: Contains the complete and derived datasets of the blanks.
+- **`script`**: Includes the R scripts for data analysis and visualization.
+- **`supporting-information`**: Stores Supporting Information files 1, 2, and 3, along with all the supporting figures.
+- **`preprint`**: Contains the preprint and the main figures.
 
 To replicate the results from the paper, follow these steps:
 
@@ -49,9 +44,9 @@ To replicate the results from the paper, follow these steps:
 2. Open the `EUP_Comparison.Rproj` R project file.
 3. Navigate to the `script` folder, where you will find the R scripts used for data reshaping, exploratory analysis, and Multiple Correspondence Analysis.
 
-For consistent results, the `renv` package (v. 1.0.3) was used, following the procedures outlined in its vignette. All analyses were performed using R 4.3.1 on Microsoft Windows 10.0.19045 (64-bit). Necessary packages are provided within the `renv` folder.
+For consistent results, the `renv` package (v. 1.0.3) was used, following the procedures outlined in its vignette. All analyses were performed using R 4.3.1 on Microsoft Windows 10 (64-bit). Necessary packages are provided within the `renv` folder.
 
 ### Licenses
 
-- **Code**: MIT License ([https://opensource.org/licenses/MIT](https://opensource.org/licenses/MIT)), copyright holders: **Jacopo Gennai** & **Armando Falcucci** (2025).
+- **Code**: MIT License ([https://opensource.org/licenses/MIT](https://opensource.org/licenses/MIT)), copyright holders: **Armando Falcucci** & **Jacopo Gennai** (2025).
 - **Data and Intellectual Work**: Creative Commons Attribution 4.0 International License ([https://creativecommons.org/licenses/by/4.0/](https://creativecommons.org/licenses/by/4.0/)), copyright holder: **the authors** (2025).
