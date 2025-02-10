@@ -2,7 +2,7 @@
 
 ### Compendium DOI
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10639552.svg)](https://doi.org/10.5281/zenodo.14843408)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14843408.svg)](https://doi.org/10.5281/zenodo.14843408)
 
 The content available at the provided DOI reproduces the results as documented in the publication. The files hosted at <https://github.com/ArmandoFalcucci/EUP_Comparison> represent the developmental versions and might have undergone modifications since the paper's publication.
 
