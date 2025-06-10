@@ -11,7 +11,7 @@ knitr::opts_chunk$set(eval = FALSE)
 
 # Introduction
 
-This is an R Markdown document containing the Rcode and workflow for the "reference_article". This section is dedicated to datasets merging and reshaping
+This is an R Markdown document containing the Rcode and workflow for the Tracking the emergence of the Upper Palaeolithic in western Asia and Europe: a Multiple Correspondence Analysis of Protoaurignacian and southern Ahmarian lithics article. This section is dedicated to datasets merging and reshaping
 
 # Datasets
 

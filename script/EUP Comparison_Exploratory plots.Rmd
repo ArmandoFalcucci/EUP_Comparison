@@ -10,7 +10,7 @@ knitr::opts_chunk$set(eval = FALSE)
 ```
 # Introduction
 
-This is an R Markdown document containing the Rcode and workflow for the "reference_article". This section is dedicated to exploratory plots
+This is an R Markdown document containing the Rcode and workflow for the Tracking the emergence of the Upper Palaeolithic in western Asia and Europe: a Multiple Correspondence Analysis of Protoaurignacian and southern Ahmarian lithics article. This section is dedicated to exploratory plots
 
 # Datasets
 
@@ -1862,21 +1862,23 @@ histowidthLaminar <- ggplot(balanced_data, aes(x = Width, color = "Medians and T
 histowidthLaminar
 
 #mode
-calculate_mode_bin <- function(data) {
-  hist_info <- hist(data$Width, breaks = 30, plot = FALSE)
-  max_bin_index <- which.max(hist_info$counts)
-  bin_start <- hist_info$breaks[max_bin_index]
-  bin_end <- hist_info$breaks[max_bin_index + 1]
-  mode_value <- (bin_start + bin_end) / 2
-  return(data.frame(Site_F = unique(data$Site_F), Mode = mode_value))
-}
+# Create bins of 1 mm width and count how many Width values fall in each bin per Site_F
+binned_freq <- balanced_data %>%
+  mutate(Bin = cut(Width, breaks = seq(floor(min(Width, na.rm = TRUE)),
+                                       ceiling(max(Width, na.rm = TRUE)),
+                                       by = 1),
+                   include.lowest = TRUE, right = FALSE)) %>%
+  group_by(Site_F, Bin) %>%
+  summarise(Frequency = n(), .groups = "drop") %>%
+  arrange(Site_F, Bin)
 
-# Calculate the mode bin for each site
-mode_data <- balanced_data %>%
+# View the result
+print(binned_freq)
+
+mode_bins <- binned_freq %>%
   group_by(Site_F) %>%
-  group_split() %>%
-  lapply(calculate_mode_bin) %>%
-  bind_rows()
+  slice_max(order_by = Frequency, n = 1, with_ties = FALSE) %>%
+  ungroup()
 
 # Group by site and calculate median width for Blade
 median_blade <- balanced_data %>%
